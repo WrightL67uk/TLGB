@@ -44,7 +44,7 @@ const Base = z.object({
   el_expiry: z.preprocess(blankToUndef, z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()),
   declaration: z.literal(true, { message: 'You must confirm the declaration' }),
   files: z.array(FileMeta).max(20),
-  company_fax: z.string().optional(), // honeypot
+  hp_check: z.string().optional(), // honeypot
 });
 
 const Schema = z.discriminatedUnion('business_type', [
@@ -77,7 +77,7 @@ const ext = (name: string) => (name.split('.').pop() ?? 'bin').toLowerCase().rep
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body) return fail('Could not read the form. Please try again.');
-  if (body.company_fax) return NextResponse.json({ ok: true, id: null, uploads: [] }); // bot
+  if (body.hp_check) { console.warn('honeypot hit', { email: body.email, name: body.trading_name }); return NextResponse.json({ ok: true, id: null, uploads: [] }); } // bot
 
   const parsed = Schema.safeParse(body);
   if (!parsed.success) {
