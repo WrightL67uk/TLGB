@@ -189,3 +189,56 @@ export async function emailAdminChanges(
     kind === 'resubmitted' ? 'admin-resubmitted' : 'admin-changes'
   );
 }
+
+export type ExpiryNotice = { label: string; expiry: string; stage: '30d' | '7d' | 'expired'; days: number };
+
+const ukDate = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC' });
+
+/** Daily reminder to a trade about insurance or accreditations running out. One email per listing per day. */
+export async function emailTradeExpiries(
+  b: { id: string; email: string; contactName: string; tradingName: string },
+  items: ExpiryNotice[]
+) {
+  const expired = items.filter((i) => i.stage === 'expired');
+  const subject = expired.length
+    ? `Action needed: ${expired.map((i) => i.label).join(', ')} expired`
+    : `Reminder: ${items.map((i) => i.label).join(', ')} due to expire`;
+  const lines = items
+    .map((i) =>
+      i.stage === 'expired'
+        ? `<li><strong>${esc(i.label)}</strong> expired on ${ukDate(i.expiry)}.${i.label.includes('liability') ? ' Your listing is hidden from search until you update it.' : ' It no longer shows on your listing.'}</li>`
+        : `<li><strong>${esc(i.label)}</strong> expires on ${ukDate(i.expiry)} (${i.days === 0 ? 'today' : `in ${i.days} day${i.days === 1 ? '' : 's'}`}).</li>`
+    )
+    .join('');
+  await send(
+    b.email,
+    subject,
+    `<p>Hi ${esc(b.contactName)},</p>
+<p>This is about your listing for <strong>${esc(b.tradingName)}</strong> on The Little Green Book.</p>
+<ul>${lines}</ul>
+<p>When you have renewed, log in, upload the new certificate and enter the new expiry date. We will check it and your listing carries on as normal.</p>
+<p><a href="${siteUrl()}/login" style="display:inline-block;background:#111;color:#fff;padding:10px 18px;text-decoration:none;border-radius:4px">Update my listing</a></p>`,
+    'expiry-reminder'
+  );
+}
+
+/** Daily round-up for admins of everything that hit a reminder stage today. */
+export async function emailAdminExpiries(rows: { id: string; tradingName: string; items: ExpiryNotice[] }[]) {
+  if (!rows.length) return;
+  const admins = (process.env.ADMIN_EMAILS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  const expiredCount = rows.reduce((n, r) => n + r.items.filter((i) => i.stage === 'expired').length, 0);
+  const body = rows
+    .map(
+      (r) => `<p><a href="${siteUrl()}/admin/${r.id}"><strong>${esc(r.tradingName)}</strong></a><br>${r.items
+        .map((i) => `${esc(i.label)}: ${i.stage === 'expired' ? `<strong>expired ${ukDate(i.expiry)}</strong>` : `expires ${ukDate(i.expiry)} (${i.days} days)`}`)
+        .join('<br>')}</p>`
+    )
+    .join('');
+  await send(
+    admins,
+    `Expiry flags: ${rows.length} listing${rows.length === 1 ? '' : 's'}${expiredCount ? `, ${expiredCount} expired` : ''}`,
+    `<p>These listings hit a reminder point today. The trades have been emailed too.</p>${body}
+<p><a href="${siteUrl()}/admin?status=expiring">See everything due in the next 30 days</a></p>`,
+    'admin-expiries'
+  );
+}
