@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { db } from '@/lib/supabase';
+import { expiryItems, daysUntil, fmtDate, type Expiries } from '@/lib/expiries';
 
 export const dynamic = 'force-dynamic';
 
 const TABS = [
   { key: 'pending_review', label: 'Awaiting approval' },
   { key: 'recheck', label: 'Changes to check' },
+  { key: 'expiring', label: 'Expiring or expired' },
   { key: 'approved', label: 'Approved' },
   { key: 'rejected', label: 'Rejected' },
   { key: 'suspended', label: 'Suspended' },
@@ -15,10 +17,27 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
   const { status: s } = await searchParams;
   const status = TABS.some((t) => t.key === s) ? s! : 'pending_review';
 
+  // Approved listings with insurance or an accreditation due within 30 days, or already expired
+  const { data: live } = await db()
+    .from('businesses')
+    .select('id, created_at, trading_name, business_type, company_number, base_postcode, email, pl_expiry, el_expiry, el_cover_amount, accreditations, accreditation_expiries')
+    .eq('status', 'approved')
+    .limit(2000);
+  const expiring = (live ?? [])
+    .map((b) => {
+      const due = expiryItems({ ...b, accreditation_expiries: b.accreditation_expiries as Expiries })
+        .map((i) => ({ ...i, days: daysUntil(i.expiry) }))
+        .filter((i) => i.days <= 30)
+        .sort((x, y) => x.days - y.days);
+      return { ...b, due };
+    })
+    .filter((b) => b.due.length > 0)
+    .sort((x, y) => x.due[0].days - y.due[0].days);
+
   // "recheck" is approved listings with changes waiting for a look; the rest are statuses
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const scope = (q: any, key: string) =>
-    key === 'recheck' ? q.eq('status', 'approved').eq('recheck_required', true) : q.eq('status', key);
+    key === 'recheck' ? q.eq('status', 'approved').eq('recheck_required', true) : q.eq('status', key === 'expiring' ? '__none__' : key);
 
   const [{ data: rows }, counts]: [{ data: { id: string; created_at: string; trading_name: string; business_type: string; company_number: string | null; base_postcode: string; email: string; pl_expiry: string | null }[] | null }, Record<string, number>] = await Promise.all([
     scope(
@@ -32,7 +51,7 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
     Promise.all(
       TABS.map(async (t) => {
         const { count } = await scope(db().from('businesses').select('id', { count: 'exact', head: true }), t.key);
-        return [t.key, count ?? 0] as const;
+        return [t.key, t.key === 'expiring' ? expiring.length : count ?? 0] as const;
       })
     ).then((x) => Object.fromEntries(x)),
   ]);
@@ -48,7 +67,25 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
         ))}
       </nav>
 
-      {!rows?.length ? (
+      {status === 'expiring' ? (
+        !expiring.length ? <p className="muted">Nothing due in the next 30 days.</p> : (
+          <table className="table">
+            <thead><tr><th>Business</th><th>Due</th></tr></thead>
+            <tbody>
+              {expiring.map((b) => (
+                <tr key={b.id}>
+                  <td><Link href={`/admin/${b.id}`}>{b.trading_name}</Link><br /><span className="muted small">{b.email}</span></td>
+                  <td>{b.due.map((i) => (
+                    <div key={i.key} className={i.days < 0 ? 'warn' : ''}>
+                      {i.label}: {i.days < 0 ? `expired ${fmtDate(i.expiry)}` : `${fmtDate(i.expiry)} (${i.days} days)`}
+                    </div>
+                  ))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )
+      ) : !rows?.length ? (
         <p className="muted">Nothing here.</p>
       ) : (
         <table className="table">
