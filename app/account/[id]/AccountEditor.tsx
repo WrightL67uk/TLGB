@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { browserDb } from '@/lib/supabaseBrowser';
+import { uploadToSignedUrl } from '@/lib/supabaseBrowser';
 import { ACCREDITATIONS, TRADES, TURNOVER_BANDS, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
 
 type FileField = 'letterhead' | 'pl_certificate' | 'el_certificate' | 'accreditation_docs' | 'photos';
@@ -79,11 +79,9 @@ export default function AccountEditor({ b, docs, photos }: Props) {
       const meta = files.map((f) => ({ field, name: f.name, type: f.type, size: f.size }));
       const prep = await post('/api/account/uploads', { businessId: b.id, files: meta });
       if (!prep.ok) throw new Error(prep.error);
-      const uploads: { index: number; bucket: string; path: string; token: string }[] = prep.uploads;
+      const uploads: { index: number; path: string; signedUrl: string }[] = prep.uploads;
       for (const u of uploads) {
-        const f = files[u.index];
-        const { error } = await browserDb().storage.from(u.bucket).uploadToSignedUrl(u.path, u.token, f, { contentType: f.type });
-        if (error) throw new Error(`Upload failed for ${f.name}. Try again.`);
+        await uploadToSignedUrl(u.signedUrl, files[u.index]);
       }
       const done = await post('/api/account/uploads/complete', {
         businessId: b.id,
