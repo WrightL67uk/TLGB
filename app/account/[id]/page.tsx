@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { db, photoUrl } from '@/lib/supabase';
 import { ownedBusiness, DOC_TYPE_LABEL } from '@/lib/account';
 import AccountEditor from './AccountEditor';
+import { expiryItems, daysUntil, fmtDate } from '@/lib/expiries';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'My listing | TLGB' };
@@ -63,6 +64,17 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
         {plDays !== null && plDays >= 0 && plDays <= 30 && (
           <p className="warn">Your public liability insurance expires on {fmt(b.pl_expiry!)}. Upload your renewed certificate before then to stay listed.</p>
         )}
+        {expiryItems(b).filter((i) => i.key !== 'public_liability').map((i) => {
+          const days = daysUntil(i.expiry);
+          if (days > 30) return null;
+          return (
+            <p className="warn" key={i.key}>
+              {days < 0
+                ? <>{i.label} expired on {fmtDate(i.expiry)}{i.key.startsWith('acc:') ? ', so it no longer shows on your listing' : ''}. Upload the renewed certificate under Documents and enter the new date below.</>
+                : <>{i.label} expires on {fmtDate(i.expiry)}. Upload the renewed certificate under Documents and enter the new date below.</>}
+            </p>
+          );
+        })}
       </section>
 
       <AccountEditor
@@ -82,6 +94,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           radius_miles: b.radius_miles,
           trades: b.trades,
           accreditations: b.accreditations,
+          accreditation_expiries: b.accreditation_expiries ?? {},
           turnover_band: b.turnover_band ?? '',
           pl_cover_amount: b.pl_cover_amount ?? '',
           pl_expiry: b.pl_expiry ?? '',
