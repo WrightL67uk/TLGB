@@ -1,3 +1,4 @@
+import { cleanAccreditationExpiries } from '@/lib/expiries';
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash, randomBytes } from 'crypto';
 import { z } from 'zod';
@@ -37,6 +38,7 @@ const Base = z.object({
   radius_miles: z.coerce.number().int().min(5).max(300),
   trades: z.array(z.enum(tradeSlugs)).min(1, 'Pick at least one trade'),
   accreditations: z.array(z.enum(ACCREDITATIONS)).default([]),
+  accreditation_expiries: z.record(z.string(), z.string()).default({}),
   turnover_band: z.enum(bandKeys, { message: 'Choose your annual turnover' }),
   pl_cover_amount: z.coerce.number().int().positive(),
   pl_expiry: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Enter the policy expiry date'),
@@ -101,6 +103,8 @@ export async function POST(req: NextRequest) {
 
   const today = new Date().toISOString().slice(0, 10);
   if (d.pl_expiry < today) return fail('Your public liability insurance has expired. Upload a current certificate.');
+  const accExp = cleanAccreditationExpiries(d.accreditations, d.accreditation_expiries);
+  if (!accExp.ok) return fail(accExp.error);
 
   // ---- Postcode
   const pc = await lookupPostcode(d.base_postcode);
@@ -148,6 +152,7 @@ export async function POST(req: NextRequest) {
       radius_miles: d.radius_miles,
       trades: d.trades,
       accreditations: d.accreditations,
+      accreditation_expiries: accExp.value,
       turnover_band: d.turnover_band,
       pl_cover_amount: d.pl_cover_amount,
       pl_expiry: d.pl_expiry,
