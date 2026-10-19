@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { browserDb } from '@/lib/supabaseBrowser';
+import { uploadToSignedUrl } from '@/lib/supabaseBrowser';
 import { ACCREDITATIONS, TRADES, TURNOVER_BANDS, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
 
 type CompanyInfo = { name: string; status: string; incorporatedOn: string | null; registeredAddress: string; companyNumber: string };
@@ -95,13 +95,10 @@ export default function JoinForm() {
       if (!json.ok) throw new Error(json.error ?? 'Something went wrong');
       if (!json.id) return router.push('/join/thanks');
 
-      const uploads: { index: number; bucket: string; path: string; token: string }[] = json.uploads;
+      const uploads: { index: number; signedUrl: string }[] = json.uploads;
       for (const [n, u] of uploads.entries()) {
         setProgress(`Uploading file ${n + 1} of ${uploads.length}...`);
-        const { error: upErr } = await browserDb()
-          .storage.from(u.bucket)
-          .uploadToSignedUrl(u.path, u.token, files[u.index].file, { contentType: files[u.index].file.type });
-        if (upErr) throw new Error(`Upload failed for ${files[u.index].file.name}. Please try again.`);
+        await uploadToSignedUrl(u.signedUrl, files[u.index].file);
       }
 
       setProgress('Submitting...');
