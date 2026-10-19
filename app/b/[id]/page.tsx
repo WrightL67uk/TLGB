@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { db, photoUrl } from '@/lib/supabase';
 import { gbp, tradeLabel } from '@/lib/config';
+import { liveAccreditations, fmtDate } from '@/lib/expiries';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +11,7 @@ export default async function BusinessPage({ params }: { params: Promise<{ id: s
 
   const { data: b } = await db()
     .from('businesses')
-    .select('id, trading_name, business_type, company_number, trades, accreditations, pl_cover_amount, pl_expiry, el_cover_amount, contact_name, email, phone, website, description, base_postcode, radius_miles, status, founding_member, subscription_status')
+    .select('id, trading_name, business_type, company_number, trades, accreditations, accreditation_expiries, pl_cover_amount, pl_expiry, el_cover_amount, contact_name, email, phone, website, description, base_postcode, radius_miles, status, founding_member, subscription_status')
     .eq('id', id)
     .maybeSingle();
 
@@ -28,7 +29,9 @@ export default async function BusinessPage({ params }: { params: Promise<{ id: s
         </span>
         <span className="badge ok">Public liability {gbp(b.pl_cover_amount)} to {new Date(b.pl_expiry).toLocaleDateString('en-GB')}</span>
         {b.el_cover_amount && <span className="badge">Employers liability {gbp(b.el_cover_amount)}</span>}
-        {b.accreditations.map((a: string) => <span className="badge" key={a}>{a}</span>)}
+        {liveAccreditations(b.accreditations, b.accreditation_expiries).map((a) => (
+          <span className="badge" key={a}>{a}{b.accreditation_expiries?.[a] ? ` to ${fmtDate(b.accreditation_expiries[a])}` : ''}</span>
+        ))}
       </p>
 
       {b.description && <p style={{ whiteSpace: 'pre-line' }}>{b.description}</p>}
