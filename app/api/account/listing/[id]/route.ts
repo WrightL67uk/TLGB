@@ -1,3 +1,4 @@
+import { cleanAccreditationExpiries, fmtDate } from '@/lib/expiries';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/supabase';
@@ -25,6 +26,7 @@ const Schema = z.object({
   radius_miles: z.coerce.number().int().min(5).max(300),
   trades: z.array(z.enum(tradeSlugs)).min(1, 'Pick at least one trade'),
   accreditations: z.array(z.enum(ACCREDITATIONS)).default([]),
+  accreditation_expiries: z.record(z.string(), z.string()).default({}),
   turnover_band: z.enum(bandKeys, { message: 'Choose your annual turnover' }),
   pl_cover_amount: z.coerce.number().int().positive(),
   pl_expiry: date,
@@ -61,6 +63,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (b.business_type === 'sole_trader' && !d.business_address) return fail('Business address: sole traders must give one.');
   const today = new Date().toISOString().slice(0, 10);
   if (d.pl_expiry < today) return fail('Your public liability insurance has expired. Upload your new certificate and enter its expiry date.');
+  // Past dates are allowed here so an expired accreditation doesn't block other edits; it just stops showing.
+  const accExp = cleanAccreditationExpiries(d.accreditations, d.accreditation_expiries, { allowPast: true });
+  if (!accExp.ok) return fail(accExp.error);
 
   // ---- Postcode: only look it up again if it changed
   let lat = b.lat, lng = b.lng, postcode = b.base_postcode;
@@ -75,6 +80,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (d.trading_name !== b.trading_name) changes.push(`Trading name changed to "${d.trading_name}"`);
   if (!sameSet(d.trades, b.trades)) changes.push('Trades changed');
   if (!sameSet(d.accreditations, b.accreditations)) changes.push('Accreditations changed');
+  const oldExp = b.accreditation_expiries ?? {};
+  const renewed = d.accreditations.filter((a) => accExp.value[a] && oldExp[a] && accExp.value[a] !== oldExp[a]);
+  if (renewed.length) changes.push(`New expiry dates: ${renewed.map((a) => `${a} to ${fmtDate(accExp.value[a])}`).join(', ')}`);
   const plChanged = d.pl_cover_amount !== b.pl_cover_amount || d.pl_expiry !== b.pl_expiry;
   if (plChanged) changes.push(`Public liability now ${gbp(d.pl_cover_amount)} to ${new Date(d.pl_expiry).toLocaleDateString('en-GB')}`);
   if ((d.el_cover_amount ?? null) !== b.el_cover_amount || (d.el_expiry ?? null) !== b.el_expiry) changes.push('Employers liability changed');
@@ -108,6 +116,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       radius_miles: d.radius_miles,
       trades: d.trades,
       accreditations: d.accreditations,
+      accreditation_expiries: accExp.value,
       turnover_band: d.turnover_band,
       pl_cover_amount: d.pl_cover_amount,
       pl_expiry: d.pl_expiry,
