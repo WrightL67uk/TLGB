@@ -3,7 +3,8 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadToSignedUrl } from '@/lib/supabaseBrowser';
-import { ACCREDITATIONS, TRADES, TURNOVER_BANDS, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
+import AccreditationPicker, { readAccreditationExpiries } from '@/app/AccreditationPicker';
+import { TRADES, TURNOVER_BANDS, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
 
 type FileField = 'letterhead' | 'pl_certificate' | 'el_certificate' | 'accreditation_docs' | 'photos';
 type Msg = { kind: 'ok' | 'err'; text: string } | null;
@@ -12,7 +13,7 @@ type Props = {
   b: {
     id: string; status: string; business_type: 'ltd' | 'sole_trader'; company_number: string | null; email: string;
     trading_name: string; contact_name: string; phone: string; website: string; business_address: string; description: string;
-    base_postcode: string; radius_miles: number; trades: string[]; accreditations: string[]; turnover_band: string;
+    base_postcode: string; radius_miles: number; trades: string[]; accreditations: string[]; accreditation_expiries: Record<string, string>; turnover_band: string;
     pl_cover_amount: number | ''; pl_expiry: string; el_cover_amount: number | ''; el_expiry: string;
   };
   docs: { id: string; label: string; fileName: string; date: string }[];
@@ -52,6 +53,7 @@ export default function AccountEditor({ b, docs, photos }: Props) {
       radius_miles: fd.get('radius_miles'),
       trades: fd.getAll('trades'),
       accreditations: fd.getAll('accreditations'),
+      accreditation_expiries: readAccreditationExpiries(fd),
       turnover_band: fd.get('turnover_band'),
       pl_cover_amount: fd.get('pl_cover_amount'),
       pl_expiry: fd.get('pl_expiry'),
@@ -193,13 +195,7 @@ export default function AccountEditor({ b, docs, photos }: Props) {
             <label htmlFor="el_expiry">Expiry<input id="el_expiry" type="date" name="el_expiry" defaultValue={b.el_expiry} /></label>
           </div>
           <p className="hint">Accreditations you hold</p>
-          <div className="checks">
-            {ACCREDITATIONS.map((a) => (
-              <label key={a} className="check" htmlFor={`acc-${a}`}>
-                <input id={`acc-${a}`} type="checkbox" name="accreditations" value={a} defaultChecked={b.accreditations.includes(a)} /> {a}
-              </label>
-            ))}
-          </div>
+          <AccreditationPicker defaultSelected={b.accreditations} defaultExpiries={b.accreditation_expiries} />
         </fieldset>
 
         {!locked && (
