@@ -80,7 +80,7 @@ export default function JoinForm() {
       el_cover_amount: fd.get('el_cover_amount'),
       el_expiry: fd.get('el_expiry'),
       declaration: fd.get('declaration') === 'on',
-      company_fax: fd.get('company_fax'),
+      hp_check: fd.get('tlgb_hp_zq'),
       files: files.map(({ field, file }) => ({ field, name: file.name, type: file.type, size: file.size })),
     };
 
@@ -119,7 +119,7 @@ export default function JoinForm() {
   return (
     <form onSubmit={onSubmit} className="form">
       {/* Honeypot */}
-      <input type="text" name="company_fax" tabIndex={-1} autoComplete="off" className="hp" aria-hidden />
+      <input type="text" name="tlgb_hp_zq" id="tlgb_hp_zq" tabIndex={-1} autoComplete="off" data-lpignore="true" data-1p-ignore className="hp" aria-hidden />
 
       <fieldset>
         <legend>1. Your business</legend>
