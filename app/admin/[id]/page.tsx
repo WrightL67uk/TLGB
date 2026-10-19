@@ -2,6 +2,14 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db, photoUrl } from '@/lib/supabase';
 import { gbp, tradeLabel, turnoverBand } from '@/lib/config';
+import { daysUntil, fmtDate } from '@/lib/expiries';
+
+// Where to confirm each scheme by hand. None of them offer a public API.
+function checkLink(accreditation: string, name: string) {
+  const q = encodeURIComponent(name);
+  if (/^(CHAS|SMAS|SafeContractor|Acclaim|Constructionline)/.test(accreditation)) return 'https://www.ssipportal.org.uk/';
+  return `https://www.google.com/search?q=${q}+${encodeURIComponent(accreditation)}`;
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -107,7 +115,23 @@ export default async function AdminDetail({
           <p>Public liability {gbp(b.pl_cover_amount)}, expires {b.pl_expiry && new Date(b.pl_expiry).toLocaleDateString('en-GB')}
             {plExpired && <span className="warn"> EXPIRED</span>}</p>
           <p>Employers liability {b.el_cover_amount ? `${gbp(b.el_cover_amount)}, expires ${b.el_expiry ? new Date(b.el_expiry).toLocaleDateString('en-GB') : 'not given'}` : 'not provided'}</p>
-          <p>Accreditations claimed: {b.accreditations.length ? b.accreditations.join(', ') : 'none'}</p>
+          <p>Accreditations claimed: {b.accreditations.length ? '' : 'none'}</p>
+          {b.accreditations.length > 0 && (
+            <ul className="docs">
+              {b.accreditations.map((a: string) => {
+                const e = b.accreditation_expiries?.[a];
+                const days = e ? daysUntil(e) : null;
+                return (
+                  <li key={a}>
+                    {a}: {e ? `expires ${fmtDate(e)}` : 'no expiry given'}
+                    {days !== null && days < 0 && <span className="warn"> EXPIRED</span>}
+                    {days !== null && days >= 0 && days <= 30 && <span className="warn"> expires in {days} days</span>}
+                    {' '}<a href={checkLink(a, b.ch_company_name ?? b.trading_name)} target="_blank" rel="noopener" className="small">Check</a>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </section>
 
         <section className="panel">
