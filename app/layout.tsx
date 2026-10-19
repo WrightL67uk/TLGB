@@ -17,7 +17,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <header className="top">
           <Link href="/" className="brand">TLGB<span>The Little Green Book</span></Link>
           <nav>
-            <Link href="/">Search</Link>
+            <Link href="/search">Search</Link>
             {loggedIn
               ? <Link href="/account">My listing</Link>
               : <Link href="/login">Log in</Link>}
