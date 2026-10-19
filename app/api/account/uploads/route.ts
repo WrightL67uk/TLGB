@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const uploads: { index: number; bucket: string; path: string; token: string }[] = [];
+  const uploads: { index: number; bucket: string; path: string; signedUrl: string }[] = [];
   for (const [index, f] of files.entries()) {
     const isPhoto = f.field === 'photos';
     const bucket = isPhoto ? 'portfolio' : 'documents';
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       : `${b.id}/${DOC_FIELD_TYPE[f.field]}-${crypto.randomUUID()}.${ext(f.name)}`;
     const signed = await db().storage.from(bucket).createSignedUploadUrl(path);
     if (signed.error) return fail('Could not prepare your upload. Try again.', 500);
-    uploads.push({ index, bucket, path, token: signed.data.token });
+    uploads.push({ index, bucket, path, signedUrl: signed.data.signedUrl });
   }
 
   return NextResponse.json({ ok: true, uploads });
