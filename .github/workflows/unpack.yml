@@ -1,0 +1,21 @@
+name: Unpack TLGB code
+on:
+  push:
+    paths:
+      - tlgb-src.zip
+permissions:
+  contents: write
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip and commit
+        run: |
+          unzip -o tlgb-src.zip
+          rm tlgb-src.zip
+          git config user.name "tlgb-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Add The Little Green Book site code"
+          git push
