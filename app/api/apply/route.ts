@@ -164,7 +164,7 @@ export async function POST(req: NextRequest) {
   const id = biz.id as string;
 
   // ---- Signed upload URLs + expected file rows
-  const uploads: { index: number; bucket: string; path: string; token: string }[] = [];
+  const uploads: { index: number; bucket: string; path: string; signedUrl: string }[] = [];
   try {
     let photoOrder = 0;
     for (const [index, f] of d.files.entries()) {
@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
 
       const signed = await db().storage.from(bucket).createSignedUploadUrl(path);
       if (signed.error) throw signed.error;
-      uploads.push({ index, bucket, path, token: signed.data.token });
+      uploads.push({ index, bucket, path, signedUrl: signed.data.signedUrl });
 
       const ins = isPhoto
         ? await db().from('business_photos').insert({ business_id: id, storage_path: path, sort_order: photoOrder++ })
