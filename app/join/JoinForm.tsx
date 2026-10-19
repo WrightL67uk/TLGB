@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadToSignedUrl } from '@/lib/supabaseBrowser';
-import { ACCREDITATIONS, TRADES, TURNOVER_BANDS, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
+import AccreditationPicker, { readAccreditationExpiries } from '@/app/AccreditationPicker';
+import { TRADES, TURNOVER_BANDS, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
 
 type CompanyInfo = { name: string; status: string; incorporatedOn: string | null; registeredAddress: string; companyNumber: string };
 type FileField = 'letterhead' | 'pl_certificate' | 'el_certificate' | 'accreditation_docs' | 'photos';
@@ -75,6 +76,7 @@ export default function JoinForm() {
       turnover_band: band,
       trades: fd.getAll('trades'),
       accreditations: fd.getAll('accreditations'),
+      accreditation_expiries: readAccreditationExpiries(fd),
       pl_cover_amount: fd.get('pl_cover_amount'),
       pl_expiry: fd.get('pl_expiry'),
       el_cover_amount: fd.get('el_cover_amount'),
@@ -249,11 +251,7 @@ export default function JoinForm() {
             </details>
 
             <p className="hint">Accreditations you hold</p>
-            <div className="checks">
-              {ACCREDITATIONS.map((a) => (
-                <label key={a} className="check"><input type="checkbox" name="accreditations" value={a} /> {a}</label>
-              ))}
-            </div>
+            <AccreditationPicker />
             <label>Accreditation certificates (optional, select several)
               <input type="file" name="accreditation_docs" multiple accept=".pdf,image/jpeg,image/png" />
             </label>
