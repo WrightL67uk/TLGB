@@ -11,7 +11,7 @@ export default function ThanksPage() {
         Not seeing our email? Check your junk folder, and add{' '}
         <strong>{process.env.EMAIL_FROM ?? 'our address'}</strong> to your contacts so our approval email reaches your inbox.
       </p>
-      <p><Link href="/">Back to search</Link></p>
+      <p><Link href="/">Back to the home page</Link></p>
     </div>
   );
 }
