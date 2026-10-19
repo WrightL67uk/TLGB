@@ -2,7 +2,7 @@ name: Unpack TLGB code
 on:
   push:
     paths:
-      - tlgb-src.zip
+      - tlgb-src.tar.xz
 permissions:
   contents: write
 jobs:
@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Unzip and commit
+      - name: Unpack and commit
         run: |
-          unzip -o tlgb-src.zip
-          rm tlgb-src.zip
+          tar -xJf tlgb-src.tar.xz
+          rm tlgb-src.tar.xz
           git config user.name "tlgb-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
