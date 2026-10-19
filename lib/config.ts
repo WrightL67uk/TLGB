@@ -15,6 +15,9 @@ export const ACCREDITATIONS = [
   'ISO 45001',
 ] as const;
 
+// Personal qualifications that often have no expiry date. Everything else must give one.
+export const ACCREDITATIONS_WITHOUT_EXPIRY = ['Lantra', 'NPTC'] as const;
+
 // Keep in step with the trade_categories seed in supabase/schema.sql
 export const TRADES: { slug: string; label: string }[] = [
   { slug: 'landscaper', label: 'Landscaper' },
