@@ -22,6 +22,7 @@ export type Business = {
   radius_miles: number;
   trades: string[];
   accreditations: string[];
+  accreditation_expiries: Record<string, string> | null;
   turnover_band: string | null;
   pl_cover_amount: number | null;
   pl_expiry: string | null;
