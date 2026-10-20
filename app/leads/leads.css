@@ -1,0 +1,12 @@
+/* Lead types: tabs and badges */
+.seg.seg-wrap { flex-wrap: wrap; flex-basis: 100%; gap: 6px; border: none; overflow: visible; }
+.seg.seg-wrap a { border: 2px solid var(--forest); border-radius: 2px; padding: 7px 12px; font-size: .95rem; }
+.seg-n { font-weight: 400; opacity: .75; margin-left: 2px; }
+.badge.kind { font-weight: 700; color: #fff; }
+.badge.kind-tender { background: var(--green); }
+.badge.kind-pipeline { background: var(--teal); }
+.badge.kind-award { background: var(--rust); }
+.badge.kind-planning { background: var(--forest); }
+.badge.kind-trees { background: #5b7a2b; }
+.lead-who { margin: 4px 0 8px; color: #333; }
+.lead-foot a.small { margin-left: 4px; }

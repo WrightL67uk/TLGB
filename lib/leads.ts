@@ -2,29 +2,48 @@ import 'server-only';
 import { db } from './supabase';
 
 /**
- * Leads: public sector tenders pulled from the free government open-data feeds.
+ * Leads, all from free public sources, gathered every morning.
  *
+ * Public tenders (Open Contracting Data Standard, one parser for all):
  *  - Find a Tender (UK-wide, larger contracts)        www.find-tender.service.gov.uk
  *  - Contracts Finder (England, contracts over ~£12k)  www.contractsfinder.service.gov.uk
  *  - Public Contracts Scotland                         api.publiccontractsscotland.gov.uk
  *  - Sell2Wales                                        api.sell2wales.gov.wales
+ *  From these we take open tenders for our trades, upcoming tenders (planning notices) for
+ *  our trades, and contract awards for building and civils jobs over £1m, because the main
+ *  contractor that won will need landscaping, groundworks and fencing subcontractors.
  *
- * All four publish in the Open Contracting Data Standard (OCDS), so one parser handles them.
- * Only notices that look like our trades are kept, matched on CPV code first and then
- * on keywords in the title and description.
+ * Planning applications, from every UK council register, via UK PlanIt (www.planit.org.uk):
+ *  - medium and large developments (every one has external works and landscaping)
+ *  - landscaping and tree conditions being discharged (the planting is about to happen)
+ *  - tree works applications (TPO and conservation area trees)
  */
 
-export type LeadSource = 'fts' | 'cf' | 'pcs' | 's2w';
+export type LeadSource = 'fts' | 'cf' | 'pcs' | 's2w' | 'planit';
 export const SOURCE_LABEL: Record<LeadSource, string> = {
   fts: 'Find a Tender',
   cf: 'Contracts Finder',
   pcs: 'Public Contracts Scotland',
   s2w: 'Sell2Wales',
+  planit: 'the council planning register (via UK PlanIt)',
+};
+
+export type LeadKind = 'tender' | 'pipeline' | 'award' | 'planning' | 'trees';
+export const KIND_LABEL: Record<LeadKind, string> = {
+  tender: 'Open tenders',
+  pipeline: 'Coming up',
+  award: 'Contractor wins',
+  planning: 'Planning',
+  trees: 'Tree works',
 };
 
 export type LeadRow = {
   source: LeadSource;
   source_id: string;
+  kind: LeadKind;
+  contractor: string | null;
+  status: string | null;
+  meta: Record<string, string>;
   title: string;
   description: string | null;
   buyer: string | null;
@@ -83,7 +102,17 @@ const KEYWORD_TRADES: [RegExp, string[]][] = [
   [/\bgritting\b|\bwinter (maintenance|service)\b|\bsnow (clearance|clearing)\b/i, ['gritting']],
   [/\bgroundworks?\b/i, ['groundworks']],
   [/\bplanting\b|\bhorticultur/i, ['landscaper', 'grounds-maintenance']],
+  [/\bexternal works\b/i, ['landscaper', 'hard-landscaping', 'groundworks']],
+  [/\bSuDS\b|\bsustainable drainage\b|\brain gardens?\b|\bswales?\b/i, ['landscaper', 'groundworks']],
+  [/\bbiodiversity net gain\b|\bBNG\b|\bhabitat (creation|enhancement|management)\b|\bwildflower|\bwoodland (creation|management|planting)\b|\bmeadows?\b/i, ['landscaper', 'grounds-maintenance']],
+  [/\bartificial (grass|turf)\b|\bturfing\b/i, ['landscaper']],
+  [/\bfootpaths?\b|\bpatios?\b|\bresin bound\b/i, ['hard-landscaping']],
+  [/\bcemeter(y|ies)\b|\bchurchyards?\b|\ballotments?\b/i, ['grounds-maintenance']],
+  [/\btree planting\b|\bstreet trees?\b/i, ['landscaper', 'arborist']],
 ];
+
+// Contract awards worth passing on: new buildings, housing, schools, health, roads and site works
+const BUILD_CPV = ['4521', '45211', '45214', '45215', '45233', '4511', '45222', '45223', '45112'];
 
 /** Which of our trades a notice is for. Empty means not relevant. */
 export function matchTrades(cpvs: string[], text: string): string[] {
@@ -132,13 +161,30 @@ function noticeUrl(r: Json, source: LeadSource): string | null {
   return docs.find((d) => d?.url)?.url ?? null;
 }
 
-export function toLead(r: Json, source: LeadSource): LeadRow | null {
+export function toLead(r: Json, source: LeadSource, kind: LeadKind = 'tender'): LeadRow | null {
   const t = r.tender ?? {};
   const title = String(t.title ?? r.title ?? '').trim();
   if (!title) return null;
   const description = t.description ? String(t.description).trim() : null;
   const cpv = collectCpvs(t);
-  const trades = matchTrades(cpv, `${title} ${description ?? ''}`);
+  let trades = matchTrades(cpv, `${title} ${description ?? ''}`);
+  let contractor: string | null = null;
+  let awardValue: number | null = null;
+  if (kind === 'award') {
+    // A building or civils job a main contractor has just won. Landscaping, groundworks and
+    // fencing are usually let as subcontract packages, so these go to those trades.
+    const awards: Json[] = r.awards ?? [];
+    const names = new Set<string>();
+    for (const a of awards) for (const sup of a?.suppliers ?? []) if (sup?.name) names.add(String(sup.name).trim());
+    if (!names.size) for (const p of r.parties ?? []) if ((p.roles ?? []).includes('supplier') && p.name) names.add(String(p.name).trim());
+    const amounts = [...awards.map((a) => a?.value?.amount), ...(r.contracts ?? []).map((c: Json) => c?.value?.amount), t.value?.amount]
+      .map((v) => (typeof v === 'number' ? v : Number(v))).filter((v) => Number.isFinite(v) && v > 0);
+    awardValue = amounts.length ? Math.max(...amounts) : null;
+    const isBuild = cpv.some((c) => BUILD_CPV.some((p) => c.startsWith(p)));
+    if (!names.size || !isBuild || (awardValue ?? 0) < 1_000_000) return null;
+    contractor = [...names].slice(0, 3).join(', ').slice(0, 200);
+    trades = [...new Set([...trades, 'landscaper', 'hard-landscaping', 'groundworks', 'fencing'])];
+  }
   if (!trades.length) return null;
 
   const buyerParty =
@@ -146,11 +192,15 @@ export function toLead(r: Json, source: LeadSource): LeadRow | null {
     (r.parties ?? []).find((p: Json) => p.id && p.id === r.buyer?.id);
   const addr = buyerParty?.address ?? {};
   const nuts = typeof addr.region === 'string' ? addr.region.slice(0, 3).toUpperCase() : '';
-  const value = t.value?.amount ?? t.minValue?.amount ?? null;
+  const value = awardValue ?? t.value?.amount ?? t.minValue?.amount ?? null;
 
   return {
     source,
     source_id: String(r.ocid ?? r.id),
+    kind,
+    contractor,
+    status: null,
+    meta: {},
     title: title.slice(0, 300),
     description: description ? description.slice(0, 4000) : null,
     buyer: (r.buyer?.name ?? buyerParty?.name ?? null)?.slice(0, 200) ?? null,
@@ -160,8 +210,8 @@ export function toLead(r: Json, source: LeadSource): LeadRow | null {
     lng: null,
     value_amount: typeof value === 'number' ? value : value ? Number(value) || null : null,
     currency: t.value?.currency ?? null,
-    published_at: t.datePublished ?? r.date ?? null,
-    deadline: t.tenderPeriod?.endDate ?? null,
+    published_at: kind === 'award' ? (r.awards?.[0]?.date ?? r.date ?? null) : (t.datePublished ?? r.date ?? null),
+    deadline: kind === 'award' ? null : (t.tenderPeriod?.endDate ?? null),
     url: noticeUrl(r, source),
     cpv,
     trades,
@@ -190,13 +240,13 @@ async function getJson(url: string): Promise<unknown> {
 }
 
 /** Find a Tender and Contracts Finder: page through with links.next. */
-async function fetchPaged(firstUrl: string, source: LeadSource, maxPages: number): Promise<LeadRow[]> {
+async function fetchPaged(firstUrl: string, source: LeadSource, maxPages: number, kind: LeadKind = 'tender'): Promise<LeadRow[]> {
   const out: LeadRow[] = [];
   let url: string | null = firstUrl;
   for (let page = 0; url && page < maxPages; page++) {
     const body = (await getJson(url)) as Json;
     for (const r of releasesOf(body)) {
-      const lead = toLead(r, source);
+      const lead = toLead(r, source, kind);
       if (lead) out.push(lead);
     }
     url = body?.links?.next ?? null;
@@ -213,6 +263,102 @@ async function fetchMonthly(base: string, source: LeadSource, months: string[]):
       const lead = toLead(r, source);
       if (lead) out.push(lead);
     }
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------
+// Planning applications via UK PlanIt (scrapes every council register)
+// ---------------------------------------------------------------
+const PLANIT = 'https://www.planit.org.uk/api/applics/json';
+const LANDSCAPE_CONDITION = /landscap|planting|trees?\b|hedg|boundary treatment|ecolog|biodiversity|habitat|open space|play (area|space)|SuDS|drainage/i;
+const RESIDENTIAL = /\bdwellings?\b|\bhomes\b|\bhouses\b|\bresidential\b|\bflats\b|\bapartments\b/i;
+const seen = (v: unknown) => {
+  const s = typeof v === 'string' ? v.trim() : '';
+  return s && !/^(see source|no data|n\/a|none)$/i.test(s) ? s : '';
+};
+const short = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1).trimEnd()}...` : s);
+
+type Applic = Json & { other_fields?: Json };
+
+function planitLead(a: Applic, kind: 'planning' | 'trees'): LeadRow | null {
+  const desc = String(a.description ?? '').trim();
+  const address = String(a.address ?? '').replace(/\s+/g, ' ').trim();
+  if (!desc || !a.name) return null;
+  const type = String(a.app_type ?? '');
+  const size = String(a.app_size ?? '');
+  const state = String(a.app_state ?? '');
+  if (/rejected|withdrawn/i.test(state)) return null;
+  const of = a.other_fields ?? {};
+
+  let title: string;
+  let trades: string[];
+  if (kind === 'trees') {
+    title = `Tree works: ${short(address || desc, 110)}`;
+    trades = ['arborist'];
+  } else if (type === 'Conditions') {
+    if (!LANDSCAPE_CONDITION.test(desc)) return null;
+    title = `Landscaping details submitted: ${short(address || desc, 90)}`;
+    trades = matchTrades([], desc);
+    trades.push('landscaper');
+    if (/\btrees?\b|arboricult/i.test(desc)) trades.push('arborist');
+    if (/maintenance|management/i.test(desc)) trades.push('grounds-maintenance');
+    if (/boundary treatment|fenc/i.test(desc)) trades.push('fencing');
+  } else {
+    if (!['Full', 'Outline', 'Amendment'].includes(type) || !/^(medium|large)$/i.test(size)) return null;
+    title = `${size} development${type === 'Outline' ? ' (outline)' : ''}: ${short(address || desc, 100)}`;
+    trades = [...matchTrades([], desc), 'landscaper', 'hard-landscaping', 'groundworks'];
+    if (RESIDENTIAL.test(desc)) trades.push('fencing');
+    if (type === 'Outline') trades.push('landscape-architect');
+  }
+
+  const applicant = seen(of.applicant_company) || seen(of.applicant_name);
+  const agent = seen(of.agent_company) || seen(of.agent_name);
+  const lat = Number(a.location_y ?? of.lat);
+  const lng = Number(a.location_x ?? of.lng);
+  const meta: Record<string, string> = {};
+  if (a.uid) meta.ref = String(a.uid);
+  if (type) meta.app_type = type;
+  if (size) meta.app_size = size;
+  if (agent) meta.agent = agent.slice(0, 120);
+  if (!applicant && seen(of.applicant_address)) meta.applicant_address = seen(of.applicant_address).slice(0, 160);
+  if (seen(of.docs_url)) meta.docs_url = seen(of.docs_url);
+  if (a.associated_id) meta.parent_ref = String(a.associated_id);
+
+  return {
+    source: 'planit',
+    source_id: String(a.name),
+    kind,
+    contractor: applicant ? applicant.slice(0, 200) : null,
+    status: seen(of.status) || state || null,
+    meta,
+    title: title.slice(0, 300),
+    description: desc.slice(0, 4000),
+    buyer: a.area_name ? `${a.area_name} planning` : null,
+    postcode: a.postcode ? String(a.postcode).toUpperCase().trim() : null,
+    region: null,
+    lat: Number.isFinite(lat) ? lat : null,
+    lng: Number.isFinite(lng) ? lng : null,
+    value_amount: null,
+    currency: null,
+    published_at: a.start_date ?? null,
+    deadline: null,
+    url: a.url ?? a.link ?? null,
+    cpv: [],
+    trades: [...new Set(trades)],
+  };
+}
+
+/** One PlanIt search, paged. PlanIt asks for modest use, so pages are big and calls are few. */
+async function fetchPlanit(query: string, kind: 'planning' | 'trees', maxPages: number): Promise<LeadRow[]> {
+  const out: LeadRow[] = [];
+  for (let page = 1; page <= maxPages; page++) {
+    const body = (await getJson(`${PLANIT}?${query}&pg_sz=400&page=${page}`)) as Json;
+    for (const a of body?.records ?? []) {
+      const lead = planitLead(a, kind);
+      if (lead) out.push(lead);
+    }
+    if (typeof body?.to !== 'number' || typeof body?.total !== 'number' || body.to + 1 >= body.total) break;
   }
   return out;
 }
@@ -244,9 +390,33 @@ async function geocode(leads: LeadRow[]) {
   for (const l of leads) {
     const g = l.postcode ? found.get(l.postcode) : undefined;
     if (g) {
-      l.lat = g.lat;
-      l.lng = g.lng;
+      l.lat = l.lat ?? g.lat;
+      l.lng = l.lng ?? g.lng;
       l.region = g.region ?? l.region;
+    }
+  }
+
+  // No postcode but a map position (planning applications): look the region up from that
+  const todo = leads.filter((l) => !l.region && l.lat != null && l.lng != null);
+  for (let i = 0; i < todo.length; i += 100) {
+    const batch = todo.slice(i, i + 100);
+    try {
+      const res = await fetch('https://api.postcodes.io/postcodes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ geolocations: batch.map((l) => ({ latitude: l.lat, longitude: l.lng, limit: 1, radius: 2000 })) }),
+        signal: AbortSignal.timeout(15_000),
+      });
+      const json = await res.json();
+      (json?.result ?? []).forEach((r: Json, j: number) => {
+        const p = r?.result?.[0];
+        if (p && batch[j]) {
+          batch[j].region = p.region ?? p.country ?? null;
+          batch[j].postcode = batch[j].postcode ?? p.postcode ?? null;
+        }
+      });
+    } catch (err) {
+      console.warn('leads: reverse geocode batch failed', err);
     }
   }
 }
@@ -260,12 +430,23 @@ export async function importLeads({ days = 3 }: { days?: number } = {}) {
   const from = new Date(now.getTime() - days * 86_400_000);
   const months = [...new Set([mmyyyy(from), mmyyyy(now)])];
   const pages = Math.min(40, 5 + days * 3);
+  const fts = (stage: string) => `https://www.find-tender.service.gov.uk/api/1.0/ocdsReleasePackages?updatedFrom=${iso(from)}&stages=${stage}&limit=100`;
+  const cf = (stage: string) => `https://www.contractsfinder.service.gov.uk/Published/Notices/OCDS/Search?publishedFrom=${iso(from)}&stages=${stage}&limit=100`;
+  const recent = Math.max(1, days);
+  const pp = Math.min(10, 1 + Math.ceil(days / 3));
 
-  const jobs: [LeadSource, () => Promise<LeadRow[]>][] = [
-    ['fts', () => fetchPaged(`https://www.find-tender.service.gov.uk/api/1.0/ocdsReleasePackages?updatedFrom=${iso(from)}&stages=tender&limit=100`, 'fts', pages)],
-    ['cf', () => fetchPaged(`https://www.contractsfinder.service.gov.uk/Published/Notices/OCDS/Search?publishedFrom=${iso(from)}&stages=tender&limit=100`, 'cf', pages)],
+  const jobs: [string, () => Promise<LeadRow[]>][] = [
+    ['fts', () => fetchPaged(fts('tender'), 'fts', pages)],
+    ['cf', () => fetchPaged(cf('tender'), 'cf', pages)],
+    ['fts-upcoming', () => fetchPaged(fts('planning'), 'fts', pages, 'pipeline')],
+    ['cf-upcoming', () => fetchPaged(cf('planning'), 'cf', pages, 'pipeline')],
+    ['fts-awards', () => fetchPaged(fts('award'), 'fts', pages, 'award')],
+    ['cf-awards', () => fetchPaged(cf('award'), 'cf', pages, 'award')],
     ['pcs', () => fetchMonthly('https://api.publiccontractsscotland.gov.uk/v1', 'pcs', months)],
     ['s2w', () => fetchMonthly('https://api.sell2wales.gov.wales/v1', 's2w', months)],
+    ['planning', () => fetchPlanit(`recent=${recent}&app_size=Medium,Large&app_type=Full,Outline,Amendment`, 'planning', pp)],
+    ['planning-conditions', () => fetchPlanit(`recent=${recent}&app_type=Conditions&search=${encodeURIComponent('landscape or landscaping or planting or trees or "boundary treatment" or biodiversity')}`, 'planning', pp)],
+    ['tree-works', () => fetchPlanit(`recent=${recent}&app_type=Trees`, 'trees', pp)],
   ];
 
   const summary: Record<string, number | string> = {};
@@ -282,8 +463,16 @@ export async function importLeads({ days = 3 }: { days?: number } = {}) {
     }
   });
 
-  // Same notice can appear more than once in a run (updates); keep the last one
-  const unique = [...new Map(all.map((l) => [`${l.source}:${l.source_id}`, l])).values()];
+  // Same notice can turn up as an upcoming tender, an open tender and an award (they share
+  // an id). Keep the most advanced stage.
+  const rank: Record<LeadKind, number> = { pipeline: 0, tender: 1, award: 2, planning: 0, trees: 0 };
+  const byKey = new Map<string, LeadRow>();
+  for (const l of all) {
+    const k = `${l.source}:${l.source_id}`;
+    const prev = byKey.get(k);
+    if (!prev || rank[l.kind] >= rank[prev.kind]) byKey.set(k, l);
+  }
+  const unique = [...byKey.values()];
   await geocode(unique);
 
   for (let i = 0; i < unique.length; i += 200) {
@@ -291,8 +480,12 @@ export async function importLeads({ days = 3 }: { days?: number } = {}) {
     if (error) console.error('leads: save failed', error);
   }
 
-  // Tidy up: drop leads whose deadline passed more than 30 days ago
-  await db().from('leads').delete().lt('deadline', new Date(now.getTime() - 30 * 86_400_000).toISOString());
+  // Tidy up: drop leads whose deadline passed more than 30 days ago, and leads with no
+  // deadline once they are old news
+  const ago = (d: number) => new Date(now.getTime() - d * 86_400_000).toISOString();
+  await db().from('leads').delete().lt('deadline', ago(30));
+  const keepDays: [LeadKind, number][] = [['trees', 45], ['planning', 120], ['award', 120], ['pipeline', 180], ['tender', 90]];
+  for (const [kind, d] of keepDays) await db().from('leads').delete().eq('kind', kind).is('deadline', null).lt('published_at', ago(d));
 
   return { saved: unique.length, bySource: summary };
 }

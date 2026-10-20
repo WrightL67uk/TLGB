@@ -2,12 +2,13 @@ import Link from 'next/link';
 import { db } from '@/lib/supabase';
 import { getSessionEmail } from '@/lib/session';
 import { TRADES, tradeLabel } from '@/lib/config';
-import { SOURCE_LABEL, type LeadSource } from '@/lib/leads';
+import './leads.css';
+import { KIND_LABEL, SOURCE_LABEL, type LeadKind, type LeadSource } from '@/lib/leads';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'Leads | The Little Green Book',
-  description: 'Live landscaping, grounds maintenance, tree work and external works tenders from across the UK, gathered every morning.',
+  description: 'Live landscaping, grounds maintenance, tree work and external works leads from across the UK: public tenders, main contractor wins, new planning applications and tree works. Updated every morning.',
 };
 
 type Lead = {
@@ -15,6 +16,13 @@ type Lead = {
   region: string | null; postcode: string | null; lat: number | null; lng: number | null;
   value_amount: number | null; currency: string | null; published_at: string | null;
   deadline: string | null; url: string | null; trades: string[];
+  kind: LeadKind; contractor: string | null; status: string | null; meta: Record<string, string> | null;
+};
+
+const KINDS = Object.keys(KIND_LABEL) as LeadKind[];
+const BUTTON: Record<LeadKind, string> = {
+  tender: 'view the tender', pipeline: 'view the notice', award: 'view the award',
+  planning: 'view the application', trees: 'view the application',
 };
 
 type SP = Promise<Record<string, string | string[] | undefined>>;
@@ -47,16 +55,23 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
   const view = typeof sp.view === 'string' ? sp.view : loggedIn && myTrades.length ? 'mine' : 'all';
   const trade = typeof sp.trade === 'string' && TRADES.some((t) => t.slug === sp.trade) ? sp.trade : '';
   const region = typeof sp.region === 'string' && REGIONS.includes(sp.region) ? sp.region : '';
+  const type = typeof sp.type === 'string' && (KINDS as string[]).includes(sp.type) ? (sp.type as LeadKind) : '';
+  // Tree works applications are many and only matter to tree surgeons, so they only show
+  // when asked for or when the trade is an arborist.
+  const wantsTrees = type === 'trees' || trade === 'arborist' || (view === 'mine' && !trade && myTrades.includes('arborist'));
+  const openNow = `deadline.is.null,deadline.gte.${new Date().toISOString()}`;
 
   let q = db()
     .from('leads')
-    .select('id, source, title, description, buyer, region, postcode, lat, lng, value_amount, currency, published_at, deadline, url, trades')
-    .or(`deadline.is.null,deadline.gte.${new Date().toISOString()}`)
+    .select('id, source, kind, title, description, buyer, contractor, status, meta, region, postcode, lat, lng, value_amount, currency, published_at, deadline, url, trades')
+    .or(openNow)
     .order('published_at', { ascending: false, nullsFirst: false })
     .limit(400);
   if (trade) q = q.contains('trades', [trade]);
   else if (view === 'mine' && myTrades.length) q = q.overlaps('trades', myTrades);
   if (region) q = q.eq('region', region);
+  if (type) q = q.eq('kind', type);
+  else if (!wantsTrees) q = q.neq('kind', 'trees');
   const { data } = await q;
   let leads = (data ?? []) as Lead[];
 
@@ -67,17 +82,19 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
       mine.some((b) => b.lat != null && miles(b.lat, b.lng, l.lat!, l.lng!) <= (b.radius_miles ?? 30) + 10));
   }
 
-  const { count: totalOpen } = await db()
-    .from('leads')
-    .select('id', { count: 'exact', head: true })
-    .or(`deadline.is.null,deadline.gte.${new Date().toISOString()}`);
+  const counts = await Promise.all(KINDS.map(async (k) => {
+    const { count } = await db().from('leads').select('id', { count: 'exact', head: true }).eq('kind', k).or(openNow);
+    return [k, count ?? 0] as const;
+  }));
+  const kindCount = Object.fromEntries(counts) as Record<LeadKind, number>;
+  const totalOpen = counts.reduce((n, [, c]) => n + c, 0);
 
   const visible = loggedIn ? leads : leads.slice(0, 1);
   const locked = loggedIn ? [] : leads.slice(1, 13);
 
   const link = (over: Record<string, string>) => {
     const p = new URLSearchParams();
-    const next = { view, trade, region, ...over };
+    const next = { view, trade, region, type, ...over };
     for (const [k, v] of Object.entries(next)) if (v) p.set(k, v);
     return `/leads?${p.toString()}`;
   };
@@ -87,10 +104,13 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
       <section className="leads-head">
         <h1>Leads</h1>
         <p className="lead">
-          Live landscaping and external works tenders from councils, schools, housing associations and other public buyers,
-          gathered from the government&rsquo;s free tender feeds every morning.
+          Work for landscaping and external works trades, gathered every morning: public tenders, upcoming tenders,
+          building contracts just won by main contractors, new planning applications and tree works applications.
         </p>
-        <p className="muted small">{totalOpen ?? 0} open leads right now. Sources: Find a Tender, Contracts Finder, Public Contracts Scotland and Sell2Wales.</p>
+        <p className="muted small">
+          {totalOpen.toLocaleString('en-GB')} live leads. Sources: Find a Tender, Contracts Finder, Public Contracts Scotland,
+          Sell2Wales and every UK council planning register (via UK PlanIt).
+        </p>
       </section>
 
       <form className="leads-filters" method="get" action="/leads">
@@ -100,7 +120,16 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
             <Link href={link({ view: 'all' })} className={view === 'all' || trade ? 'on' : ''}>all leads</Link>
           </div>
         )}
+        <div className="seg seg-wrap">
+          <Link href={link({ type: '' })} className={!type ? 'on' : ''}>everything</Link>
+          {KINDS.map((k) => (
+            <Link key={k} href={link({ type: k })} className={type === k ? 'on' : ''}>
+              {KIND_LABEL[k].toLowerCase()} <span className="seg-n">{kindCount[k].toLocaleString('en-GB')}</span>
+            </Link>
+          ))}
+        </div>
         <input type="hidden" name="view" value="all" />
+        {type && <input type="hidden" name="type" value={type} />}
         <label>Trade
           <select name="trade" defaultValue={trade}>
             <option value="">All trades</option>
@@ -122,14 +151,27 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
         {visible.map((l) => (
           <article key={l.id} className="lead-card">
             <div className="lead-tags">
+              <span className={`badge kind kind-${l.kind}`}>{KIND_LABEL[l.kind]}</span>
               {l.trades.map((t) => <span key={t} className="badge ok">{tradeLabel(t)}</span>)}
               {l.region && <span className="badge">{l.region}</span>}
             </div>
             <h2>{l.title}</h2>
+            {l.kind === 'award' && l.contractor && (
+              <p className="lead-who">Won by <strong>{l.contractor}</strong>. Main contractors usually let landscaping, groundworks and fencing as subcontract packages, so now is the time to get in touch.</p>
+            )}
+            {(l.kind === 'planning' || l.kind === 'trees') && (
+              <p className="lead-who">
+                {l.contractor && <>Applicant <strong>{l.contractor}</strong>. </>}
+                {!l.contractor && l.meta?.applicant_address && <>Applicant <strong>{l.meta.applicant_address}</strong>. </>}
+                {l.meta?.agent && <>Agent {l.meta.agent}. </>}
+                {l.status && <>Status: {l.status}. </>}
+                {l.meta?.ref && <>Council ref {l.meta.ref}.</>}
+              </p>
+            )}
             <p className="lead-meta">
               {l.buyer && <strong>{l.buyer}</strong>}
               {money(l.value_amount, l.currency) && <span>Value {money(l.value_amount, l.currency)}</span>}
-              {l.published_at && <span>Published {ukDate(l.published_at)}</span>}
+              {l.published_at && <span>{l.kind === 'award' ? 'Awarded' : l.kind === 'planning' || l.kind === 'trees' ? 'Submitted' : 'Published'} {ukDate(l.published_at)}</span>}
               {l.deadline && (
                 <span className={daysLeft(l.deadline) <= 7 ? 'due-soon' : ''}>
                   Closes {ukDate(l.deadline)} ({daysLeft(l.deadline)} day{daysLeft(l.deadline) === 1 ? '' : 's'})
@@ -138,7 +180,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
             </p>
             {l.description && <p className="lead-desc">{l.description.length > 420 ? `${l.description.slice(0, 420)}...` : l.description}</p>}
             <p className="lead-foot">
-              {l.url && <a href={l.url} target="_blank" rel="noopener" className="sq sq-rust">view the tender</a>}
+              {l.url && <a href={l.url} target="_blank" rel="noopener" className="sq sq-rust">{BUTTON[l.kind] || 'view'}</a>}
+              {l.meta?.docs_url && <a href={l.meta.docs_url} target="_blank" rel="noopener" className="small">drawings and documents</a>}
               <span className="muted small">via {SOURCE_LABEL[l.source]}</span>
             </p>
           </article>
@@ -147,7 +190,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
         {!loggedIn && leads.length > 1 && (
           <>
             <div className="lead-gate">
-              <h2>{leads.length - 1} more {leads.length - 1 === 1 ? 'lead' : 'leads'} {trade || region ? 'match this search' : 'open now'}</h2>
+              <h2>{leads.length - 1} more {leads.length - 1 === 1 ? 'lead' : 'leads'} {trade || region || type ? 'match this search' : 'live now'}</h2>
               <p>Every listed business gets the full leads feed, matched to their trades and the area they cover.</p>
               <div className="gate-btns">
                 <Link href="/join" className="sq sq-rust">list your business</Link>
@@ -157,6 +200,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
             {locked.map((l) => (
               <article key={l.id} className="lead-card lead-locked" aria-hidden>
                 <div className="lead-tags">
+                  <span className={`badge kind kind-${l.kind}`}>{KIND_LABEL[l.kind]}</span>
                   {l.trades.map((t) => <span key={t} className="badge ok">{tradeLabel(t)}</span>)}
                   {l.region && <span className="badge">{l.region}</span>}
                 </div>
