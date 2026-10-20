@@ -162,7 +162,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
             {(l.kind === 'planning' || l.kind === 'trees') && (
               <p className="lead-who">
                 {l.contractor && <>Applicant <strong>{l.contractor}</strong>. </>}
-                {!l.contractor && l.meta?.applicant_address && <>Applicant <strong>{l.meta.applicant_address}</strong>. </>}
+                {!l.contractor && l.meta?.applicant_address && <>Applicant address <strong>{l.meta.applicant_address}</strong>. </>}
                 {l.meta?.agent && <>Agent {l.meta.agent}. </>}
                 {l.status && <>Status: {l.status}. </>}
                 {l.meta?.ref && <>Council ref {l.meta.ref}.</>}

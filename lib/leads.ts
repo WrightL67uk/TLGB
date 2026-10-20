@@ -306,6 +306,8 @@ function planitLead(a: Applic, kind: 'planning' | 'trees'): LeadRow | null {
     if (/boundary treatment|fenc/i.test(desc)) trades.push('fencing');
   } else {
     if (!['Full', 'Outline', 'Amendment'].includes(type) || !/^(medium|large)$/i.test(size)) return null;
+    // Screening and scoping requests are paperwork about a scheme, not the scheme itself
+    if (/screening opinion|scoping opinion|\bEIA screening|prior notification|pre-?app/i.test(`${desc} ${a.uid ?? ''}`)) return null;
     title = `${size} development${type === 'Outline' ? ' (outline)' : ''}: ${short(address || desc, 100)}`;
     trades = [...matchTrades([], desc), 'landscaper', 'hard-landscaping', 'groundworks'];
     if (RESIDENTIAL.test(desc)) trades.push('fencing');
