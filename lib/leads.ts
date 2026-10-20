@@ -432,8 +432,10 @@ export async function importLeads({ days = 3 }: { days?: number } = {}) {
   const pages = Math.min(40, 5 + days * 3);
   const fts = (stage: string) => `https://www.find-tender.service.gov.uk/api/1.0/ocdsReleasePackages?updatedFrom=${iso(from)}&stages=${stage}&limit=100`;
   const cf = (stage: string) => `https://www.contractsfinder.service.gov.uk/Published/Notices/OCDS/Search?publishedFrom=${iso(from)}&stages=${stage}&limit=100`;
-  const recent = Math.max(1, days);
-  const pp = Math.min(10, 1 + Math.ceil(days / 3));
+  // PlanIt fills in an application's type and size a few days after it first appears, so
+  // always look back at least two weeks. Repeats just update the same rows.
+  const recent = Math.max(14, days);
+  const pp = Math.ceil(recent / 7);
 
   const jobs: [string, () => Promise<LeadRow[]>][] = [
     ['fts', () => fetchPaged(fts('tender'), 'fts', pages)],
@@ -446,7 +448,7 @@ export async function importLeads({ days = 3 }: { days?: number } = {}) {
     ['s2w', () => fetchMonthly('https://api.sell2wales.gov.wales/v1', 's2w', months)],
     ['planning', () => fetchPlanit(`recent=${recent}&app_size=Medium,Large&app_type=Full,Outline,Amendment`, 'planning', pp)],
     ['planning-conditions', () => fetchPlanit(`recent=${recent}&app_type=Conditions&search=${encodeURIComponent('landscape or landscaping or planting or trees or "boundary treatment" or biodiversity')}`, 'planning', pp)],
-    ['tree-works', () => fetchPlanit(`recent=${recent}&app_type=Trees`, 'trees', pp)],
+    ['tree-works', () => fetchPlanit(`recent=${recent}&app_type=Trees`, 'trees', pp * 3)],
   ];
 
   const summary: Record<string, number | string> = {};
