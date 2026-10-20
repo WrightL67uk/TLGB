@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/supabase';
-import { createLoginToken, recentLoginRequests, sameOrigin } from '@/lib/session';
+import { createLoginToken, recentLoginRequests, safeNext, sameOrigin } from '@/lib/session';
 import { emailLoginLink } from '@/lib/email';
 import { siteUrl } from '@/lib/config';
 
@@ -28,6 +28,8 @@ export async function POST(req: NextRequest) {
   if ((await recentLoginRequests(email)) >= 5) return done;
 
   const token = await createLoginToken(email, LINK_MINUTES);
-  await emailLoginLink(email, `${siteUrl()}/login/verify?token=${encodeURIComponent(token)}`, LINK_MINUTES);
+  const next = safeNext(body?.next);
+  const back = next === '/account' ? '' : `&next=${encodeURIComponent(next)}`;
+  await emailLoginLink(email, `${siteUrl()}/login/verify?token=${encodeURIComponent(token)}${back}`, LINK_MINUTES);
   return done;
 }

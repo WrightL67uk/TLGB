@@ -151,7 +151,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
               <p>Every listed business gets the full leads feed, matched to their trades and the area they cover.</p>
               <div className="gate-btns">
                 <Link href="/join" className="sq sq-rust">list your business</Link>
-                <Link href="/login" className="sq sq-ghost">log in</Link>
+                <Link href="/login?next=/leads" className="sq sq-ghost">log in</Link>
               </div>
             </div>
             {locked.map((l) => (

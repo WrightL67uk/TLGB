@@ -90,6 +90,12 @@ export async function destroySession(raw: string | undefined) {
   if (raw) await db().from('sessions').delete().eq('token_hash', hash(raw));
 }
 
+/** A same-site path to send someone back to after login, or the fallback. */
+export function safeNext(v: unknown, fallback = '/account') {
+  const s = typeof v === 'string' ? v : '';
+  return /^\/(?![\/\\])[^\s\\]{0,199}$/.test(s) ? s : fallback;
+}
+
 /** Blocks requests started by other websites (belt and braces on top of SameSite cookies). */
 export function sameOrigin(req: Request) {
   const origin = req.headers.get('origin');

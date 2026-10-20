@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { consumeLoginToken, createSession, sessionCookieOptions, SESSION_COOKIE } from '@/lib/session';
+import { consumeLoginToken, createSession, safeNext, sessionCookieOptions, SESSION_COOKIE } from '@/lib/session';
 
 export const runtime = 'nodejs';
 
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   if (!email) return NextResponse.redirect(new URL('/login?error=expired', req.url), 303);
 
   const { raw, expires } = await createSession(email);
-  const res = NextResponse.redirect(new URL('/account', req.url), 303);
+  const res = NextResponse.redirect(new URL(safeNext(fd?.get('next')), req.url), 303);
   res.cookies.set(SESSION_COOKIE, raw, sessionCookieOptions(expires));
   return res;
 }

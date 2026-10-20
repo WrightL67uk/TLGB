@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function LoginForm() {
+export default function LoginForm({ next = '/account' }: { next?: string }) {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -16,7 +16,7 @@ export default function LoginForm() {
       const res = await fetch('/api/auth/request-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, next }),
       });
       const json = await res.json();
       if (!json.ok) setError(json.error ?? 'Something went wrong. Try again.');
