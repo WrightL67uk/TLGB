@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { db, photoUrl } from '@/lib/supabase';
-import { gbp, tradeLabel } from '@/lib/config';
+import { gbp, tradeLabel, accreditationLabel } from '@/lib/config';
 import { liveAccreditations, fmtDate } from '@/lib/expiries';
 
 export const dynamic = 'force-dynamic';
@@ -30,7 +30,7 @@ export default async function BusinessPage({ params }: { params: Promise<{ id: s
         <span className="badge ok">Public liability {gbp(b.pl_cover_amount)} to {new Date(b.pl_expiry).toLocaleDateString('en-GB')}</span>
         {b.el_cover_amount && <span className="badge">Employers liability {gbp(b.el_cover_amount)}</span>}
         {liveAccreditations(b.accreditations, b.accreditation_expiries).map((a) => (
-          <span className="badge" key={a}>{a}{b.accreditation_expiries?.[a] ? ` to ${fmtDate(b.accreditation_expiries[a])}` : ''}</span>
+          <span className="badge" key={a}>{accreditationLabel(a)}{b.accreditation_expiries?.[a] ? ` to ${fmtDate(b.accreditation_expiries[a])}` : ''}</span>
         ))}
       </p>
 

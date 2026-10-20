@@ -13,8 +13,8 @@ const TABS = [
   { key: 'suspended', label: 'Suspended' },
 ];
 
-export default async function AdminQueue({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
-  const { status: s } = await searchParams;
+export default async function AdminQueue({ searchParams }: { searchParams: Promise<{ status?: string; leads?: string }> }) {
+  const { status: s, leads: leadsMsg } = await searchParams;
   const status = TABS.some((t) => t.key === s) ? s! : 'pending_review';
 
   // Approved listings with insurance or an accreditation due within 30 days, or already expired
@@ -58,7 +58,14 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
 
   return (
     <div>
-      <h1>Admin</h1>
+      <div className="admin-head">
+        <h1>Admin</h1>
+        <form action="/api/admin/leads-import" method="post" className="inline">
+          <input type="hidden" name="days" value="14" />
+          <button type="submit">Fetch leads now (last 14 days)</button>
+        </form>
+      </div>
+      {leadsMsg && <p className="ok-box">{leadsMsg}</p>}
       <nav className="tabs">
         {TABS.map((t) => (
           <Link key={t.key} href={`/admin?status=${t.key}`} className={t.key === status ? 'on' : ''}>

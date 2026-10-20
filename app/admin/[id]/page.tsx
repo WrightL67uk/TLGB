@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db, photoUrl } from '@/lib/supabase';
-import { gbp, tradeLabel, turnoverBand } from '@/lib/config';
+import { gbp, tradeLabel, turnoverBand, accreditationLabel } from '@/lib/config';
 import { daysUntil, fmtDate } from '@/lib/expiries';
 
 // Where to confirm each scheme by hand. None of them offer a public API.
@@ -123,7 +123,7 @@ export default async function AdminDetail({
                 const days = e ? daysUntil(e) : null;
                 return (
                   <li key={a}>
-                    {a}: {e ? `expires ${fmtDate(e)}` : 'no expiry given'}
+                    {accreditationLabel(a)}: {e ? `expires ${fmtDate(e)}` : 'no expiry given'}
                     {days !== null && days < 0 && <span className="warn"> EXPIRED</span>}
                     {days !== null && days >= 0 && days <= 30 && <span className="warn"> expires in {days} days</span>}
                     {' '}<a href={checkLink(a, b.ch_company_name ?? b.trading_name)} target="_blank" rel="noopener" className="small">Check</a>

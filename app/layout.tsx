@@ -33,6 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </Link>
             <nav className="mainnav">
               <Link href="/search">find a trade</Link>
+              <Link href="/leads">leads</Link>
               <Link href="/#checks">what we check</Link>
               <Link href="/#how">how listing works</Link>
               <Link href="/join">for trades</Link>
@@ -48,6 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
             <nav>
               <Link href="/search">find a trade</Link>
+              <Link href="/leads">leads</Link>
               <Link href="/join">list your business</Link>
               <Link href="/login">log in</Link>
             </nav>

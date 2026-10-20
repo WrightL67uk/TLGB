@@ -1,5 +1,5 @@
 // Expiry dates for insurance and accreditations, shared by forms, pages and the daily reminder job.
-import { ACCREDITATIONS_WITHOUT_EXPIRY } from './config';
+import { ACCREDITATIONS_WITHOUT_EXPIRY, accreditationLabel } from './config';
 
 export type Expiries = Record<string, string>; // accreditation name -> YYYY-MM-DD
 
@@ -41,11 +41,11 @@ export function cleanAccreditationExpiries(
   for (const a of accreditations) {
     const v = typeof input[a] === 'string' ? (input[a] as string).trim() : '';
     if (!v) {
-      if (needsExpiry(a)) return { ok: false, error: `${a}: enter the expiry date shown on the certificate.` };
+      if (needsExpiry(a)) return { ok: false, error: `${accreditationLabel(a)}: enter the expiry date shown on the certificate.` };
       continue;
     }
-    if (!DATE.test(v)) return { ok: false, error: `${a}: enter a valid expiry date.` };
-    if (!opts.allowPast && v < today) return { ok: false, error: `${a} has expired. Renew it, or untick it for now.` };
+    if (!DATE.test(v)) return { ok: false, error: `${accreditationLabel(a)}: enter a valid expiry date.` };
+    if (!opts.allowPast && v < today) return { ok: false, error: `${accreditationLabel(a)} has expired. Renew it, or untick it for now.` };
     out[a] = v;
   }
   return { ok: true, value: out };
@@ -70,7 +70,7 @@ export function expiryItems(b: {
   if (b.el_expiry && b.el_cover_amount) items.push({ key: 'employers_liability', label: 'Employers liability insurance', expiry: b.el_expiry });
   for (const a of b.accreditations) {
     const e = b.accreditation_expiries?.[a];
-    if (e) items.push({ key: `acc:${a}`, label: a, expiry: e });
+    if (e) items.push({ key: `acc:${a}`, label: accreditationLabel(a), expiry: e });
   }
   return items;
 }

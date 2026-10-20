@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { db, photoUrl } from '@/lib/supabase';
 import { lookupPostcode } from '@/lib/postcodes';
-import { ACCREDITATIONS, TRADES, PL_COVER_OPTIONS, gbp, tradeLabel } from '@/lib/config';
+import { ACCREDITATIONS, accreditationLabel, accreditationsForTrade, gbp, tradeLabel } from '@/lib/config';
+import SearchForm from './SearchForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,20 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
   const trade = typeof sp.trade === 'string' ? sp.trade : '';
   const minPl = typeof sp.pl === 'string' ? sp.pl : '';
   const accreds = ([] as string[]).concat(sp.accred ?? []).filter((a) => (ACCREDITATIONS as readonly string[]).includes(a));
+
+  // Link that drops one filter but keeps the rest of the search
+  const withoutParam = (key: string, value: string) => {
+    const q = new URLSearchParams();
+    if (postcode) q.set('postcode', postcode);
+    if (trade) q.set('trade', trade);
+    if (minPl && !(key === 'pl' && value === minPl)) q.set('pl', minPl);
+    for (const a of accreds) if (!(key === 'accred' && a === value)) q.append('accred', a);
+    return `/search?${q.toString()}`;
+  };
+  // On result cards, show the filters asked for first, then that trade's own qualifications
+  const tradeKeys = trade ? accreditationsForTrade(trade).map((a) => a.key) : [];
+  const rank = (a: string) => (accreds.includes(a) ? 0 : tradeKeys.includes(a) ? 1 : 2);
+  const badgeOrder = (list: string[]) => [...list].sort((x, y) => rank(x) - rank(y));
 
   let results: Result[] | null = null;
   let thumbs = new Map<string, string>();
@@ -60,39 +75,23 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
         <h1>Find vetted trades for your job</h1>
         <p className="lead">Landscapers, arborists, groundworkers and more. Insurance and accreditations checked before they are listed.</p>
 
-        <form className="search" method="get">
-          <label>Job postcode<input name="postcode" defaultValue={postcode} required placeholder="e.g. EN8 8YD" /></label>
-          <label>Trade
-            <select name="trade" defaultValue={trade}>
-              <option value="">Any trade</option>
-              {TRADES.map((t) => <option key={t.slug} value={t.slug}>{t.label}</option>)}
-            </select>
-          </label>
-          <label>Min. public liability
-            <select name="pl" defaultValue={minPl}>
-              <option value="">Any</option>
-              {PL_COVER_OPTIONS.map((n) => <option key={n} value={n}>{gbp(n)}</option>)}
-            </select>
-          </label>
-          <details className="accreds">
-            <summary>Required accreditations{accreds.length ? ` (${accreds.length})` : ''}</summary>
-            <div className="checks">
-              {ACCREDITATIONS.map((a) => (
-                <label key={a} className="check">
-                  <input type="checkbox" name="accred" value={a} defaultChecked={accreds.includes(a)} /> {a}
-                </label>
-              ))}
-            </div>
-          </details>
-          <button type="submit" className="primary">Search</button>
-        </form>
+        <SearchForm postcode={postcode} trade={trade} minPl={minPl} accreds={accreds} />
       </section>
 
       {searchError && <p className="err big">{searchError}</p>}
 
       {results && (
         <section>
-          <h2>{results.length} {results.length === 1 ? 'business covers' : 'businesses cover'} {postcode.toUpperCase()}</h2>
+          <h2>{results.length} {results.length === 1 ? 'business covers' : 'businesses cover'} {postcode.toUpperCase()}{trade ? ` for ${tradeLabel(trade)}` : ''}</h2>
+          {(accreds.length > 0 || minPl) && (
+            <p className="active-filters">
+              <span className="muted small">Must have:</span>
+              {minPl && <a className="chip-on" href={withoutParam('pl', minPl)}>PL {gbp(Number(minPl))} or more <span aria-hidden>×</span></a>}
+              {accreds.map((a) => (
+                <a key={a} className="chip-on" href={withoutParam('accred', a)} title="Remove this filter">{accreditationLabel(a)} <span aria-hidden>×</span></a>
+              ))}
+            </p>
+          )}
           {results.length === 0 && <p className="muted">Nobody matches yet. Try removing a filter.</p>}
           <div className="results">
             {results.map((r) => (
@@ -104,8 +103,8 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
                   <p className="badges">
                     <span className="badge ok">{r.business_type === 'ltd' ? 'Companies House checked' : 'Sole trader, checked'}</span>
                     <span className="badge">PL {gbp(r.pl_cover_amount)}</span>
-                    {r.accreditations.slice(0, 3).map((a) => <span className="badge" key={a}>{a}</span>)}
-                    {r.accreditations.length > 3 && <span className="badge">+{r.accreditations.length - 3}</span>}
+                    {badgeOrder(r.accreditations).slice(0, 4).map((a) => <span className="badge" key={a}>{accreditationLabel(a)}</span>)}
+                    {r.accreditations.length > 4 && <span className="badge">+{r.accreditations.length - 4} more</span>}
                   </p>
                   <p className="muted small">{r.base_postcode}, {r.distance_miles.toFixed(0)} miles away</p>
                 </div>

@@ -204,3 +204,61 @@ input, select, textarea { font-weight: 400; }
   .rust-band h2 { font-size: 1.8rem; }
   .band-in { padding: 48px 16px; }
 }
+
+/* Accreditation picker (join form and account) */
+.acc-picker { display: grid; gap: 16px; }
+.acc-group { border-left: 3px solid var(--leaf); padding-left: 12px; }
+.acc-head { font-weight: 700; color: var(--forest); margin: 0 0 8px; font-size: .95rem; }
+.acc-expiries { display: grid; gap: 10px; background: var(--sand); padding: 14px; border-radius: 2px; }
+
+/* Search with filters panel */
+.search2 { display: grid; gap: 12px; }
+.search2-bar { display: grid; grid-template-columns: 1.2fr 1fr auto; gap: 12px; align-items: end; }
+.search2-bar .sq { height: 46px; }
+.filters { border-top: 1px solid var(--line); padding-top: 10px; }
+.filters summary { display: inline-block; font-weight: 700; color: var(--forest); padding: 6px 14px; border: 2px solid var(--forest); border-radius: 2px; list-style: none; }
+.filters summary::-webkit-details-marker { display: none; }
+.filters[open] summary { background: var(--forest); color: #fff; }
+.filters-body { display: grid; gap: 18px; margin-top: 14px; }
+.filter-pl { max-width: 280px; }
+.filters-actions { display: flex; gap: 18px; align-items: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; cursor: pointer; font-weight: 500; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip span { padding: 7px 12px; border: 1px solid var(--line); background: #fff; border-radius: 999px; font-size: .9rem; }
+.chip:hover span { border-color: var(--leaf); }
+.chip input:checked + span { background: var(--green); border-color: var(--green); color: #fff; }
+.chip input:focus-visible + span { outline: 2px solid var(--rust); outline-offset: 2px; }
+.active-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 16px; }
+.chip-on { background: var(--accent-soft); color: var(--forest); text-decoration: none; padding: 5px 12px; border-radius: 999px; font-size: .88rem; font-weight: 600; }
+.chip-on:hover { background: #f8e1d6; color: var(--rust); }
+@media (max-width: 720px) { .search2-bar { grid-template-columns: 1fr; } }
+
+/* Leads */
+.leads-page { display: grid; gap: 22px; }
+.leads-head h1 { font-size: 2.4rem; color: var(--forest); margin: 0 0 8px; }
+.leads-head .lead { margin-bottom: 6px; max-width: 760px; }
+.leads-filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; background: var(--sand); padding: 16px; border-radius: 2px; }
+.leads-filters label { min-width: 200px; }
+.leads-filters .sq { height: 44px; }
+.seg { display: flex; border: 2px solid var(--forest); border-radius: 2px; overflow: hidden; align-self: end; }
+.seg a { padding: 9px 14px; text-decoration: none; color: var(--forest); font-weight: 700; }
+.seg a.on { background: var(--forest); color: #fff; }
+.lead-list { display: grid; gap: 14px; }
+.lead-card { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--leaf); padding: 18px 20px; border-radius: 2px; }
+.lead-card h2 { font-size: 1.2rem; margin: 6px 0 8px; color: var(--forest); }
+.lead-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.lead-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 8px; font-size: .92rem; color: var(--muted); }
+.lead-meta strong { color: var(--ink); }
+.due-soon { color: var(--rust); font-weight: 700; }
+.lead-desc { margin: 0 0 12px; white-space: pre-line; }
+.lead-foot { display: flex; gap: 14px; align-items: center; margin: 0; }
+.lead-gate { background: var(--forest); color: #fff; padding: 28px; border-radius: 2px; text-align: center; }
+.lead-gate h2 { margin: 0 0 8px; font-size: 1.6rem; }
+.lead-gate p { margin: 0 0 18px; opacity: .9; }
+.gate-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.sq-ghost { border: 2px solid #fff; color: #fff; background: transparent; }
+.lead-locked { filter: grayscale(.3); opacity: .7; user-select: none; }
+.lock-bar { height: 14px; background: #e6e8e1; border-radius: 2px; margin: 12px 0 8px; width: 80%; }
+.lock-bar.short { width: 55%; }
+.admin-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
