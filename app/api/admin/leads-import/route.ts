@@ -3,7 +3,7 @@ import { importLeads } from '@/lib/leads';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 /** Admin button: pull leads now (behind the admin password via middleware). */
 export async function POST(req: NextRequest) {
