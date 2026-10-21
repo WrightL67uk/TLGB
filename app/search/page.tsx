@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { db, photoUrl } from '@/lib/supabase';
+import { UNVERIFIED_TEXT } from '@/lib/membership';
 import { lookupPostcode } from '@/lib/postcodes';
 import { ACCREDITATIONS, accreditationLabel, accreditationsForTrade, gbp, tradeLabel } from '@/lib/config';
 import SearchForm from './SearchForm';
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic';
 type Result = {
   id: string; trading_name: string; business_type: string; trades: string[];
   accreditations: string[]; pl_cover_amount: number | null; base_postcode: string;
-  distance_miles: number; description: string | null;
+  distance_miles: number; description: string | null; verified: boolean; unverified_reason: 'membership' | 'insurance' | null;
 };
 
 type SP = Promise<Record<string, string | string[] | undefined>>;
@@ -22,6 +23,8 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
   const trade = typeof sp.trade === 'string' ? sp.trade : '';
   const minPl = typeof sp.pl === 'string' ? sp.pl : '';
   const accreds = ([] as string[]).concat(sp.accred ?? []).filter((a) => (ACCREDITATIONS as readonly string[]).includes(a));
+  // "Verified members only" is ticked unless the search form was sent with it unticked
+  const verifiedOnly = sp.v ? sp.verified === '1' : true;
 
   // Link that drops one filter but keeps the rest of the search
   const withoutParam = (key: string, value: string) => {
@@ -30,6 +33,8 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
     if (trade) q.set('trade', trade);
     if (minPl && !(key === 'pl' && value === minPl)) q.set('pl', minPl);
     for (const a of accreds) if (!(key === 'accred' && a === value)) q.append('accred', a);
+    q.set('v', '1');
+    if (verifiedOnly) q.set('verified', '1');
     return `/search?${q.toString()}`;
   };
   // On result cards, show the filters asked for first, then that trade's own qualifications
@@ -51,6 +56,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
         trade_slug: trade || null,
         required_accreds: accreds,
         min_pl_cover: minPl ? Number(minPl) : null,
+        verified_only: verifiedOnly,
       });
       if (error) {
         console.error(error);
@@ -75,10 +81,16 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
         <h1>Find vetted trades for your job</h1>
         <p className="lead">Landscapers, arborists, groundworkers and more. Insurance and accreditations checked before they are listed.</p>
 
-        <SearchForm postcode={postcode} trade={trade} minPl={minPl} accreds={accreds} />
+        <SearchForm postcode={postcode} trade={trade} minPl={minPl} accreds={accreds} verifiedOnly={verifiedOnly} />
       </section>
 
       {searchError && <p className="err big">{searchError}</p>}
+      {results && !verifiedOnly && (
+        <p className="verified-warning" role="alert">
+          <strong>You are seeing unverified businesses too.</strong> Their membership has lapsed or their insurance has expired, so we
+          cannot vouch for their insurance, accreditations or company details. Ask to see current certificates before you hire.
+        </p>
+      )}
 
       {results && (
         <section>
@@ -100,12 +112,20 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
                 <div className="card-body">
                   <h3>{r.trading_name}</h3>
                   <p className="muted">{r.trades.map(tradeLabel).join(', ')}</p>
-                  <p className="badges">
-                    <span className="badge ok">{r.business_type === 'ltd' ? 'Companies House checked' : 'Sole trader, checked'}</span>
-                    <span className="badge">PL {gbp(r.pl_cover_amount)}</span>
-                    {badgeOrder(r.accreditations).slice(0, 4).map((a) => <span className="badge" key={a}>{accreditationLabel(a)}</span>)}
-                    {r.accreditations.length > 4 && <span className="badge">+{r.accreditations.length - 4} more</span>}
-                  </p>
+                  {r.verified ? (
+                    <p className="badges">
+                      <span className="badge ok">Verified member</span>
+                      <span className="badge ok">{r.business_type === 'ltd' ? 'Companies House checked' : 'Sole trader, checked'}</span>
+                      <span className="badge">PL {gbp(r.pl_cover_amount)}</span>
+                      {badgeOrder(r.accreditations).slice(0, 4).map((a) => <span className="badge" key={a}>{accreditationLabel(a)}</span>)}
+                      {r.accreditations.length > 4 && <span className="badge">+{r.accreditations.length - 4} more</span>}
+                    </p>
+                  ) : (
+                    <p className="badges">
+                      <span className="badge unverified">Unverified</span>
+                      <span className="muted small">{UNVERIFIED_TEXT[r.unverified_reason ?? 'membership']}</span>
+                    </p>
+                  )}
                   <p className="muted small">{r.base_postcode}, {r.distance_miles.toFixed(0)} miles away</p>
                 </div>
               </Link>

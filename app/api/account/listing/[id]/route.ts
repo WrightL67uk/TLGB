@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { db } from '@/lib/supabase';
 import { sameOrigin } from '@/lib/session';
 import { ownedBusiness, flagForRecheck } from '@/lib/account';
+import type { Pending } from '@/lib/membership';
 import { lookupPostcode } from '@/lib/postcodes';
 import { emailAdminChanges } from '@/lib/email';
 import { ACCREDITATIONS, TRADES, TURNOVER_BANDS, gbp } from '@/lib/config';
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   if (b.business_type === 'sole_trader' && !d.business_address) return fail('Business address: sole traders must give one.');
   const today = new Date().toISOString().slice(0, 10);
-  if (d.pl_expiry < today) return fail('Your public liability insurance has expired. Upload your new certificate and enter its expiry date.');
+  if (d.pl_expiry !== b.pl_expiry && d.pl_expiry < today) return fail('That public liability expiry date has already passed. Enter the date on your new certificate.');
   // Past dates are allowed here so an expired accreditation doesn't block other edits; it just stops showing.
   const accExp = cleanAccreditationExpiries(d.accreditations, d.accreditation_expiries, { allowPast: true });
   if (!accExp.ok) return fail(accExp.error);
@@ -101,6 +102,31 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!count) return fail('Upload your new public liability certificate first (Documents section), then change the cover or expiry date.');
   }
 
+  // ---- Approved listings: new insurance and accreditation dates wait for an admin to check the
+  // certificate. Until then the confirmed dates stand. Removing an accreditation is immediate.
+  const approved = b.status === 'approved';
+  const pending: Pending = {};
+  let accreditations = d.accreditations;
+  let accreditationExpiries = accExp.value;
+  let pl = { pl_cover_amount: d.pl_cover_amount, pl_expiry: d.pl_expiry };
+  let el = { el_cover_amount: d.el_cover_amount ?? null, el_expiry: d.el_expiry ?? null };
+  if (approved) {
+    if (plChanged) pending.pl = { expiry: d.pl_expiry, cover: d.pl_cover_amount };
+    if ((d.el_cover_amount ?? null) !== b.el_cover_amount || (d.el_expiry ?? null) !== b.el_expiry) {
+      pending.el = { expiry: d.el_expiry ?? null, cover: d.el_cover_amount ?? null };
+    }
+    const acc: Record<string, string | null> = {};
+    for (const a of d.accreditations) {
+      const proposed = accExp.value[a] ?? null;
+      if (!b.accreditations.includes(a) || proposed !== (oldExp[a] ?? null)) acc[a] = proposed;
+    }
+    if (Object.keys(acc).length) pending.acc = acc;
+    accreditations = b.accreditations.filter((a) => d.accreditations.includes(a));
+    accreditationExpiries = Object.fromEntries(accreditations.filter((a) => oldExp[a]).map((a) => [a, oldExp[a]]));
+    pl = { pl_cover_amount: b.pl_cover_amount ?? d.pl_cover_amount, pl_expiry: b.pl_expiry ?? d.pl_expiry };
+    el = { el_cover_amount: b.el_cover_amount, el_expiry: b.el_expiry };
+  }
+
   const { error } = await db()
     .from('businesses')
     .update({
@@ -115,13 +141,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       lng,
       radius_miles: d.radius_miles,
       trades: d.trades,
-      accreditations: d.accreditations,
-      accreditation_expiries: accExp.value,
+      accreditations,
+      accreditation_expiries: accreditationExpiries,
       turnover_band: d.turnover_band,
-      pl_cover_amount: d.pl_cover_amount,
-      pl_expiry: d.pl_expiry,
-      el_cover_amount: d.el_cover_amount ?? null,
-      el_expiry: d.el_expiry ?? null,
+      ...pl,
+      ...el,
+      pending_dates: pending,
     })
     .eq('id', b.id);
   if (error) {

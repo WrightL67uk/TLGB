@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { db } from '@/lib/supabase';
-import { getSessionEmail } from '@/lib/session';
+import { getMembership } from '@/lib/membership';
 import { TRADES, tradeLabel } from '@/lib/config';
 import './leads.css';
-import { KIND_LABEL, SOURCE_LABEL, type LeadKind, type LeadSource } from '@/lib/leads';
+import { KIND_LABEL, type LeadKind, type LeadSource } from '@/lib/leads';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
@@ -43,8 +43,10 @@ function miles(aLat: number, aLng: number, bLat: number, bLng: number) {
 
 export default async function LeadsPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
-  const email = await getSessionEmail();
-  const loggedIn = !!email;
+  const m = await getMembership();
+  const email = m.email;
+  // Only paying (or founding) members get the full feed; everyone else sees a sample
+  const loggedIn = m.paid;
 
   // A logged-in trade sees leads matched to their listing by default
   const { data: mine } = loggedIn
@@ -108,8 +110,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
           building contracts just won by main contractors, new planning applications and tree works applications.
         </p>
         <p className="muted small">
-          {totalOpen.toLocaleString('en-GB')} live leads. Sources: Find a Tender, Contracts Finder, Public Contracts Scotland,
-          Sell2Wales and every UK council planning register (via UK PlanIt).
+          {totalOpen.toLocaleString('en-GB')} live leads, updated every morning. New to this? Read{' '}
+          <Link href="/guides/finding-leads">how to pick the leads worth chasing</Link>.
         </p>
       </section>
 
@@ -145,6 +147,13 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
         <button type="submit" className="sq sq-rust">show leads</button>
       </form>
 
+      {loggedIn && view === 'mine' && !trade && (
+        <p className="leads-note">
+          Showing the {leads.length.toLocaleString('en-GB')} {type ? KIND_LABEL[type].toLowerCase() : 'leads'} that match your trades and the area you cover,
+          out of {(type ? kindCount[type] : totalOpen - (wantsTrees ? 0 : kindCount.trees)).toLocaleString('en-GB')}.{' '}
+          <Link href={link({ view: 'all' })}>Show them all</Link>
+        </p>
+      )}
       {leads.length === 0 && <p className="muted">No open leads match right now. New ones arrive every morning.</p>}
 
       <div className="lead-list">
@@ -182,7 +191,6 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
             <p className="lead-foot">
               {l.url && <a href={l.url} target="_blank" rel="noopener" className="sq sq-rust">{BUTTON[l.kind] || 'view'}</a>}
               {l.meta?.docs_url && <a href={l.meta.docs_url} target="_blank" rel="noopener" className="small">drawings and documents</a>}
-              <span className="muted small">via {SOURCE_LABEL[l.source]}</span>
             </p>
           </article>
         ))}
@@ -191,11 +199,24 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
           <>
             <div className="lead-gate">
               <h2>{leads.length - 1} more {leads.length - 1 === 1 ? 'lead' : 'leads'} {trade || region || type ? 'match this search' : 'live now'}</h2>
-              <p>Every listed business gets the full leads feed, matched to their trades and the area they cover.</p>
-              <div className="gate-btns">
-                <Link href="/join" className="sq sq-rust">list your business</Link>
-                <Link href="/login?next=/leads" className="sq sq-ghost">log in</Link>
-              </div>
+              {m.loggedIn ? (
+                <>
+                  <p>{m.approved
+                    ? 'Start your membership to get the full leads feed, matched to your trades and the area you cover.'
+                    : 'Your listing is waiting for approval. Once it is approved you can start your membership and see every lead.'}</p>
+                  <div className="gate-btns">
+                    <Link href={m.unpaidId ? `/account/${m.unpaidId}` : '/account'} className="sq sq-rust">{m.approved ? 'start membership' : 'check my listing'}</Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p>Members get the full leads feed, matched to their trades and the area they cover.</p>
+                  <div className="gate-btns">
+                    <Link href="/join" className="sq sq-rust">list your business</Link>
+                    <Link href="/login?next=/leads" className="sq sq-ghost">log in</Link>
+                  </div>
+                </>
+              )}
             </div>
             {locked.map((l) => (
               <article key={l.id} className="lead-card lead-locked" aria-hidden>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import VerifiedToggle from './VerifiedToggle';
 import { TRADES } from '@/lib/config';
 
 export const metadata = {
@@ -57,6 +58,7 @@ export default function Home() {
                 {TRADES.map((t) => <option key={t.slug} value={t.slug}>{t.label}</option>)}
               </select>
             </label>
+            <VerifiedToggle />
             <button type="submit" className="sq sq-rust">find trades</button>
           </form>
           <p className="hero-note">Free to search. No account needed.</p>

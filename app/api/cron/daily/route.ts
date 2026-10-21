@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runExpiryJob } from '@/lib/expiryJob';
 import { importLeads } from '@/lib/leads';
+import { geocodeSuppliers } from '@/lib/suppliers';
+import { syncOverdueMemberships } from '@/lib/billingSync';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -15,5 +17,7 @@ export async function GET(req: NextRequest) {
   const out: Record<string, unknown> = {};
   try { out.leads = await importLeads({ days: Math.min(30, Math.max(1, Number(req.nextUrl.searchParams.get('days')) || 3)) }); } catch (err) { console.error('daily: leads failed', err); out.leads = 'failed'; }
   try { out.expiryFlags = await runExpiryJob(); } catch (err) { console.error('daily: expiries failed', err); out.expiryFlags = 'failed'; }
+  try { out.suppliersPlaced = await geocodeSuppliers(); } catch (err) { console.error('daily: supplier geocode failed', err); }
+  try { out.membershipsSynced = await syncOverdueMemberships(); } catch (err) { console.error('daily: billing sync failed', err); }
   return NextResponse.json({ ok: true, ...out });
 }

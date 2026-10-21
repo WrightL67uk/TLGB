@@ -33,6 +33,9 @@ export type Business = {
   recheck_reason: string | null;
   founding_member: boolean;
   subscription_status: string;
+  stripe_customer_id: string | null;
+  paid_until: string | null;
+  pending_dates: import('./membership').Pending | null;
 };
 
 type Owned = { ok: true; email: string; business: Business } | { ok: false; status: 401 | 404; error: string };

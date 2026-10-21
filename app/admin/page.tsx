@@ -56,6 +56,13 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
     ).then((x) => Object.fromEntries(x)),
   ]);
 
+  // New supplier submissions and unanswered enquiries, so they are visible from the main admin screen
+  const [{ count: newSuppliers }, { count: newEnquiries }] = await Promise.all([
+    db().from('suppliers').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    db().from('service_enquiries').select('id', { count: 'exact', head: true }).eq('handled', false),
+  ]);
+  const waiting = (newSuppliers ?? 0) + (newEnquiries ?? 0);
+
   return (
     <div>
       <div className="admin-head">
@@ -64,6 +71,10 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
           <input type="hidden" name="days" value="14" />
           <button type="submit">Fetch leads now (last 14 days)</button>
         </form>
+        <Link href="/admin/resources">
+          Suppliers, enquiries and help board
+          {waiting > 0 && <span className="count"> {waiting} waiting</span>}
+        </Link>
       </div>
       {leadsMsg && <p className="ok-box">{leadsMsg}</p>}
       <nav className="tabs">

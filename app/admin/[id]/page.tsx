@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { db, photoUrl } from '@/lib/supabase';
 import { gbp, tradeLabel, turnoverBand, accreditationLabel } from '@/lib/config';
 import { daysUntil, fmtDate } from '@/lib/expiries';
+import { unverifiedReason, type Pending } from '@/lib/membership';
 
 // Where to confirm each scheme by hand. None of them offer a public API.
 function checkLink(accreditation: string, name: string) {
@@ -23,9 +24,9 @@ const DOC_LABEL: Record<string, string> = {
 
 export default async function AdminDetail({
   params, searchParams,
-}: { params: Promise<{ id: string }>; searchParams: Promise<{ done?: string; login_link?: string }> }) {
+}: { params: Promise<{ id: string }>; searchParams: Promise<{ done?: string; login_link?: string; error?: string }> }) {
   const { id } = await params;
-  const { done, login_link } = await searchParams;
+  const { done, login_link, error: formError } = await searchParams;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 
   const { data: b } = await db().from('businesses').select('*').eq('id', id).maybeSingle();
@@ -45,6 +46,16 @@ export default async function AdminDetail({
   }
 
   const plExpired = b.pl_expiry && new Date(b.pl_expiry) < new Date();
+  const pend: Pending = b.pending_dates ?? {};
+  const hasPending = !!(pend.pl || pend.el || Object.keys(pend.acc ?? {}).length);
+  const accKeys: string[] = [...new Set([...(b.accreditations as string[]), ...Object.keys(pend.acc ?? {})])];
+  const statusOf = (d: string | null | undefined) => {
+    if (!d) return <span className="muted">no date</span>;
+    const days = daysUntil(d);
+    if (days < 0) return <span className="warn">EXPIRED</span>;
+    if (days <= 30) return <span className="warn">expires in {days} days</span>;
+    return <span>confirmed</span>;
+  };
   const nameMismatch =
     b.business_type === 'ltd' && b.ch_company_name &&
     b.trading_name.trim().toLowerCase() !== b.ch_company_name.trim().toLowerCase();
@@ -53,6 +64,7 @@ export default async function AdminDetail({
     <div className="admin-detail">
       <p><Link href="/admin">Back to queue</Link></p>
       {done && <p className="ok-box">Saved.</p>}
+      {formError && <p className="err big">{formError}</p>}
       {login_link && (
         <div className="ok-box">
           <p><strong>Login link for {b.email}</strong> (works once, for 24 hours):</p>
@@ -111,27 +123,68 @@ export default async function AdminDetail({
         </section>
 
         <section className="panel">
-          <h2>Insurance</h2>
-          <p>Public liability {gbp(b.pl_cover_amount)}, expires {b.pl_expiry && new Date(b.pl_expiry).toLocaleDateString('en-GB')}
-            {plExpired && <span className="warn"> EXPIRED</span>}</p>
-          <p>Employers liability {b.el_cover_amount ? `${gbp(b.el_cover_amount)}, expires ${b.el_expiry ? new Date(b.el_expiry).toLocaleDateString('en-GB') : 'not given'}` : 'not provided'}</p>
-          <p>Accreditations claimed: {b.accreditations.length ? '' : 'none'}</p>
-          {b.accreditations.length > 0 && (
-            <ul className="docs">
-              {b.accreditations.map((a: string) => {
-                const e = b.accreditation_expiries?.[a];
-                const days = e ? daysUntil(e) : null;
-                return (
-                  <li key={a}>
-                    {accreditationLabel(a)}: {e ? `expires ${fmtDate(e)}` : 'no expiry given'}
-                    {days !== null && days < 0 && <span className="warn"> EXPIRED</span>}
-                    {days !== null && days >= 0 && days <= 30 && <span className="warn"> expires in {days} days</span>}
-                    {' '}<a href={checkLink(a, b.ch_company_name ?? b.trading_name)} target="_blank" rel="noopener" className="small">Check</a>
-                  </li>
-                );
-              })}
-            </ul>
+          <h2>Membership</h2>
+          <p>
+            {b.founding_member ? <strong>Founding member (free)</strong> : <>Status: <strong>{({ none: 'not started', trialing: 'free trial', active: 'paying', past_due: 'payment failed, Stripe retrying', cancelled: 'cancelled' } as Record<string, string>)[b.subscription_status] ?? b.subscription_status}</strong></>}
+            {b.paid_until && !b.founding_member && <> until {new Date(b.paid_until).toLocaleDateString('en-GB')}</>}
+          </p>
+          {b.stripe_customer_id && <p><a href={`https://dashboard.stripe.com/customers/${b.stripe_customer_id}`} target="_blank" rel="noopener">Open in Stripe</a></p>}
+          {b.status === 'approved' && (
+            <form action="/api/admin/decision" method="post" className="inline">
+              <input type="hidden" name="id" value={b.id} />
+              <input type="hidden" name="action" value="founding" />
+              <input type="hidden" name="founding_member" value={b.founding_member ? 'off' : 'on'} />
+              <button type="submit">{b.founding_member ? 'Remove free membership' : 'Make free (founding) member'}</button>
+            </form>
           )}
+        </section>
+
+        <section className="panel">
+          <h2>Insurance and accreditations</h2>
+          {(() => {
+            const reason = b.status === 'approved' ? unverifiedReason(b) : null;
+            return b.status === 'approved' && (
+              <p>{reason ? <span className="warn">Shows as UNVERIFIED ({reason === 'insurance' ? 'insurance expired' : 'membership not paid'})</span> : <strong>Verified</strong>}</p>
+            );
+          })()}
+          {hasPending && <p className="warn">The trade has entered new details (marked &ldquo;awaiting check&rdquo;). Open the certificate under Documents, correct the date if needed, then confirm.</p>}
+          <p className="muted small">Only the dates confirmed here count on the listing. Each one stops counting on the day it expires.</p>
+          <form action="/api/admin/dates" method="post" className="form dates-form">
+            <input type="hidden" name="id" value={b.id} />
+            <table className="table">
+              <thead><tr><th>Item</th><th>Cover</th><th>Expiry date</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>Public liability</td>
+                  <td><input name="pl_cover" type="number" min={0} step={100000} defaultValue={pend.pl?.cover ?? b.pl_cover_amount ?? ''} required /></td>
+                  <td><input name="pl_expiry" type="date" defaultValue={pend.pl?.expiry ?? b.pl_expiry ?? ''} required /></td>
+                  <td>{pend.pl ? <span className="warn">awaiting check{b.pl_expiry ? ` (was ${fmtDate(b.pl_expiry)})` : ''}</span> : statusOf(b.pl_expiry)}</td>
+                </tr>
+                <tr>
+                  <td>Employers liability</td>
+                  <td><input name="el_cover" type="number" min={0} step={100000} defaultValue={(pend.el ? pend.el.cover : b.el_cover_amount) ?? ''} placeholder="none" /></td>
+                  <td><input name="el_expiry" type="date" defaultValue={(pend.el ? pend.el.expiry : b.el_expiry) ?? ''} /></td>
+                  <td>{pend.el ? <span className="warn">awaiting check</span> : b.el_cover_amount ? statusOf(b.el_expiry) : <span className="muted">not held</span>}</td>
+                </tr>
+                {accKeys.map((a) => {
+                  const isNew = !b.accreditations.includes(a);
+                  const proposed = pend.acc && a in pend.acc;
+                  const value = proposed ? pend.acc![a] : b.accreditation_expiries?.[a];
+                  return (
+                    <tr key={a}>
+                      <td><label className="check"><input type="checkbox" name="acc" value={a} defaultChecked /> {accreditationLabel(a)}</label></td>
+                      <td><a href={checkLink(a, b.ch_company_name ?? b.trading_name)} target="_blank" rel="noopener" className="small">Check</a></td>
+                      <td><input name={`acc_exp__${a}`} type="date" defaultValue={value ?? ''} /></td>
+                      <td>{proposed ? <span className="warn">{isNew ? 'new, awaiting check' : 'awaiting check'}</span> : statusOf(value ?? null)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <p className="muted small">Untick an accreditation to remove it, for example if the certificate does not match.</p>
+            {b.recheck_required && <label className="check"><input type="checkbox" name="clear_recheck" defaultChecked /> Also mark the listing&rsquo;s other changes as checked</label>}
+            <button type="submit" className="primary">Confirm these details</button>
+          </form>
         </section>
 
         <section className="panel">

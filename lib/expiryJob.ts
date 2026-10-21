@@ -1,6 +1,10 @@
 import 'server-only';
 import { db } from './supabase';
 import { expiryItems, daysUntil, stageFor, type Expiries } from './expiries';
+import type { Pending } from './membership';
+
+const awaitingCheck = (p: Pending | null, key: string) =>
+  !!p && (key === 'public_liability' ? !!p.pl : key === 'employers_liability' ? !!p.el : key.startsWith('acc:') ? !!p.acc && key.slice(4) in p.acc : false);
 import { emailTradeExpiries, emailAdminExpiries, type ExpiryNotice } from './email';
 
 /**
@@ -12,7 +16,7 @@ import { emailTradeExpiries, emailAdminExpiries, type ExpiryNotice } from './ema
 export async function runExpiryJob(): Promise<number> {
   const { data: list, error } = await db()
     .from('businesses')
-    .select('id, trading_name, contact_name, email, pl_expiry, el_expiry, el_cover_amount, accreditations, accreditation_expiries')
+    .select('id, trading_name, contact_name, email, pl_expiry, el_expiry, el_cover_amount, accreditations, accreditation_expiries, pending_dates')
     .eq('status', 'approved')
     .limit(5000);
   if (error) throw new Error(`expiry job: load failed: ${error.message}`);
@@ -25,7 +29,9 @@ export async function runExpiryJob(): Promise<number> {
         const days = daysUntil(i.expiry);
         return { ...i, days, stage: stageFor(days) };
       })
-      .filter((i): i is typeof i & { stage: NonNullable<typeof i.stage> } => i.stage !== null);
+      .filter((i): i is typeof i & { stage: NonNullable<typeof i.stage> } => i.stage !== null)
+      // Skip anything the trade has already renewed and we are waiting to check
+      .filter((i) => !awaitingCheck(b.pending_dates as Pending | null, i.key));
     if (!due.length) continue;
 
     // Record what we are about to send. Only rows that are new come back, so nothing repeats.

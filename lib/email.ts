@@ -130,15 +130,20 @@ export async function emailApplicantReceived(a: ApplicationSummary) {
   );
 }
 
-export async function emailApplicantApproved(to: string, name: string, tradingName: string) {
+export async function emailApplicantApproved(to: string, name: string, tradingName: string, founding = false) {
+  const login = `<a href="${siteUrl()}/login?next=/account">${esc(siteUrl().replace(/^https?:\/\//, ''))}/login</a>`;
   await send(
     to,
     `${tradingName} is approved`,
-    `<p>Hi ${esc(name)},</p>
-<p>Good news. <strong>${esc(tradingName)}</strong> has been approved and is now listed on The Little Green Book.</p>
-<p>Contractors searching your area can now find you. Keep your insurance documents up to date so your listing stays live.</p>
-<p>You can update your details, photos and certificates at any time. Log in with this email address at
-<a href="${siteUrl()}/login">${esc(siteUrl().replace(/^https?:\/\//, ''))}/login</a>.</p>`,
+    founding
+      ? `<p>Hi ${esc(name)},</p>
+<p>Good news. <strong>${esc(tradingName)}</strong> has been approved and is now listed on The Little Green Book as a founding member, free of charge.</p>
+<p>Contractors searching your area can now find you, and you have the full leads feed, the supply chain finder and the help board. Keep your insurance documents up to date so your listing stays live.</p>
+<p>Log in with this email address at ${login}.</p>`
+      : `<p>Hi ${esc(name)},</p>
+<p>Good news. <strong>${esc(tradingName)}</strong> has been approved.</p>
+<p>To go live, log in and press <strong>Start membership</strong> on your listing. Once you have paid, contractors searching your area can find you, and you get the full leads feed, the supply chain finder and the help board.</p>
+<p>Log in with this email address at ${login}.</p>`,
     'application-approved'
   );
 }
@@ -240,5 +245,77 @@ export async function emailAdminExpiries(rows: { id: string; tradingName: string
     `<p>These listings hit a reminder point today. The trades have been emailed too.</p>${body}
 <p><a href="${siteUrl()}/admin?status=expiring">See everything due in the next 30 days</a></p>`,
     'admin-expiries'
+  );
+}
+
+const adminList = () => (process.env.ADMIN_EMAILS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+
+export type Enquiry = { name: string; business?: string | null; email: string; phone?: string | null; schemes: string[]; message?: string | null };
+
+/** Accreditation help enquiry: one to admins, one confirmation to the customer. */
+export async function emailAccreditationEnquiry(e: Enquiry) {
+  await send(
+    adminList(),
+    `Accreditation help enquiry: ${e.business || e.name}`,
+    `<p><strong>${esc(e.name)}</strong>${e.business ? ` from ${esc(e.business)}` : ''} wants help with accreditation applications.</p>
+<p>Schemes: ${esc(e.schemes.join(', ') || 'not sure yet')}<br>
+Email: <a href="mailto:${esc(e.email)}">${esc(e.email)}</a><br>
+Phone: ${esc(e.phone || 'not given')}</p>
+${e.message ? `<p>${esc(e.message).replace(/\n/g, '<br>')}</p>` : ''}`,
+    'enquiry-admin'
+  );
+  await send(
+    e.email,
+    'We have your accreditation enquiry',
+    `<p>Hello ${esc(e.name.split(' ')[0])},</p>
+<p>Thanks for getting in touch about ${esc(e.schemes.join(', ') || 'your accreditation applications')}. We will be in touch within two working days to talk it through and give you a fixed price.</p>
+<p>The Little Green Book</p>`,
+    'enquiry-customer'
+  );
+}
+
+/** A supplier asked to be listed. */
+export async function emailAdminSupplierSubmission(name: string, website: string | null, email: string) {
+  await send(
+    adminList(),
+    `New supplier to check: ${name}`,
+    `<p><strong>${esc(name)}</strong> has asked to be listed on the supplier page.</p>
+<p>${website ? `Website: <a href="${esc(website)}">${esc(website)}</a><br>` : ''}Submitted by: ${esc(email)}</p>
+<p><a href="${siteUrl()}/admin/resources">Review it in admin</a></p>`,
+    'supplier-admin'
+  );
+}
+
+/** A trade posted on the help board. */
+export async function emailAdminHelpRequest(business: string | null, email: string, title: string, details: string) {
+  await send(
+    adminList(),
+    `New help board post: ${title}`,
+    `<p><strong>${esc(business ?? email)}</strong> posted on the help board.</p>
+<p><strong>${esc(title)}</strong><br>${esc(details).replace(/\n/g, '<br>')}</p>
+<p><a href="${siteUrl()}/help-board">See the help board</a> or <a href="${siteUrl()}/admin/resources">remove it in admin</a> if it should not be there.</p>`,
+    'help-admin'
+  );
+}
+
+/** Membership changes: new subscriber, cancellation, failed payment. */
+export async function emailAdminBilling(subject: string, line: string, businessId?: string) {
+  await send(
+    adminList(),
+    subject,
+    `<p>${esc(line)}</p>${businessId ? `<p><a href="${siteUrl()}/admin/${businessId}">Open the listing in admin</a></p>` : ''}`,
+    'billing-admin'
+  );
+}
+
+/** Tells a member their renewal payment failed. Stripe retries automatically. */
+export async function emailMemberPaymentFailed(to: string, tradingName: string) {
+  await send(
+    to,
+    'Your Little Green Book payment did not go through',
+    `<p>We could not take the payment for your listing for ${esc(tradingName)}.</p>
+<p>Your card provider may have declined it, or the card may have expired. We will try again over the next few days. To update your card, log in and press <strong>Manage billing</strong> on your listing.</p>
+<p><a href="${siteUrl()}/login?next=/account">Log in to update your card</a></p>`,
+    'billing-member'
   );
 }

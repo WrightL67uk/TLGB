@@ -1,0 +1,49 @@
+/* Guides, supply chain finder, suppliers, help board, accreditation help */
+.guide { max-width: 760px; margin: 0 auto; }
+.guide h2 { margin: 36px 0 10px; color: var(--forest); font-size: 1.35rem; }
+.guide h3 { margin: 22px 0 6px; font-size: 1.05rem; }
+.guide p, .guide li { line-height: 1.6; }
+.guide ul, .guide ol { padding-left: 22px; }
+.guide li { margin: 4px 0; }
+.guide .callout { background: var(--accent-soft); border-left: 4px solid var(--leaf); padding: 14px 18px; margin: 18px 0; }
+.guide .callout p { margin: 0; }
+.guide .next { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 36px; }
+.rank { display: grid; gap: 12px; margin: 16px 0; }
+.rank > div { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--leaf); padding: 14px 18px; }
+.rank h3 { margin: 0 0 4px; }
+.rank p { margin: 0; }
+.stars { color: var(--rust); font-weight: 700; margin-left: 6px; }
+
+.guide-index { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 20px; }
+.guide-index a { display: block; background: #fff; border: 1px solid var(--line); border-top: 4px solid var(--leaf); padding: 18px; text-decoration: none; color: var(--ink); }
+.guide-index a:hover { border-top-color: var(--rust); }
+.guide-index h2 { margin: 0 0 6px; font-size: 1.15rem; color: var(--forest); }
+.guide-index p { margin: 0; color: var(--muted); }
+
+.res-filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; background: var(--sand); padding: 16px; margin: 0 0 20px; }
+.res-filters label { display: grid; gap: 4px; font-weight: 600; font-size: .9rem; }
+.res-filters input, .res-filters select { padding: 9px 10px; border: 1px solid #bbb; border-radius: 2px; font: inherit; min-width: 180px; }
+.res-list { display: grid; gap: 12px; }
+.res-card { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--leaf); padding: 16px 18px; }
+.res-card h2, .res-card h3 { margin: 0 0 4px; font-size: 1.1rem; color: var(--forest); }
+.res-card p { margin: 4px 0; }
+.res-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: .92rem; color: var(--muted); }
+.res-meta a { font-weight: 700; }
+.res-group { margin: 30px 0 10px; }
+.res-group h2 { margin: 0 0 4px; color: var(--forest); }
+.res-group p { margin: 0 0 12px; color: var(--muted); }
+.code { font-family: ui-monospace, monospace; background: #efede8; padding: 1px 6px; border-radius: 3px; }
+
+.res-form { display: grid; gap: 14px; background: #fff; border: 1px solid var(--line); padding: 20px; margin: 20px 0; }
+.res-form label { display: grid; gap: 4px; font-weight: 600; }
+.res-form input, .res-form select, .res-form textarea { padding: 9px 10px; border: 1px solid #bbb; border-radius: 2px; font: inherit; font-weight: 400; }
+.res-form textarea { min-height: 110px; }
+.res-form .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.res-form .checks { display: flex; flex-wrap: wrap; gap: 8px 18px; font-weight: 400; }
+.res-form .checks label { display: flex; gap: 6px; align-items: center; font-weight: 400; }
+.hp { position: absolute; left: -9999px; }
+
+.price-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin: 18px 0; }
+.price-cards > div { background: #fff; border: 1px solid var(--line); border-top: 4px solid var(--rust); padding: 18px; }
+.price-cards h3 { margin: 0 0 6px; color: var(--forest); }
+.price-cards p { margin: 4px 0; }

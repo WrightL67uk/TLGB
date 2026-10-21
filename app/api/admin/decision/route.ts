@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       admin_notes: notes || null,
     }).eq('id', id);
     await db().from('review_events').insert({ business_id: id, action: 'approved', actor, detail: notes || null });
-    await emailApplicantApproved(b.email, b.contact_name, b.trading_name);
+    await emailApplicantApproved(b.email, b.contact_name, b.trading_name, fd.get('founding_member') === 'on');
   } else if (action === 'reject') {
     if (b.status !== 'pending_review') return new NextResponse('Only pending applications can be rejected', { status: 409 });
     if (!reason) return new NextResponse('A reason is required', { status: 400 });
@@ -47,6 +47,10 @@ export async function POST(req: NextRequest) {
     if (b.status !== 'approved') return new NextResponse('Only approved listings can be suspended', { status: 409 });
     await db().from('businesses').update({ status: 'suspended', reviewed_at: now, reviewed_by: actor, admin_notes: reason }).eq('id', id);
     await db().from('review_events').insert({ business_id: id, action: 'suspended', actor, detail: reason });
+  } else if (action === 'founding') {
+    const on = fd.get('founding_member') === 'on';
+    await db().from('businesses').update({ founding_member: on }).eq('id', id);
+    await db().from('review_events').insert({ business_id: id, action: 'note', actor, detail: on ? 'Made a free (founding) member' : 'Free membership removed' });
   } else if (action === 'clear_recheck') {
     await db().from('businesses').update({ recheck_required: false, recheck_reason: null }).eq('id', id);
     await db().from('review_events').insert({ business_id: id, action: 'rechecked', actor, detail: notes || null });

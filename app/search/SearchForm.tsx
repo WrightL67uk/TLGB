@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import VerifiedToggle from '../VerifiedToggle';
 import { GENERAL_ACCREDITATIONS, TRADES, PL_COVER_OPTIONS, accreditationsForTrade, gbp, type Accreditation } from '@/lib/config';
 
 /**
@@ -8,8 +9,8 @@ import { GENERAL_ACCREDITATIONS, TRADES, PL_COVER_OPTIONS, accreditationsForTrad
  * belong to the trade chosen, so it stays short whatever the trade.
  */
 export default function SearchForm({
-  postcode, trade: initialTrade, minPl, accreds,
-}: { postcode: string; trade: string; minPl: string; accreds: string[] }) {
+  postcode, trade: initialTrade, minPl, accreds, verifiedOnly = true,
+}: { postcode: string; trade: string; minPl: string; accreds: string[]; verifiedOnly?: boolean }) {
   const [trade, setTrade] = useState(initialTrade);
   const tradeItems = trade ? accreditationsForTrade(trade) : [];
   const tradeLabel = TRADES.find((t) => t.slug === trade)?.label;
@@ -32,6 +33,7 @@ export default function SearchForm({
             {TRADES.map((t) => <option key={t.slug} value={t.slug}>{t.label}</option>)}
           </select>
         </label>
+        <VerifiedToggle initial={verifiedOnly} />
         <button type="submit" className="sq sq-rust">search</button>
       </div>
 
@@ -62,7 +64,7 @@ export default function SearchForm({
           <div className="filters-actions">
             <button type="submit" className="sq sq-rust">apply filters</button>
             {activeCount > 0 && (
-              <a href={`/search?postcode=${encodeURIComponent(postcode)}${trade ? `&trade=${trade}` : ''}`}>clear filters</a>
+              <a href={`/search?postcode=${encodeURIComponent(postcode)}${trade ? `&trade=${trade}` : ''}&v=1${verifiedOnly ? '&verified=1' : ''}`}>clear filters</a>
             )}
           </div>
         </div>
