@@ -153,7 +153,7 @@ function collectCpvs(tender: Json): string[] {
 
 function noticeUrl(r: Json, source: LeadSource): string | null {
   // The notice's own page is the best link. Both services use the release id as the page id.
-  const id = String(r.id ?? '');
+  const id = String(r.id ?? '').replace(/^([0-9a-f-]{36})-\d+$/i, '$1');
   if (source === 'fts' && /^\d{6}-\d{4}$/.test(id)) return `https://www.find-tender.service.gov.uk/Notice/${id}`;
   if (source === 'cf' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return `https://www.contractsfinder.service.gov.uk/Notice/${id}`;
   const docs: Json[] = (r.tender?.documents ?? []).filter((d: Json) => d?.url && !/\/\/api\./i.test(d.url));
@@ -242,15 +242,36 @@ async function getJson(url: string): Promise<unknown> {
     signal: AbortSignal.timeout(25_000),
     cache: 'no-store',
   });
+  if (res.status === 429 || res.status === 503) {
+    // Busy: wait as asked (up to 15 seconds) and try once more
+    const wait = Math.min(15, Number(res.headers.get('retry-after')) || 5);
+    await new Promise((r) => setTimeout(r, wait * 1000));
+    const again = await fetch(url, {
+      headers: { Accept: 'application/json', 'User-Agent': 'TheLittleGreenBook/1.0 (+https://www.tlgb.co.uk)' },
+      signal: AbortSignal.timeout(25_000),
+      cache: 'no-store',
+    });
+    if (!again.ok) throw new Error(`${again.status} from ${new URL(url).host}`);
+    return again.json();
+  }
   if (!res.ok) throw new Error(`${res.status} from ${new URL(url).host}`);
   return res.json();
+}
+
+/** Lead type from an OCDS release's tags, for feeds read without a stage filter. */
+function kindFromTags(tags: unknown): LeadKind | null {
+  const t = Array.isArray(tags) ? tags.map(String) : [];
+  if (t.some((x) => x === 'award' || x === 'contract' || x === 'awardUpdate')) return 'award';
+  if (t.some((x) => x === 'tender' || x === 'tenderUpdate' || x === 'tenderAmendment')) return 'tender';
+  if (t.some((x) => x === 'planning' || x === 'planningUpdate')) return 'pipeline';
+  return null;
 }
 
 /** Find a Tender and Contracts Finder: page through with links.next. */
 // What each feed returned on the last run, so a thin result can be told apart from a broken one
 const scanned: Record<string, string> = {};
 
-async function fetchPaged(firstUrl: string, source: LeadSource, maxPages: number, kind: LeadKind = 'tender'): Promise<LeadRow[]> {
+async function fetchPaged(firstUrl: string, source: LeadSource, maxPages: number, kind: LeadKind | 'auto' = 'tender'): Promise<LeadRow[]> {
   const out: LeadRow[] = [];
   let url: string | null = firstUrl;
   let seen = 0;
@@ -260,7 +281,9 @@ async function fetchPaged(firstUrl: string, source: LeadSource, maxPages: number
     const rels = releasesOf(body);
     seen += rels.length;
     for (const r of rels) {
-      const lead = toLead(r, source, kind);
+      const k = kind === 'auto' ? kindFromTags(r.tag) : kind;
+      if (!k) continue;
+      const lead = toLead(r, source, k);
       if (lead) out.push(lead);
     }
     url = body?.links?.next ?? null;
@@ -447,7 +470,10 @@ export async function importLeads({ days = 3 }: { days?: number } = {}) {
   const from = new Date(now.getTime() - days * 86_400_000);
   const months = [...new Set([mmyyyy(from), mmyyyy(now)])];
   const pages = Math.min(40, 5 + days * 3);
-  const fts = (stage: string) => `https://www.find-tender.service.gov.uk/api/1.0/ocdsReleasePackages?updatedFrom=${iso(from)}&stages=${stage}&limit=100`;
+  // Find a Tender's stage filter misses most notices published under the Procurement Act
+  // 2023, so read everything and sort each notice by its tags instead.
+  const ftsPages = Math.min(120, 10 + days * 8);
+  const ftsAll = `https://www.find-tender.service.gov.uk/api/1.0/ocdsReleasePackages?updatedFrom=${iso(from)}&limit=100`;
   const cf = (stage: string) => `https://www.contractsfinder.service.gov.uk/Published/Notices/OCDS/Search?publishedFrom=${iso(from)}&stages=${stage}&limit=100`;
   // PlanIt fills in an application's type and size a few days after it first appears, so
   // always look back at least two weeks. Repeats just update the same rows.
@@ -455,11 +481,9 @@ export async function importLeads({ days = 3 }: { days?: number } = {}) {
   const pp = Math.ceil(recent / 7);
 
   const jobs: [string, () => Promise<LeadRow[]>][] = [
-    ['fts', () => fetchPaged(fts('tender'), 'fts', pages)],
+    ['fts', () => fetchPaged(ftsAll, 'fts', ftsPages, 'auto')],
     ['cf', () => fetchPaged(cf('tender'), 'cf', pages)],
-    ['fts-upcoming', () => fetchPaged(fts('planning'), 'fts', pages, 'pipeline')],
     ['cf-upcoming', () => fetchPaged(cf('planning'), 'cf', pages, 'pipeline')],
-    ['fts-awards', () => fetchPaged(fts('award'), 'fts', pages, 'award')],
     ['cf-awards', () => fetchPaged(cf('award'), 'cf', pages, 'award')],
     ['pcs', () => fetchMonthly('https://api.publiccontractsscotland.gov.uk/v1', 'pcs', months)],
     ['s2w', () => fetchMonthly('https://api.sell2wales.gov.wales/v1', 's2w', months)],
