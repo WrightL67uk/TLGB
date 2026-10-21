@@ -152,8 +152,12 @@ function collectCpvs(tender: Json): string[] {
 }
 
 function noticeUrl(r: Json, source: LeadSource): string | null {
-  const docs: Json[] = r.tender?.documents ?? [];
-  const notice = docs.find((d) => d?.url && /notice|contractsfinder|find-tender/i.test(`${d.documentType ?? ''} ${d.url}`));
+  // The notice's own page is the best link. Both services use the release id as the page id.
+  const id = String(r.id ?? '');
+  if (source === 'fts' && /^\d{6}-\d{4}$/.test(id)) return `https://www.find-tender.service.gov.uk/Notice/${id}`;
+  if (source === 'cf' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) return `https://www.contractsfinder.service.gov.uk/Notice/${id}`;
+  const docs: Json[] = (r.tender?.documents ?? []).filter((d: Json) => d?.url && !/\/\/api\./i.test(d.url));
+  const notice = docs.find((d) => /notice|contractsfinder|find-tender/i.test(`${d.documentType ?? ''} ${d.url}`));
   if (notice?.url) return notice.url;
   const link = (r.links ?? []).find((l: Json) => l?.href);
   if (link?.href) return link.href;
@@ -165,7 +169,8 @@ export function toLead(r: Json, source: LeadSource, kind: LeadKind = 'tender'): 
   const t = r.tender ?? {};
   const title = String(t.title ?? r.title ?? '').trim();
   if (!title) return null;
-  const description = t.description ? String(t.description).trim() : null;
+  // Some feeds send line breaks as the literal characters \r and \n
+  const description = t.description ? String(t.description).replace(/\\r\\n|\\n|\\r/g, '\n').replace(/\r/g, '').trim() : null;
   const cpv = collectCpvs(t);
   let trades = matchTrades(cpv, `${title} ${description ?? ''}`);
   let contractor: string | null = null;
@@ -182,6 +187,8 @@ export function toLead(r: Json, source: LeadSource, kind: LeadKind = 'tender'): 
     awardValue = amounts.length ? Math.max(...amounts) : null;
     const isBuild = cpv.some((c) => BUILD_CPV.some((p) => c.startsWith(p)));
     if (!names.size || !isBuild || (awardValue ?? 0) < 1_000_000) return null;
+    // Road resurfacing and repair work rarely has a landscaping or fencing package
+    if (/resurfac|surface dressing|patching|carriageway (repair|maintenance)|road markings?|risk reduction|pavement framework|\bPDF framework/i.test(`${title} ${description ?? ''}`)) return null;
     contractor = [...names].slice(0, 3).join(', ').slice(0, 200);
     trades = [...new Set([...trades, 'landscaper', 'hard-landscaping', 'groundworks', 'fencing'])];
   }
