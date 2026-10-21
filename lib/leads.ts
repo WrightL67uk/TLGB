@@ -240,17 +240,25 @@ async function getJson(url: string): Promise<unknown> {
 }
 
 /** Find a Tender and Contracts Finder: page through with links.next. */
+// What each feed returned on the last run, so a thin result can be told apart from a broken one
+const scanned: Record<string, string> = {};
+
 async function fetchPaged(firstUrl: string, source: LeadSource, maxPages: number, kind: LeadKind = 'tender'): Promise<LeadRow[]> {
   const out: LeadRow[] = [];
   let url: string | null = firstUrl;
-  for (let page = 0; url && page < maxPages; page++) {
+  let seen = 0;
+  let page = 0;
+  for (; url && page < maxPages; page++) {
     const body = (await getJson(url)) as Json;
-    for (const r of releasesOf(body)) {
+    const rels = releasesOf(body);
+    seen += rels.length;
+    for (const r of rels) {
       const lead = toLead(r, source, kind);
       if (lead) out.push(lead);
     }
     url = body?.links?.next ?? null;
   }
+  scanned[`${source}-${kind}`] = `${seen} notices in ${page} pages${url ? ' (stopped at page limit)' : ''}`;
   return out;
 }
 
@@ -491,5 +499,5 @@ export async function importLeads({ days = 3 }: { days?: number } = {}) {
   const keepDays: [LeadKind, number][] = [['trees', 45], ['planning', 120], ['award', 120], ['pipeline', 180], ['tender', 90]];
   for (const [kind, d] of keepDays) await db().from('leads').delete().eq('kind', kind).is('deadline', null).lt('published_at', ago(d));
 
-  return { saved: unique.length, bySource: summary };
+  return { saved: unique.length, bySource: summary, scanned: { ...scanned } };
 }
