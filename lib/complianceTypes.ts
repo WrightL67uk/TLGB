@@ -53,7 +53,7 @@ export const DOC_TYPES: DocType[] = [
   { key: 'equality', label: 'Equality, diversity and inclusion policy', category: 'policy', checked: false, multiple: false, expires: false, core: true, template: 'equality-policy' },
   { key: 'gdpr', label: 'Data protection (GDPR) policy', category: 'policy', checked: false, multiple: false, expires: false, core: true, template: 'data-protection-policy' },
   { key: 'carbon', label: 'Carbon reduction plan', category: 'policy', checked: false, multiple: false, expires: false, core: true, template: 'carbon-reduction-plan' },
-  { key: 'training_matrix', label: 'Training matrix', category: 'people', checked: false, multiple: false, expires: false, core: true, template: 'training-matrix', hint: 'Who holds which CSCS card and plant ticket. Please do not upload copies of individual cards.' },
+  { key: 'training_matrix', label: 'Training matrix', category: 'people', checked: false, multiple: false, expires: false, core: true, template: 'training-matrix', hint: 'Or skip this: add your team in Team and training and we build the matrix for you. Please do not upload copies of individual cards.' },
   { key: 'company_reg', label: 'Company registration or VAT certificate', category: 'company', checked: false, multiple: false, expires: false, core: true },
   { key: 'bank_letter', label: 'Bank letter', category: 'bank', checked: false, multiple: false, expires: false, core: false, hint: 'Only shared on links where you tick it.' },
 ];

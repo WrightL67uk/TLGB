@@ -88,3 +88,4 @@
   .pk-row { grid-template-columns: minmax(0, 1fr) auto; }
   .pk-row .pk-pill { grid-column: 1; justify-self: start; grid-row: 2; }
 }
+.pk-exp { color: var(--danger); font-weight: 700; }

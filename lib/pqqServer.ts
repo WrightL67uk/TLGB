@@ -1,4 +1,5 @@
 import 'server-only';
+import { loadTeam, teamSummary } from './team';
 import { db } from './supabase';
 import { tradeLabel, gbp, accreditationLabel } from './config';
 import { currentDocs } from './compliance';
@@ -33,7 +34,10 @@ export async function autoAnswers(b: Business): Promise<Record<string, string>> 
   const iso9 = has(/9001/i);
   const area = b.base_postcode?.split(' ')[0]?.toUpperCase();
 
+  const team = teamSummary(await loadTeam(b.id));
+
   return {
+    ...(team ? { hs_cards: team } : {}),
     co_identity: [
       b.trading_name,
       b.business_type === 'ltd' && b.company_number ? `Company number ${b.company_number}` : 'Sole trader',

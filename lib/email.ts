@@ -202,7 +202,8 @@ const ukDate = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-
 /** Daily reminder to a trade about insurance or accreditations running out. One email per listing per day. */
 export async function emailTradeExpiries(
   b: { id: string; email: string; contactName: string; tradingName: string },
-  items: ExpiryNotice[]
+  items: ExpiryNotice[],
+  shortlisted = 0
 ) {
   const expired = items.filter((i) => i.stage === 'expired');
   const subject = expired.length
@@ -221,6 +222,7 @@ export async function emailTradeExpiries(
     `<p>Hi ${esc(b.contactName)},</p>
 <p>This is about your listing for <strong>${esc(b.tradingName)}</strong> on The Little Green Book.</p>
 <ul>${lines}</ul>
+${shortlisted ? `<p><strong>${shortlisted} main contractor${shortlisted === 1 ? ' has' : 's have'} you on ${shortlisted === 1 ? 'its' : 'their'} shortlist.</strong> They are told when insurance or an accreditation is about to run out or lapses, and again when it is renewed.</p>` : ''}
 <p>When you have renewed, log in, upload the new certificate and enter the new expiry date. We will check it and your listing carries on as normal.</p>
 <p><a href="${siteUrl()}/login" style="display:inline-block;background:#111;color:#fff;padding:10px 18px;text-decoration:none;border-radius:4px">Update my listing</a></p>`,
     'expiry-reminder'
@@ -530,5 +532,55 @@ export async function emailPaymentAlerts(m: { email: string; contactName: string
 <p>Each job page has the right notice ready to download, filled in with the dates and amounts.</p>
 <p>${button(`${siteUrl()}/account/${m.businessId}/payments`, 'Open my payment tracker')}</p>`,
     'payment-alert'
+  );
+}
+
+// ---------------------------------------------------------------
+// Team and training, and shortlist alerts
+// ---------------------------------------------------------------
+export type TeamReminder = { person: string; card: string; expiry: string; days: number };
+
+/** Daily, grouped per member: cards and courses expiring in 60 or 30 days, or just expired. */
+export async function emailTeamReminders(m: { email: string; contactName: string; tradingName: string; businessId: string }, items: TeamReminder[]) {
+  const expired = items.filter((i) => i.days < 0);
+  const subject = items.length === 1
+    ? `${items[0].person}'s ${items[0].card} ${items[0].days < 0 ? 'has expired' : `expires in ${items[0].days} days`}`
+    : `${items.length} training renewals${expired.length ? `, ${expired.length} expired` : ' coming up'}`;
+  const line = (i: TeamReminder) => `<li><strong>${esc(i.person)}</strong>: ${esc(i.card)} ${i.days < 0 ? `expired on ${ukDate(i.expiry)}` : `expires on ${ukDate(i.expiry)} (in ${i.days} day${i.days === 1 ? '' : 's'})`}.</li>`;
+  await send(
+    m.email,
+    subject,
+    `<p>Hi ${esc(m.contactName)},</p>
+<p>These cards and courses for <strong>${esc(m.tradingName)}</strong> need renewing:</p>
+<ul>${items.map(line).join('')}</ul>
+<p>Courses and card tests can book up weeks ahead, so it is worth booking now. Once renewed, update the expiry date and your training matrix updates by itself.</p>
+<p>${button(`${siteUrl()}/account/${m.businessId}/team`, 'Open team and training')}</p>`,
+    'team-reminder'
+  );
+}
+
+export type ShortlistChange = { businessId: string; tradingName: string; line: string; tone: 'good' | 'bad' | 'warn' };
+
+/** Daily digest to a contractor: paperwork changes for trades on their shortlist. */
+export async function emailShortlistAlerts(to: string[], company: string, changes: ShortlistChange[]) {
+  if (!to.length || !changes.length) return;
+  const bad = changes.filter((c) => c.tone === 'bad').length;
+  const names = [...new Set(changes.map((c) => c.tradingName))];
+  const subject = names.length === 1
+    ? `${names[0]}: ${changes[0].line.replace(/\.$/, '')}`
+    : `Shortlist update: ${names.length} trades${bad ? `, ${bad} lapsed` : ''}`;
+  const byTrade = names.map((n) => {
+    const mine = changes.filter((c) => c.tradingName === n);
+    return `<p><a href="${siteUrl()}/b/${mine[0].businessId}"><strong>${esc(n)}</strong></a><br>${mine.map((c) => `${c.tone === 'bad' ? '&#10007;' : c.tone === 'good' ? '&#10003;' : '!'} ${esc(c.line)}`).join('<br>')}</p>`;
+  }).join('');
+  await send(
+    to,
+    subject,
+    `<p>Paperwork has changed for ${names.length === 1 ? 'a trade' : 'trades'} on the ${esc(company)} shortlist:</p>
+${byTrade}
+<p>We check insurance and accreditation certificates by hand before showing them as in date.</p>
+<p>${button(`${siteUrl()}/contractor/shortlist`, 'Open your shortlist')}</p>
+<p style="color:#777;font-size:13px">You can turn these emails off on your shortlist page.</p>`,
+    'shortlist-alert'
   );
 }

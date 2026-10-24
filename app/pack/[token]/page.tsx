@@ -6,6 +6,8 @@ import { unverifiedReason } from '@/lib/membership';
 import { tradeLabel } from '@/lib/config';
 import { CATEGORIES, docType, shownStatus, ukDate } from '@/lib/complianceTypes';
 import DownloadAll from './DownloadAll';
+import { loadTeam } from '@/lib/team';
+import { qualName, qualStatus } from '@/lib/teamTypes';
 import { loadPqq, autoAnswers } from '@/lib/pqqServer';
 import { answerBlocks, money, projectDates } from '@/lib/pqqRender';
 import '../../compliance.css';
@@ -55,6 +57,7 @@ export default async function PackPage({ params }: { params: Promise<{ token: st
   const pqq = showProfile ? await loadPqq(b.id) : null;
   const blocks = pqq ? answerBlocks(pqq.answers, await autoAnswers(b), { finance: link.include.includes('finance') }) : [];
   const profileSections = [...new Set(blocks.map((x) => x.section))];
+  const team = link.include.includes('people') ? await loadTeam(b.id) : [];
   const groups = CATEGORIES
     .map((c) => ({ ...c, docs: docs.filter((d) => docType(d.doc_type)?.category === c.key) }))
     .filter((g) => g.docs.length);
@@ -80,7 +83,7 @@ export default async function PackPage({ params }: { params: Promise<{ token: st
         <DownloadAll token={token} count={docs.length} />
       </div>
 
-      {groups.length === 0 && !showProfile && <p className="panel muted">There are no documents on this link yet.</p>}
+      {groups.length === 0 && !showProfile && !team.length && <p className="panel muted">There are no documents on this link yet.</p>}
 
       {groups.map((g) => (
         <section key={g.key} className="pk-group">
@@ -102,6 +105,37 @@ export default async function PackPage({ params }: { params: Promise<{ token: st
           })}
         </section>
       ))}
+
+      {team.length > 0 && (
+        <section className="pk-group">
+          <h2>Training matrix</h2>
+          <p className="muted small">The cards and qualifications each person holds, as recorded by the member. Card numbers are available from the member on request.</p>
+          <div className="cp-table-wrap">
+            <table className="cp-table">
+              <thead><tr><th>Name</th><th>Role</th><th>Cards and qualifications</th></tr></thead>
+              <tbody>
+                {team.map((p) => (
+                  <tr key={p.id}>
+                    <td><strong>{p.name}</strong></td>
+                    <td>{p.role ?? ''}</td>
+                    <td>
+                      {p.quals.length ? p.quals.map((q) => {
+                        const s = qualStatus(q.expiry);
+                        return (
+                          <div key={q.id}>
+                            {qualName(q)}
+                            {q.expiry && <span className={s.tone === 'bad' ? 'pk-exp' : 'muted'}> · {s.tone === 'bad' ? 'expired' : 'until'} {ukDate(q.expiry)}</span>}
+                          </div>
+                        );
+                      }) : <span className="muted">None recorded</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {showProfile && (blocks.length > 0 || (pqq?.projects.length ?? 0) > 0) && (
         <section className="pk-group pk-profile">

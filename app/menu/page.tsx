@@ -58,6 +58,7 @@ export default async function MenuPage() {
         { label: 'My listing', href: m.loggedIn ? mine('', '/account') : '/login?next=/account', note: 'Edit your details, insurance, accreditations, photos and membership.', k: 'account profile certificate expiry renew payment billing subscription logo', tag: m.loggedIn ? undefined : 'Log in' },
         { label: 'Compliance pack', href: m.loggedIn ? mine('/compliance', '/account/compliance') : '/login?next=/account/compliance', note: 'Insurance, accreditations, RAMS and policies in one place, with share links for contractors.', k: 'documents certificates upload share link chas smas constructionline ssip method statement risk assessment policy expiry', tag: memberTag },
         { label: 'PQQ answer bank', href: m.loggedIn ? mine('/pqq', '/account/pqq') : '/login?next=/account/pqq', note: 'Save answers to the questions every PQQ and supplier portal asks, then copy them in.', k: 'prequalification questionnaire tender portal answers turnover accident figures sq selection', tag: memberTag },
+        { label: 'Team and training', href: m.loggedIn ? mine('/team', '/account/team') : '/login?next=/account/team', note: 'Every card and ticket your team holds, with expiry reminders and a training matrix you can download.', k: 'cscs liss cpcs npors pa1 pa6 first aid sssts smsts training matrix cards tickets qualifications operatives staff expiry', tag: memberTag },
         { label: 'Payment tracker', href: m.loggedIn ? mine('/payments', '/account/payments') : '/login?next=/account/payments', note: 'Every application, deadline and retention, with alerts and ready-made notices.', k: 'payment notice pay less final date retention suspend interest late payment construction act application valuation', tag: memberTag },
         { label: 'Project references', href: m.loggedIn ? `${mine('/pqq', '/account/pqq')}#sec-projects` : '/login?next=/account/pqq', note: 'Your library of past jobs and client references for tenders.', k: 'case studies experience similar contracts referees', tag: memberTag },
       ],
@@ -65,6 +66,7 @@ export default async function MenuPage() {
     {
       title: 'Downloads',
       items: [
+        { label: 'Training matrix (Word)', href: myId ? `/api/team/matrix?b=${myId}` : (m.loggedIn ? '/account' : '/login?next=/account'), note: 'Everyone on your team and the cards they hold, coloured by expiry.', k: 'training matrix download word cscs cards', tag: memberTag, download: !!myId && m.paid },
         { label: 'Company profile (Word)', href: myId ? `/api/pqq/export?b=${myId}` : (m.loggedIn ? '/account/pqq' : '/login?next=/account/pqq'), note: 'All your saved PQQ answers and project references as one Word document.', k: 'pqq export download word doc', tag: memberTag, download: !!myId },
         { label: 'Compliance pack documents', href: m.loggedIn ? mine('/compliance', '/account/compliance') : '/login?next=/account/compliance', note: 'Download any certificate or policy you have uploaded, or send a share link.', tag: memberTag },
       ],
@@ -81,6 +83,7 @@ export default async function MenuPage() {
         { label: 'How it works for contractors', href: '/contractors', note: 'Shortlist checked trades, post packages and get replies with paperwork attached.', k: 'main contractor housebuilder developer free' },
         { label: 'Create a contractor account', href: '/contractors/join', note: 'Free. We check your company before you can post jobs.', k: 'sign up register' },
         { label: 'Contractor dashboard', href: '/contractor', note: 'Your shortlist, jobs, replies and team.', k: 'favourites shortlist post job replies team' },
+        { label: 'Shortlist and paperwork alerts', href: '/contractor/shortlist', note: 'Saved trades, with an email when their insurance or accreditations are about to expire, lapse or are renewed.', k: 'favourites alerts insurance expiry accreditation lapsed renewed' },
         { label: 'Post a job', href: '/contractor/jobs/new', note: 'Send a package to every member who matches your trade, area and requirements.', k: 'package tender invite' },
       ],
     },

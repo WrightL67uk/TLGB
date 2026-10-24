@@ -3,7 +3,7 @@ import { db } from './supabase';
 import { expiryItems, daysUntil, stageFor, type Expiries } from './expiries';
 import type { Pending } from './membership';
 
-const awaitingCheck = (p: Pending | null, key: string) =>
+export const awaitingCheck = (p: Pending | null, key: string) =>
   !!p && (key === 'public_liability' ? !!p.pl : key === 'employers_liability' ? !!p.el : key.startsWith('acc:') ? !!p.acc && key.slice(4) in p.acc : false);
 import { emailTradeExpiries, emailAdminExpiries, type ExpiryNotice } from './email';
 
@@ -52,7 +52,8 @@ export async function runExpiryJob(): Promise<number> {
       .filter((i) => fresh.some((f) => f.item === i.key && f.expiry === i.expiry && f.stage === i.stage))
       .map((i) => ({ label: i.label, expiry: i.expiry, stage: i.stage, days: i.days }));
 
-    await emailTradeExpiries({ id: b.id, email: b.email, contactName: b.contact_name, tradingName: b.trading_name }, items);
+    const { count: shortlisted } = await db().from('contractor_favourites').select('business_id', { count: 'exact', head: true }).eq('business_id', b.id);
+    await emailTradeExpiries({ id: b.id, email: b.email, contactName: b.contact_name, tradingName: b.trading_name }, items, shortlisted ?? 0);
     await db().from('review_events').insert({
       business_id: b.id,
       action: 'note',

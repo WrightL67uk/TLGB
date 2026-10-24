@@ -95,10 +95,12 @@ export const LEGAL_PAGES: LegalPage[] = [
         <p>You can cancel at any time from &ldquo;Manage billing&rdquo; on your listing page, or by emailing <Mail d={d} />. Your membership then runs until the end of the year you have paid for and does not renew. Because this is a business service, there is no statutory cooling-off period, and we do not refund part years unless these terms say otherwise or the law requires it.</p>
         <p>When your membership ends, your listing shows as &ldquo;Unverified&rdquo; and is hidden from searches for verified members. Your compliance pack documents are deleted 90 days after your membership ends, so download anything you need before then. You can ask us to remove your listing entirely at any time.</p>
 
-        <h2>6. Your compliance pack, PQQ answers and share links</h2>
+        <h2>6. Your compliance pack, team records, PQQ answers and share links</h2>
         <ul>
           <li>You are responsible for what you upload and share, and for making sure it is accurate and current.</li>
           <li>Documents can contain personal data about your staff, for example training records or site cards. Only upload what you are entitled to share, and keep it to what contractors need.</li>
+          <li>Team and training records are personal data about your staff. Tell your team you keep them here, keep them accurate, and remove people who leave. Share links that include People and training show each person&rsquo;s name, role and cards, but not card numbers.</li>
+          <li>If a main contractor saves you to their shortlist, we tell them when your insurance or an accreditation on your listing is about to expire, lapses or is renewed, and if your membership ends.</li>
           <li>Project references can include your clients&rsquo; contact details. Only add them if you have that person&rsquo;s agreement to be contacted as a referee.</li>
           <li>Anyone with a share link can see what you chose to include until the link expires or you switch it off. You can see when links are opened and switch them off at any time.</li>
           <li>We check insurance and accreditation certificates in your pack before contractors see them. Other documents are shown as you supplied them.</li>
@@ -145,6 +147,7 @@ export const LEGAL_PAGES: LegalPage[] = [
 
         <h2>4. Replies and paperwork</h2>
         <p>Trades who reply may attach a link to their compliance pack and company profile. Use what they share only to assess them for your work, keep it secure, and do not pass it on except to colleagues and professional advisers who need it for that purpose. Links can expire or be switched off by the trade.</p>
+        <p>If paperwork alerts are on, we email you when insurance or an accreditation on the listing of a trade you have saved is due to expire within 14 days, lapses or is renewed, and if they stop being a verified member. You can turn these emails off on your shortlist page. Alerts are sent once a day and may arrive after the change.</p>
         <p>Paperwork status shown on your shortlist reflects the documents we have checked. It is not a guarantee, and you remain responsible for your own pre-qualification and the checks your clients and the law require of you, including under the Construction (Design and Management) Regulations 2015.</p>
 
         <h2>5. No commission, no agency</h2>
@@ -177,6 +180,7 @@ export const LEGAL_PAGES: LegalPage[] = [
           <li><strong>Application and listing details:</strong> business name and type, contact name, email, phone, website, address and base postcode, area covered, trades, turnover band, Companies House details, and for sole traders the owner&rsquo;s name and a letterhead. <em>Why:</em> to check you and run your listing (contract), and to keep the directory reliable (legitimate interests).</li>
           <li><strong>Insurance and accreditation certificates, and photos of your work.</strong> <em>Why:</em> to verify the claims on your listing (contract and legitimate interests).</li>
           <li><strong>Compliance pack documents, PQQ answers and project references</strong> that you choose to add. These can include personal data about your staff (for example training records) and your referees. <em>Why:</em> to store and share them as you instruct (contract). You are responsible for having the right to share them.</li>
+          <li><strong>Team and training records</strong> you choose to add: your staff&rsquo;s names, roles, cards and qualifications, card numbers and dates. <em>Why:</em> to remind you before they expire, build your training matrix and share it as you instruct (contract). You are responsible for telling your staff.</li>
           <li><strong>Payment tracker records</strong> you choose to add: jobs, contractors and their contacts, applications, amounts, dates and retentions. <em>Why:</em> to work out deadlines, send your alerts and prepare your letters (contract).</li>
           <li><strong>Membership and payment records:</strong> plan, status, renewal dates and Stripe customer references. Card details are handled by Stripe, not us. <em>Why:</em> contract, and keeping accounting records (legal obligation).</li>
         </ul>
@@ -198,7 +202,7 @@ export const LEGAL_PAGES: LegalPage[] = [
         <p>A member&rsquo;s listing is public: business name, trades, contact name, phone, email, website, base postcode and area covered, photos, and a summary of checked insurance and accreditations. Jobs posted by contractors are visible in summary to the public and in full to members and invited trades. Help board posts are visible to logged-in members. Compliance packs are private and only seen through share links the member creates or attaches to a reply.</p>
 
         <h2>4. Emails we send</h2>
-        <p>We send emails needed to run your account: login links, application decisions, renewal and expiry reminders, document check results, replies to your jobs and, for members, jobs from main contractors that match your listing. Members can turn job emails off on their listing page. We do not send marketing emails or sell or share your details for others&rsquo; marketing. If we start sending newsletters, we will only do so as the law allows and you will be able to opt out.</p>
+        <p>We send emails needed to run your account: login links, application decisions, renewal and expiry reminders (including for your team&rsquo;s cards), document check results, paperwork alerts about trades on a contractor&rsquo;s shortlist, replies to your jobs and, for members, jobs from main contractors that match your listing. Members can turn job emails off on their listing page. We do not send marketing emails or sell or share your details for others&rsquo; marketing. If we start sending newsletters, we will only do so as the law allows and you will be able to opt out.</p>
 
         <h2>5. Who we share it with</h2>
         <p>We use these service providers, who act on our instructions under data processing terms:</p>
@@ -209,14 +213,14 @@ export const LEGAL_PAGES: LegalPage[] = [
           <li><strong>Stripe</strong> (taking payments; Stripe is also a controller for some payment and fraud-prevention data, under its own privacy notice)</li>
           <li><strong>Companies House</strong> and <strong>postcodes.io</strong> (we send a company number or a postcode to look up public records)</li>
         </ul>
-        <p>We also share information with other users as the service is designed to: contractors see the details of trades who reply to them, and anyone with a member&rsquo;s share link sees what that link includes. We may share information if the law requires it, to protect people from fraud or harm, or with professional advisers. If TLGB or its business is ever sold, the buyer would take on this notice.</p>
+        <p>We also share information with other users as the service is designed to: contractors see the details of trades who reply to them, contractors who have saved a member to their shortlist are told when that member&rsquo;s insurance, accreditations or membership change, and anyone with a member&rsquo;s share link sees what that link includes. We may share information if the law requires it, to protect people from fraud or harm, or with professional advisers. If TLGB or its business is ever sold, the buyer would take on this notice.</p>
 
         <h2>6. Where it is stored</h2>
         <p>Some of our providers are based in, or use servers in, the United States. Where personal data is transferred outside the UK, it is protected by UK adequacy regulations (including the UK Extension to the EU-US Data Privacy Framework where the provider is certified) or by the UK International Data Transfer Agreement or Addendum.</p>
 
         <h2>7. How long we keep it</h2>
         <ul>
-          <li>Compliance pack documents: deleted automatically 90 days after a paid membership ends, or straight away when you delete them.</li>
+          <li>Compliance pack documents and team training records: deleted automatically 90 days after a paid membership ends, or straight away when you delete them.</li>
           <li>Contractor jobs, drawings, invitations and replies: deleted automatically two years after the job was last updated.</li>
           <li>Login links: expire after 30 minutes. Sessions: expire after 30 days. Both are then deleted.</li>
           <li>Listings and contractor accounts: kept while active, and for up to two years after they end so we can deal with questions, then deleted or anonymised. You can ask us to delete them sooner.</li>

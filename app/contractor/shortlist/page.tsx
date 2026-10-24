@@ -40,6 +40,8 @@ export default async function Shortlist({ searchParams }: { searchParams: SP }) 
     : { data: [] as { list_id: string; business_id: string }[] };
   const myItems = items ?? [];
   const current = isUuid(sp.list) && listIds.has(sp.list) ? sp.list : '';
+  const { data: meRow } = await db().from('contractor_users').select('shortlist_alerts').eq('id', me.user.id).maybeSingle();
+  const alertsOn = meRow?.shortlist_alerts !== false;
   const back = current ? `/contractor/shortlist?list=${current}` : '/contractor/shortlist';
 
   let shown = favs ?? [];
@@ -81,6 +83,18 @@ export default async function Shortlist({ searchParams }: { searchParams: SP }) 
           </div>
         )}
       </div>
+
+      {me.can.complianceAlerts && (
+        <div className="ct-box ct-inline" style={{ justifyContent: 'space-between' }}>
+          <p style={{ margin: 0 }}>
+            <strong>Paperwork alerts are {alertsOn ? 'on' : 'off'}.</strong>{' '}
+            {alertsOn
+              ? `We email you when anyone on your shortlist has insurance or an accreditation due to expire in the next 14 days, when it lapses, and when it is renewed.`
+              : 'Turn them on to hear when insurance or accreditations on your shortlist are about to expire, lapse or are renewed.'}
+          </p>
+          <Act action="alerts" back={back} fields={{ on: alertsOn ? '0' : '1' }} label={alertsOn ? 'Turn off' : 'Turn on'} cls={alertsOn ? 'ct-btn' : 'ct-btn go'} />
+        </div>
+      )}
 
       {tradesHere.length > 1 && (
         <form method="get" className="ct-inline" style={{ marginBottom: 12 }}>

@@ -16,7 +16,7 @@ export type Entitlements = {
   canInvite: boolean;
   /** See insurance and accreditation status (with warnings) on saved trades. */
   complianceStatus: boolean;
-  /** Future: emails when a saved trade's insurance or accreditation lapses. */
+  /** Emails when a saved trade's insurance or accreditation is about to run out, lapses or is renewed. */
   complianceAlerts: boolean;
   /** Future: pinned, highlighted job posts. */
   featuredJobs: boolean;
@@ -33,7 +33,7 @@ export const PLANS: Record<PlanKey, Entitlements> = {
     maxLists: 50,
     canInvite: true,
     complianceStatus: true,
-    complianceAlerts: false,
+    complianceAlerts: true,
     featuredJobs: false,
   },
   pro: {

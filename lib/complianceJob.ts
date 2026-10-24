@@ -90,7 +90,7 @@ export async function runPqqReminders() {
 
 /**
  * Daily tidy-up that keeps the privacy notice true:
- *  - compliance pack files are deleted 90 days after a paid membership ends
+ *  - compliance pack files and team training records are deleted 90 days after a paid membership ends
  *  - contractor jobs (with drawings and replies) are deleted 2 years after they close
  *  - used or expired login links and sessions are removed
  */
@@ -111,6 +111,7 @@ export async function runDataCleanup() {
       await archiveDocs(rows.map((r) => r.id as string));
       docs += rows.length;
     }
+    await db().from('team_people').delete().eq('business_id', b.id);
   }
   out.packFilesDeleted = docs;
 

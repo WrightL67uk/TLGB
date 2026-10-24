@@ -5,6 +5,8 @@ import { geocodeSuppliers } from '@/lib/suppliers';
 import { syncOverdueMemberships } from '@/lib/billingSync';
 import { runComplianceReminders, runPqqReminders, runDataCleanup } from '@/lib/complianceJob';
 import { runPaymentReminders } from '@/lib/paymentJob';
+import { runTeamReminders } from '@/lib/teamJob';
+import { runShortlistAlerts } from '@/lib/shortlistJob';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,6 +26,8 @@ export async function GET(req: NextRequest) {
   try { out.packReminders = await runComplianceReminders(); } catch (err) { console.error('daily: pack reminders failed', err); }
   try { out.pqqReminders = await runPqqReminders(); } catch (err) { console.error('daily: pqq reminders failed', err); }
   try { out.paymentAlerts = await runPaymentReminders(); } catch (err) { console.error('daily: payment alerts failed', err); }
+  try { out.teamReminders = await runTeamReminders(); } catch (err) { console.error('daily: team reminders failed', err); }
+  try { out.shortlistAlerts = await runShortlistAlerts(); } catch (err) { console.error('daily: shortlist alerts failed', err); }
   try { out.cleanup = await runDataCleanup(); } catch (err) { console.error('daily: cleanup failed', err); }
   return NextResponse.json({ ok: true, ...out });
 }

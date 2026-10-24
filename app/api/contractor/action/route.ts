@@ -57,6 +57,11 @@ const ACTIONS: Record<string, (me: Me, fd: Fd) => Promise<Result>> = {
     await db().from('contractor_favourites').delete().eq('company_id', me.company.id).eq('business_id', id);
     return null;
   },
+  async 'alerts'(me, fd) {
+    const on = str(fd, 'on') === '1';
+    await db().from('contractor_users').update({ shortlist_alerts: on }).eq('id', me.user.id);
+    return null;
+  },
   async 'fav-note'(me, fd) {
     const id = str(fd, 'business_id');
     if (!isUuid(id)) return null;

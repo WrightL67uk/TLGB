@@ -179,6 +179,18 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
 
       {b.status === 'approved' && isPaid(b) && (
         <section className="panel">
+          <h2>Team and training</h2>
+          <div className="cp-summary">
+            <p>
+              Record your team&apos;s CSCS cards, plant tickets, PA1/PA6 and first aid. We remind you 60 days before anything runs out and build your training matrix.
+            </p>
+            <Link href={`/account/${b.id}/team`} className="sq sq-rust">Open team and training</Link>
+          </div>
+        </section>
+      )}
+
+      {b.status === 'approved' && isPaid(b) && (
+        <section className="panel">
           <h2>Payment tracker</h2>
           <div className="cp-summary">
             <p>

@@ -27,7 +27,7 @@ export default async function ForContractors() {
         </div>
         <div>
           <h2>Live paperwork status</h2>
-          <p>Every saved trade shows whether their insurance and accreditations are current. We check the certificates, and warn you when something lapses.</p>
+          <p>Every saved trade shows whether their insurance and accreditations are current. We check the certificates by hand and email you two weeks before something runs out, when it lapses, and when it is renewed. No more chasing certificates.</p>
         </div>
         <div>
           <h2>Post a package</h2>
