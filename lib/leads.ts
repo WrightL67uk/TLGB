@@ -1,4 +1,7 @@
 import 'server-only';
+import https from 'node:https';
+import tls from 'node:tls';
+import { X509Certificate } from 'node:crypto';
 import { db } from './supabase';
 
 /**
@@ -236,25 +239,95 @@ export function releasesOf(body: unknown): Json[] {
   return [];
 }
 
-async function getJson(url: string): Promise<unknown> {
-  const res = await fetch(url, {
-    headers: { Accept: 'application/json', 'User-Agent': 'TheLittleGreenBook/1.0 (+https://www.tlgb.co.uk)' },
-    signal: AbortSignal.timeout(25_000),
-    cache: 'no-store',
+const UA = 'TheLittleGreenBook/1.0 (+https://www.tlgb.co.uk)';
+
+/**
+ * Some government servers send their certificate without the intermediate that links it to a
+ * trusted root. Browsers quietly download the missing piece from the address written in the
+ * certificate; Node does not. This does the same: reads the server's certificate, downloads
+ * the intermediate it names, and uses it for that host. The chain is still checked in full.
+ */
+const extraCa = new Map<string, string[]>();
+
+async function fetchIntermediates(host: string): Promise<string[]> {
+  const peer = await new Promise<tls.DetailedPeerCertificate>((resolve, reject) => {
+    const sock = tls.connect({ host, port: 443, servername: host, rejectUnauthorized: false }, () => {
+      const c = sock.getPeerCertificate(true);
+      sock.end();
+      resolve(c);
+    });
+    sock.setTimeout(15_000, () => { sock.destroy(); reject(new Error(`timeout reading certificate from ${host}`)); });
+    sock.on('error', reject);
   });
+  const urls: string[] = (peer.infoAccess?.['CA Issuers - URI'] as string[] | undefined) ?? [];
+  const pems: string[] = [];
+  for (const u of urls.slice(0, 2)) {
+    try {
+      const res = await fetch(u, { signal: AbortSignal.timeout(15_000) });
+      if (!res.ok) continue;
+      pems.push(new X509Certificate(Buffer.from(await res.arrayBuffer())).toString());
+    } catch (err) {
+      console.warn(`leads: could not load intermediate certificate from ${u}`, err);
+    }
+  }
+  if (!pems.length) throw new Error(`${host} sends an incomplete certificate chain and the missing certificate could not be downloaded`);
+  return pems;
+}
+
+function getWithCa(url: string, ca: string[]): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, { ca: [...tls.rootCertificates, ...ca], headers: { Accept: 'application/json', 'User-Agent': UA }, timeout: 25_000 }, (res) => {
+      if ((res.statusCode ?? 0) >= 400) { res.resume(); return reject(new Error(`${res.statusCode} from ${new URL(url).host}`)); }
+      const chunks: Buffer[] = [];
+      res.on('data', (c) => chunks.push(c));
+      res.on('end', () => { try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))); } catch (e) { reject(e); } });
+      res.on('error', reject);
+    });
+    req.on('timeout', () => req.destroy(new Error(`timeout from ${new URL(url).host}`)));
+    req.on('error', reject);
+  });
+}
+
+/** Turns low-level connection errors into something an admin can act on. */
+function explain(err: unknown, host: string): Error {
+  const code = (err as { cause?: { code?: string } })?.cause?.code ?? (err as { code?: string })?.code ?? '';
+  if (code === 'ERR_TLS_CERT_ALTNAME_INVALID') return new Error(`${host} is sending the wrong security certificate (their fault, it shows a warning in browsers too). Will retry each day`);
+  if (/CERT|SELF_SIGNED|UNABLE_TO/.test(code)) return new Error(`${host} has a certificate problem (${code})`);
+  if (code === 'ENOTFOUND' || code === 'EAI_AGAIN') return new Error(`${host} could not be found`);
+  if (code === 'ECONNREFUSED' || code === 'ECONNRESET' || code === 'UND_ERR_CONNECT_TIMEOUT') return new Error(`${host} is not answering`);
+  return err instanceof Error ? err : new Error(String(err));
+}
+
+async function plainFetch(url: string) {
+  return fetch(url, { headers: { Accept: 'application/json', 'User-Agent': UA }, signal: AbortSignal.timeout(25_000), cache: 'no-store' });
+}
+
+async function getJson(url: string): Promise<unknown> {
+  const host = new URL(url).host;
+  const ca = extraCa.get(host);
+  if (ca) return getWithCa(url, ca);
+
+  let res: Response;
+  try {
+    res = await plainFetch(url);
+  } catch (err) {
+    const code = (err as { cause?: { code?: string } })?.cause?.code ?? '';
+    if (code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' || code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY') {
+      const pems = await fetchIntermediates(host);
+      extraCa.set(host, pems);
+      return getWithCa(url, pems);
+    }
+    throw explain(err, host);
+  }
   if (res.status === 429 || res.status === 503) {
     // Busy: wait as asked (up to 15 seconds) and try once more
     const wait = Math.min(15, Number(res.headers.get('retry-after')) || 5);
     await new Promise((r) => setTimeout(r, wait * 1000));
-    const again = await fetch(url, {
-      headers: { Accept: 'application/json', 'User-Agent': 'TheLittleGreenBook/1.0 (+https://www.tlgb.co.uk)' },
-      signal: AbortSignal.timeout(25_000),
-      cache: 'no-store',
-    });
-    if (!again.ok) throw new Error(`${again.status} from ${new URL(url).host}`);
+    const again = await plainFetch(url).catch((err) => { throw explain(err, host); });
+    if (!again.ok) throw new Error(`${again.status} from ${host}`);
     return again.json();
   }
-  if (!res.ok) throw new Error(`${res.status} from ${new URL(url).host}`);
+  if (!res.ok) throw new Error(`${res.status} from ${host}`);
   return res.json();
 }
 
@@ -502,7 +575,7 @@ export async function importLeads({ days = 3 }: { days?: number } = {}) {
       summary[src] = r.value.length;
     } else {
       console.error(`leads: ${src} failed`, r.reason);
-      summary[src] = `failed: ${String(r.reason?.message ?? r.reason).slice(0, 80)}`;
+      summary[src] = `failed: ${String(r.reason?.message ?? r.reason).slice(0, 160)}`;
     }
   });
 
