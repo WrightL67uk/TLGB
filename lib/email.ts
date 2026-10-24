@@ -386,3 +386,16 @@ export async function emailPackReminders(
     'pack-reminder'
   );
 }
+
+/** Once a year: time to update turnover and accident figures in the PQQ answer bank. */
+export async function emailPqqFigures(m: { email: string; contactName: string; tradingName: string; businessId: string }) {
+  await send(
+    m.email,
+    'Time to update your PQQ figures',
+    `<p>Hi ${esc(m.contactName)},</p>
+<p>It has been a year since you updated the turnover and accident figures in the PQQ answer bank for <strong>${esc(m.tradingName)}</strong>.</p>
+<p>Most questionnaires ask for the last three years, so add your latest year now and every answer you copy or share stays up to date.</p>
+<p>${button(`${siteUrl()}/account/${m.businessId}/pqq#sec-finance`, 'Update my figures')}</p>`,
+    'pqq-reminder'
+  );
+}

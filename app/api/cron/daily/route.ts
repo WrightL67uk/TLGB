@@ -3,7 +3,7 @@ import { runExpiryJob } from '@/lib/expiryJob';
 import { importLeads } from '@/lib/leads';
 import { geocodeSuppliers } from '@/lib/suppliers';
 import { syncOverdueMemberships } from '@/lib/billingSync';
-import { runComplianceReminders } from '@/lib/complianceJob';
+import { runComplianceReminders, runPqqReminders } from '@/lib/complianceJob';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -21,5 +21,6 @@ export async function GET(req: NextRequest) {
   try { out.suppliersPlaced = await geocodeSuppliers(); } catch (err) { console.error('daily: supplier geocode failed', err); }
   try { out.membershipsSynced = await syncOverdueMemberships(); } catch (err) { console.error('daily: billing sync failed', err); }
   try { out.packReminders = await runComplianceReminders(); } catch (err) { console.error('daily: pack reminders failed', err); }
+  try { out.pqqReminders = await runPqqReminders(); } catch (err) { console.error('daily: pqq reminders failed', err); }
   return NextResponse.json({ ok: true, ...out });
 }

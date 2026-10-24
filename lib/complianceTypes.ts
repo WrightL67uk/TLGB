@@ -15,6 +15,13 @@ export const CATEGORIES: { key: CategoryKey; label: string; shareByDefault: bool
 export const CATEGORY_KEYS = CATEGORIES.map((c) => c.key) as [CategoryKey, ...CategoryKey[]];
 export const categoryLabel = (k: string) => CATEGORIES.find((c) => c.key === k)?.label ?? k;
 
+/** Extra things a share link can include besides documents: PQQ answers and, separately, financial figures. */
+export const SHARE_EXTRAS = [
+  { key: 'profile', label: 'Company profile and PQQ answers', shareByDefault: true },
+  { key: 'finance', label: 'Financial figures (turnover, accounts, bank)', shareByDefault: false },
+] as const;
+export const SHARE_KEYS = [...CATEGORY_KEYS, ...SHARE_EXTRAS.map((e) => e.key)] as [string, ...string[]];
+
 export type DocType = {
   key: string;
   label: string;

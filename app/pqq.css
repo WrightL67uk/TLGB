@@ -1,0 +1,45 @@
+/* PQQ answer bank (builds on compliance.css) */
+.pq-dl { text-decoration: none; display: inline-block; }
+.pq-search { margin-top: 18px; background: var(--sand); border: 1px solid var(--line); padding: 14px; display: grid; gap: 8px; }
+.pq-search label { font-weight: 400; display: block; }
+.pq-matches { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.pq-matches li { background: #fff; border: 1px solid var(--line); padding: 10px 12px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; }
+.pq-nav { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
+.pq-nav a { font-size: .85rem; font-weight: 700; text-decoration: none; color: var(--forest); border: 1px solid var(--line); padding: 5px 10px; background: #fff; }
+.pq-nav a span { color: var(--muted); font-weight: 600; margin-left: 4px; }
+.pq-nav a:hover { border-color: var(--green); }
+
+.pq-card { border: 1px solid var(--line); border-left: 4px solid #c8ccc3; background: #fff; margin-bottom: 6px; scroll-margin-top: 12px; }
+.pq-card.done { border-left-color: var(--leaf); }
+.pq-card.open { border-color: var(--green); }
+.pq-head { all: unset; box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; width: 100%; padding: 12px; }
+.pq-head:focus-visible { outline: 2px solid var(--green); outline-offset: -2px; }
+.pq-q { font-weight: 700; color: var(--forest); }
+.pq-preview { grid-column: 1 / -1; font-size: .85rem; color: var(--muted); overflow-wrap: anywhere; }
+.pq-body { padding: 0 12px 14px; display: grid; gap: 10px; }
+.pq-body .hint { margin: 0; }
+.pq-editor { display: grid; gap: 12px; }
+.pq-editor label { display: grid; gap: 4px; }
+.pq-count { font-size: .78rem; color: var(--muted); font-weight: 400; justify-self: end; }
+.pq-auto { white-space: pre-line; background: var(--sand); padding: 10px 12px; margin: 0; }
+.pq-yesno { display: flex; gap: 22px; }
+.pq-saved { color: var(--green); font-weight: 700; margin: 0; }
+.pq-fig { border-collapse: collapse; min-width: 480px; }
+.pq-fig th, .pq-fig td { border: 1px solid var(--line); padding: 4px; text-align: left; font-size: .9rem; }
+.pq-fig thead th { background: var(--sand); }
+.pq-fig input { padding: 6px 8px; min-width: 90px; }
+.pq-three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.pq-project { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; border: 1px solid var(--line); border-left: 4px solid var(--teal); padding: 10px 12px; margin-bottom: 6px; background: #fff; }
+.pq-project > div:first-child { display: grid; gap: 2px; min-width: 0; }
+@media (max-width: 640px) {
+  .pq-matches li, .pq-project { grid-template-columns: minmax(0, 1fr); }
+  .pq-three { grid-template-columns: 1fr; }
+}
+
+/* On the contractor's shared page */
+.pk-profile .pk-a { border: 1px solid var(--line); border-left: 4px solid var(--teal); padding: 10px 12px; margin-bottom: 6px; }
+.pk-profile .pk-a strong { display: block; color: var(--forest); margin-bottom: 4px; }
+.pk-profile .pk-a p { margin: 0; white-space: pre-line; }
+.pk-profile table { border-collapse: collapse; margin-top: 4px; }
+.pk-profile th, .pk-profile td { border: 1px solid var(--line); padding: 4px 10px; font-size: .9rem; text-align: left; }
+.pk-sub { font-size: 1rem; color: var(--forest); margin: 14px 0 6px; }

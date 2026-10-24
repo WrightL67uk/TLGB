@@ -4,8 +4,8 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadToSignedUrl } from '@/lib/supabaseBrowser';
 import {
-  CATEGORIES, DOC_TYPES, CORE_COUNT, ACCREDITATION_SUGGESTIONS, PACK_MAX_FILE_BYTES, PACK_MIME,
-  docType, shownStatus, ukDate, fileSize, type DocType, type DocStatus, type CategoryKey,
+  CATEGORIES, SHARE_EXTRAS, DOC_TYPES, CORE_COUNT, ACCREDITATION_SUGGESTIONS, PACK_MAX_FILE_BYTES, PACK_MIME,
+  docType, shownStatus, ukDate, fileSize, type DocType, type DocStatus,
 } from '@/lib/complianceTypes';
 
 type Doc = {
@@ -243,7 +243,10 @@ function ShareForm({ businessId, live, onDone }: { businessId: string; live: Doc
     return m;
   }, [live]);
   const [label, setLabel] = useState('');
-  const [include, setInclude] = useState<CategoryKey[]>(CATEGORIES.filter((c) => c.shareByDefault).map((c) => c.key));
+  const [include, setInclude] = useState<string[]>([
+    ...CATEGORIES.filter((c) => c.shareByDefault).map((c) => c.key as string),
+    ...SHARE_EXTRAS.filter((e) => e.shareByDefault).map((e) => e.key as string),
+  ]);
   const [days, setDays] = useState<string>('90');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -287,6 +290,13 @@ function ShareForm({ businessId, live, onDone }: { businessId: string; live: Doc
             <input id={`inc-${c.key}`} type="checkbox" checked={include.includes(c.key)}
               onChange={(e) => setInclude(e.target.checked ? [...include, c.key] : include.filter((k) => k !== c.key))} />
             {c.label} ({counts.get(c.key) ?? 0})
+          </label>
+        ))}
+        {SHARE_EXTRAS.map((x) => (
+          <label key={x.key} className="check" htmlFor={`inc-${x.key}`}>
+            <input id={`inc-${x.key}`} type="checkbox" checked={include.includes(x.key)}
+              onChange={(e) => setInclude(e.target.checked ? [...include, x.key] : include.filter((k) => k !== x.key))} />
+            {x.label}
           </label>
         ))}
       </fieldset>

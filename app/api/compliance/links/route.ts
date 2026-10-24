@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { db } from '@/lib/supabase';
 import { sameOrigin } from '@/lib/session';
 import { packOwner, newToken } from '@/lib/compliance';
-import { CATEGORY_KEYS } from '@/lib/complianceTypes';
+import { SHARE_KEYS } from '@/lib/complianceTypes';
 import { siteUrl } from '@/lib/config';
 
 export const runtime = 'nodejs';
@@ -11,7 +11,7 @@ export const runtime = 'nodejs';
 const Body = z.object({
   businessId: z.string(),
   label: z.string().trim().min(2, 'Say who the link is for').max(80),
-  include: z.array(z.enum(CATEGORY_KEYS)).min(1, 'Tick at least one section to share'),
+  include: z.array(z.enum(SHARE_KEYS)).min(1, 'Tick at least one section to share'),
   days: z.union([z.literal(30), z.literal(90), z.literal(180), z.literal(365), z.null()]),
 });
 const fail = (error: string, status = 400) => NextResponse.json({ ok: false, error }, { status });

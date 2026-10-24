@@ -2,7 +2,8 @@ import 'server-only';
 import { db } from './supabase';
 import { isPaid } from './membership';
 import { docType, daysTo } from './complianceTypes';
-import { emailPackReminders, type PackReminder } from './email';
+import { emailPackReminders, emailPqqFigures, type PackReminder } from './email';
+import { FIGURE_KEYS } from './pqq';
 
 /**
  * Daily: emails members about pack documents expiring in 30 days, 7 days or already
@@ -63,4 +64,25 @@ export async function runComplianceReminders() {
     await emailPackReminders({ email: b.email, contactName: b.contact_name, tradingName: b.trading_name, businessId: id }, items);
   }
   return perBusiness.size;
+}
+
+/** Daily: a yearly nudge to update turnover and accident figures saved more than a year ago. */
+export async function runPqqReminders() {
+  const cutoff = new Date(Date.now() - 365 * 86_400_000).toISOString();
+  const { data: stale } = await db().from('pqq_answers').select('business_id, updated_at').in('key', FIGURE_KEYS).lt('updated_at', cutoff).limit(5000);
+  const ids = [...new Set((stale ?? []).map((r) => r.business_id as string))];
+  if (!ids.length) return 0;
+  const { data: businesses } = await db().from('businesses')
+    .select('id, email, contact_name, trading_name, status, founding_member, subscription_status').in('id', ids);
+  let sent = 0;
+  const period = String(new Date().getFullYear());
+  for (const b of businesses ?? []) {
+    if (!isPaid(b)) continue;
+    const { data: fresh } = await db().from('pqq_reminders')
+      .upsert({ business_id: b.id, period }, { onConflict: 'business_id,period', ignoreDuplicates: true }).select('business_id');
+    if (!fresh?.length) continue;
+    await emailPqqFigures({ email: b.email, contactName: b.contact_name, tradingName: b.trading_name, businessId: b.id });
+    sent++;
+  }
+  return sent;
 }
