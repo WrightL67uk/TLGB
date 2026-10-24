@@ -32,6 +32,10 @@ export default function GuidesPage() {
           <h2>Suppliers</h2>
           <p>Soil, turf, trees, fencing, paving and more. Free to search.</p>
         </Link>
+        <Link href="/menu">
+          <h2>Everything on TLGB</h2>
+          <p>Every page, tool, template and download in one list, with a search box.</p>
+        </Link>
         <Link href="/help-board">
           <h2>Help board</h2>
           <p>Need a hand on a job, or have spare capacity? Ask other trades here.</p>

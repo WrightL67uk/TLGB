@@ -28,6 +28,7 @@ h2 { font-size: 1.15rem; margin: 0 0 12px; }
 .mainnav { display: flex; gap: 28px; flex-wrap: wrap; justify-content: flex-end; }
 .mainnav a { color: var(--forest); text-decoration: none; font-weight: 700; font-size: 1.08rem; }
 .mainnav a:hover { color: var(--leaf); }
+.mainnav .nav-all { color: var(--rust); }
 
 .foot { background: var(--forest); color: #dfe8dc; margin-top: 40px; }
 .foot-in { max-width: 1180px; margin: 0 auto; padding: 36px 16px 20px; display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
