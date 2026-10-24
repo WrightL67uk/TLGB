@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
-export type MenuItem = { label: string; href: string; note: string; tag?: string; download?: boolean };
+export type MenuItem = { label: string; href: string; note: string; tag?: string; download?: boolean; k?: string };
 export type MenuSection = { title: string; intro?: string; items: MenuItem[] };
 
 export default function MenuList({ sections, loggedIn }: { sections: MenuSection[]; loggedIn: boolean }) {
@@ -14,7 +14,7 @@ export default function MenuList({ sections, loggedIn }: { sections: MenuSection
     .map((s) => ({
       ...s,
       items: s.items.filter((i) => {
-        const hay = `${s.title} ${i.label} ${i.note}`.toLowerCase();
+        const hay = `${s.title} ${i.label} ${i.note} ${i.k ?? ''} ${i.href.replace(/[-/_?=#]/g, ' ')}`.toLowerCase();
         return words.every((w) => hay.includes(w));
       }),
     }))

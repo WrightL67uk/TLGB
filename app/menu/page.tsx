@@ -35,7 +35,7 @@ export default async function MenuPage() {
     {
       title: 'Find work',
       items: [
-        { label: 'Leads', href: '/leads', note: 'Public contracts and planning leads for landscaping and external works.', tag: memberTag ? 'Full feed for members' : undefined },
+        { label: 'Leads', href: '/leads', note: 'Public contracts and planning leads for landscaping and external works.', k: 'tenders work opportunities contracts finder planning', tag: memberTag ? 'Full feed for members' : undefined },
         { label: 'Supply chain finder', href: '/supply-chains', note: 'Where to register with main contractors, housebuilders, portals and frameworks.' },
         { label: 'Help board', href: '/help-board', note: 'Need a hand on a job, or have spare capacity? Ask other trades.' },
         { label: 'Post on the help board', href: '/help-board/new', note: 'Ask for labour, a subcontractor, a machine or cover.', tag: memberTag },
@@ -46,30 +46,30 @@ export default async function MenuPage() {
       items: [
         { label: 'All guides', href: '/guides', note: 'Every guide and tool in one list.' },
         { label: 'Finding leads worth chasing', href: '/guides/finding-leads', note: 'Which leads turn into work and how to work each type.' },
-        { label: 'Winning tenders and PQQs', href: '/guides/winning-tenders', note: 'Prequalification, pricing to win and getting on approved lists.' },
-        { label: 'Accreditation help', href: '/accreditation-help', note: 'Help with Constructionline, CHAS and SSIP applications.' },
+        { label: 'Winning tenders and PQQs', href: '/guides/winning-tenders', note: 'Prequalification, pricing to win and getting on approved lists.', k: 'pqq tender bid' },
+        { label: 'Accreditation help', href: '/accreditation-help', note: 'Help with Constructionline, CHAS and SSIP applications.', k: 'smas safecontractor accreditation gold silver' },
       ],
     },
     {
       title: 'Member tools',
       items: [
-        { label: 'My listing', href: m.loggedIn ? mine('', '/account') : '/login?next=/account', note: 'Edit your details, insurance, accreditations, photos and membership.', tag: m.loggedIn ? undefined : 'Log in' },
-        { label: 'Compliance pack', href: m.loggedIn ? mine('/compliance', '/account/compliance') : '/login?next=/account/compliance', note: 'Insurance, accreditations, RAMS and policies in one place, with share links for contractors.', tag: memberTag },
-        { label: 'PQQ answer bank', href: m.loggedIn ? mine('/pqq', '/account/pqq') : '/login?next=/account/pqq', note: 'Save answers to the questions every PQQ and supplier portal asks, then copy them in.', tag: memberTag },
-        { label: 'Project references', href: m.loggedIn ? `${mine('/pqq', '/account/pqq')}#sec-projects` : '/login?next=/account/pqq', note: 'Your library of past jobs and client references for tenders.', tag: memberTag },
+        { label: 'My listing', href: m.loggedIn ? mine('', '/account') : '/login?next=/account', note: 'Edit your details, insurance, accreditations, photos and membership.', k: 'account profile certificate expiry renew payment billing subscription logo', tag: m.loggedIn ? undefined : 'Log in' },
+        { label: 'Compliance pack', href: m.loggedIn ? mine('/compliance', '/account/compliance') : '/login?next=/account/compliance', note: 'Insurance, accreditations, RAMS and policies in one place, with share links for contractors.', k: 'documents certificates upload share link chas smas constructionline ssip method statement risk assessment policy expiry', tag: memberTag },
+        { label: 'PQQ answer bank', href: m.loggedIn ? mine('/pqq', '/account/pqq') : '/login?next=/account/pqq', note: 'Save answers to the questions every PQQ and supplier portal asks, then copy them in.', k: 'prequalification questionnaire tender portal answers turnover accident figures sq selection', tag: memberTag },
+        { label: 'Project references', href: m.loggedIn ? `${mine('/pqq', '/account/pqq')}#sec-projects` : '/login?next=/account/pqq', note: 'Your library of past jobs and client references for tenders.', k: 'case studies experience similar contracts referees', tag: memberTag },
       ],
     },
     {
       title: 'Downloads',
       items: [
-        { label: 'Company profile (Word)', href: myId ? `/api/pqq/export?b=${myId}` : (m.loggedIn ? '/account/pqq' : '/login?next=/account/pqq'), note: 'All your saved PQQ answers and project references as one Word document.', tag: memberTag, download: !!myId },
+        { label: 'Company profile (Word)', href: myId ? `/api/pqq/export?b=${myId}` : (m.loggedIn ? '/account/pqq' : '/login?next=/account/pqq'), note: 'All your saved PQQ answers and project references as one Word document.', k: 'pqq export download word doc', tag: memberTag, download: !!myId },
         { label: 'Compliance pack documents', href: m.loggedIn ? mine('/compliance', '/account/compliance') : '/login?next=/account/compliance', note: 'Download any certificate or policy you have uploaded, or send a share link.', tag: memberTag },
       ],
     },
     {
       title: 'Templates (Word)',
       intro: 'Starter documents with your company name filled in. Have a competent person check them before you use them.',
-      items: TEMPLATES.map((t) => ({ label: t.title, href: `/api/templates/${t.slug}`, note: t.note, tag: memberTag, download: m.paid })),
+      items: TEMPLATES.map((t) => ({ label: t.title, href: `/api/templates/${t.slug}`, note: t.note, tag: memberTag, download: m.paid, k: 'template word policy document download' + (t.slug.startsWith('rams') ? ' rams method statement risk assessment' : '') })),
     },
     {
       title: 'Your account',
