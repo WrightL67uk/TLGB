@@ -137,6 +137,9 @@ export function env(name: string): string {
   return v;
 }
 
+/** The one public address for TLGB: sender, reply-to and contact on every page and email. */
+export const TLGB_EMAIL = 'admin@tlgb.co.uk';
+
 export const siteUrl = () => process.env.SITE_URL ?? 'http://localhost:3000';
 
 export const gbp = (n: number | null | undefined) =>

@@ -1,6 +1,6 @@
 import 'server-only';
 import sgMail from '@sendgrid/mail';
-import { env, siteUrl } from './config';
+import { env, siteUrl, TLGB_EMAIL } from './config';
 
 let ready = false;
 function init() {
@@ -57,7 +57,7 @@ function toText(html: string) {
 
 async function send(to: string | string[], subject: string, body: string, category: string) {
   // Lets the site run for demos before SendGrid is set up: emails are skipped, not crashed on.
-  if (!process.env.SENDGRID_API_KEY || !process.env.EMAIL_FROM) {
+  if (!process.env.SENDGRID_API_KEY) {
     console.warn(`Email skipped (SendGrid not configured): ${subject}`);
     return;
   }
@@ -69,8 +69,8 @@ async function send(to: string | string[], subject: string, body: string, catego
     try {
       await sgMail.send({
         to: rcpt,
-        from: { email: env('EMAIL_FROM'), name: 'The Little Green Book' },
-        replyTo: process.env.EMAIL_REPLY_TO || env('EMAIL_FROM'),
+        from: { email: TLGB_EMAIL, name: 'The Little Green Book' },
+        replyTo: TLGB_EMAIL,
         subject,
         html,
         text,

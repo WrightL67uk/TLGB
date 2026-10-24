@@ -55,7 +55,7 @@ Every approval, rejection and "approval needed" email depends on this, so treat 
 
 ### 1. Domain and mailbox
 
-1. **Send from your own domain**, e.g. `hello@tlgb.co.uk`. Never from a Gmail, Hotmail or BT address: those fail authentication when sent through SendGrid and go straight to junk.
+1. **Send from your own domain**, e.g. `admin@tlgb.co.uk`. Never from a Gmail, Hotmail or BT address: those fail authentication when sent through SendGrid and go straight to junk.
 2. **Register the domain now**, even before the site is ready. Filters are suspicious of domains only days old.
 3. **Pick a DNS host you can edit easily** (Cloudflare is free and simple; most registrars also work). You will be adding several records.
 4. **Set up a real mailbox** on the domain (Google Workspace or Microsoft 365) for `hello@`. Replies to TLGB emails land there, and filters like a From address that can actually receive mail. Put it in `EMAIL_FROM` and `EMAIL_REPLY_TO`.
@@ -77,7 +77,7 @@ Every approval, rejection and "approval needed" email depends on this, so treat 
 | Link branding CNAMEs (2) | as given by SendGrid | Branded links |
 | MX | `tlgb.co.uk` | From your mailbox provider |
 | SPF (TXT) | `tlgb.co.uk` | For your mailbox provider, e.g. `v=spf1 include:_spf.google.com ~all` (Google) or `v=spf1 include:spf.protection.outlook.com ~all` (Microsoft) |
-| DMARC (TXT) | `_dmarc.tlgb.co.uk` | Start with `v=DMARC1; p=none; rua=mailto:hello@tlgb.co.uk` |
+| DMARC (TXT) | `_dmarc.tlgb.co.uk` | Start with `v=DMARC1; p=none; rua=mailto:admin@tlgb.co.uk` |
 
 Notes:
 - **Only one SPF record is allowed.** Never add a second one. With automated security on, SendGrid's SPF is covered by its CNAMEs, so you don't need to add SendGrid to the root SPF.
@@ -103,7 +103,7 @@ If you edit the wording later: avoid ALL CAPS, piles of exclamation marks, "FREE
 
 ### 6. Once live
 
-- Ask founding members to add `hello@tlgb.co.uk` to their contacts. The thank-you page already prompts this.
+- Ask founding members to add `admin@tlgb.co.uk` to their contacts. The thank-you page already prompts this.
 - Check SendGrid **Activity** and **Stats** weekly. Keep bounces under 2% and spam reports close to zero (Gmail starts filtering above 0.3%).
 - If a contractor says emails go to junk, ask them to mark one "Not junk", or for their IT to allow `tlgb.co.uk` in Mimecast or Microsoft Defender.
 - Stay on SendGrid's shared IP. A dedicated IP only helps at much higher volumes and needs warming up.

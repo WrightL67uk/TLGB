@@ -3,7 +3,8 @@
 //   LEGAL_OPERATOR   e.g. "Ed Wright and Trudy Martin, trading in partnership as The Little Green Book"
 //   BUSINESS_POSTAL_ADDRESS   the partnership's postal address
 //   ICO_REGISTRATION   the number from paying the ICO data protection fee
-//   EMAIL_REPLY_TO    the contact mailbox (also used on emails)
+
+import { TLGB_EMAIL } from './config';
 
 export const LEGAL_UPDATED = '24 October 2026';
 
@@ -12,6 +13,6 @@ export function legalDetails() {
     operator: process.env.LEGAL_OPERATOR?.trim() || 'the partners trading as The Little Green Book',
     address: process.env.BUSINESS_POSTAL_ADDRESS?.trim() || null,
     ico: process.env.ICO_REGISTRATION?.trim() || null,
-    email: process.env.EMAIL_REPLY_TO?.trim() || 'hello@tlgb.co.uk',
+    email: TLGB_EMAIL,
   };
 }
