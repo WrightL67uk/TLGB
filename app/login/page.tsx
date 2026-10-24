@@ -23,7 +23,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <form action="/api/auth/logout" method="post" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <input type="hidden" name="next" value={`/login?next=${encodeURIComponent(next)}`} />
           <button type="submit" className="primary">Log out and log in as a contractor</button>
-          <Link href="/account" className="sq">Back to my listing</Link>
+          <Link href="/account" style={{ alignSelf: 'center' }}>Back to my listing</Link>
         </form>
       </div>
     );
