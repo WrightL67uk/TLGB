@@ -62,6 +62,7 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
     db().from('service_enquiries').select('id', { count: 'exact', head: true }).eq('handled', false),
   ]);
   const waiting = (newSuppliers ?? 0) + (newEnquiries ?? 0);
+  const { count: contractorsWaiting = 0 } = await db().from('contractor_companies').select('id', { count: 'exact', head: true }).eq('status', 'pending');
 
   // Compliance pack certificates waiting for a check, grouped by listing
   const { data: packPending } = await db().from('compliance_docs').select('business_id, title').eq('status', 'pending').is('archived_at', null).limit(500);
@@ -78,6 +79,10 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
           <input type="hidden" name="days" value="14" />
           <button type="submit">Fetch leads now (last 14 days)</button>
         </form>
+        <Link href="/admin/contractors">
+          Main contractors
+          {(contractorsWaiting ?? 0) > 0 && <span className="count"> {contractorsWaiting} waiting</span>}
+        </Link>
         <Link href="/admin/resources">
           Suppliers, enquiries and help board
           {waiting > 0 && <span className="count"> {waiting} waiting</span>}

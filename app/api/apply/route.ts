@@ -106,6 +106,10 @@ export async function POST(req: NextRequest) {
   const accExp = cleanAccreditationExpiries(d.accreditations, d.accreditation_expiries);
   if (!accExp.ok) return fail(accExp.error);
 
+  // ---- One role per email: contractor accounts and trade listings stay separate
+  const { count: asContractor } = await db().from('contractor_users').select('id', { count: 'exact', head: true }).eq('email', d.email).is('removed_at', null);
+  if (asContractor) return fail('That email is used for a main contractor account. Please use a different email for your listing.');
+
   // ---- Postcode
   const pc = await lookupPostcode(d.base_postcode);
   if (!pc.ok) return fail(pc.reason);

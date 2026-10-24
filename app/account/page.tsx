@@ -26,6 +26,10 @@ export default async function AccountPage() {
     .order('created_at');
 
   if (rows?.length === 1) redirect(`/account/${rows[0].id}`);
+  if (!rows?.length) {
+    const { count } = await db().from('contractor_users').select('id', { count: 'exact', head: true }).eq('email', email).is('removed_at', null);
+    if (count) redirect('/contractor');
+  }
 
   return (
     <div className="narrow">

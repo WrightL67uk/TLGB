@@ -2,12 +2,16 @@ import { notFound } from 'next/navigation';
 import { db, photoUrl } from '@/lib/supabase';
 import { gbp, tradeLabel, accreditationLabel } from '@/lib/config';
 import { unverifiedReason } from '@/lib/membership';
+import '../../contractor.css';
 import { liveAccreditations, fmtDate } from '@/lib/expiries';
+import Link from 'next/link';
+import { getContractor } from '@/lib/contractors';
 
 export const dynamic = 'force-dynamic';
 
-export default async function BusinessPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function BusinessPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> }) {
   const { id } = await params;
+  const { error } = await searchParams;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 
   const { data: b } = await db()
@@ -23,11 +27,25 @@ export default async function BusinessPage({ params }: { params: Promise<{ id: s
   const verified = !reason;
 
   const { data: photos } = await db().from('business_photos').select('storage_path, caption').eq('business_id', id).order('sort_order');
+  const me = await getContractor();
+  const saved = me ? !!(await db().from('contractor_favourites').select('business_id', { count: 'exact', head: true }).eq('company_id', me.company.id).eq('business_id', id)).count : false;
 
   return (
     <div className="narrow">
       <h1>{b.trading_name}</h1>
       <p className="muted">{b.trades.map(tradeLabel).join(', ')}</p>
+      {me && error && <p className="err big">{error}</p>}
+      {me && (
+        <div className="save-box">
+          {saved ? <span><strong>On your shortlist.</strong> <Link href="/contractor/shortlist">Open shortlist</Link></span> : <span>Main contractor tools:</span>}
+          <form method="post" action="/api/contractor/action">
+            <input type="hidden" name="action" value={saved ? 'fav-remove' : 'fav-add'} />
+            <input type="hidden" name="back" value={`/b/${b.id}`} />
+            <input type="hidden" name="business_id" value={b.id} />
+            <button type="submit" className={saved ? '' : 'primary'}>{saved ? 'Remove from shortlist' : 'Save to shortlist'}</button>
+          </form>
+        </div>
+      )}
       {verified ? (
         <p className="badges">
           <span className="badge ok">Verified member</span>

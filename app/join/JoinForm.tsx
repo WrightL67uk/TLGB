@@ -271,7 +271,9 @@ export default function JoinForm() {
           <fieldset>
             <label className="check">
               <input type="checkbox" name="declaration" required /> I confirm the information and documents I have
-              provided are accurate and current, and I will update them if anything changes.
+              provided are accurate and current, and I will update them if anything changes. I agree to the{' '}
+              <a href="/legal/terms" target="_blank">website terms</a> and <a href="/legal/member-terms" target="_blank">member terms</a>,
+              and I have read the <a href="/legal/privacy" target="_blank">privacy notice</a>.
             </label>
           </fieldset>
 

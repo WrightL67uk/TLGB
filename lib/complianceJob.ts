@@ -2,6 +2,7 @@ import 'server-only';
 import { db } from './supabase';
 import { isPaid } from './membership';
 import { docType, daysTo } from './complianceTypes';
+import { archiveDocs } from './compliance';
 import { emailPackReminders, emailPqqFigures, type PackReminder } from './email';
 import { FIGURE_KEYS } from './pqq';
 
@@ -85,4 +86,45 @@ export async function runPqqReminders() {
     sent++;
   }
   return sent;
+}
+
+/**
+ * Daily tidy-up that keeps the privacy notice true:
+ *  - compliance pack files are deleted 90 days after a paid membership ends
+ *  - contractor jobs (with drawings and replies) are deleted 2 years after they close
+ *  - used or expired login links and sessions are removed
+ */
+export async function runDataCleanup() {
+  const now = Date.now();
+  const ago = (days: number) => new Date(now - days * 86_400_000).toISOString();
+  const out: Record<string, number> = {};
+
+  // Lapsed members' packs
+  const { data: lapsed } = await db().from('businesses')
+    .select('id, status, founding_member, subscription_status, paid_until')
+    .eq('founding_member', false).in('subscription_status', ['cancelled', 'none']).lt('paid_until', ago(90)).limit(500);
+  let docs = 0;
+  for (const b of lapsed ?? []) {
+    if (isPaid(b)) continue;
+    const { data: rows } = await db().from('compliance_docs').select('id').eq('business_id', b.id).is('archived_at', null);
+    if (rows?.length) {
+      await archiveDocs(rows.map((r) => r.id as string));
+      docs += rows.length;
+    }
+  }
+  out.packFilesDeleted = docs;
+
+  // Old contractor jobs
+  const { data: oldJobs } = await db().from('contractor_jobs').select('id').in('status', ['closed', 'removed', 'open', 'draft']).lt('updated_at', ago(730)).limit(200);
+  for (const j of oldJobs ?? []) {
+    const { data: files } = await db().from('contractor_job_files').select('storage_path').eq('job_id', j.id);
+    if (files?.length) await db().storage.from('contractor-jobs').remove(files.map((f) => f.storage_path as string));
+    await db().from('contractor_jobs').delete().eq('id', j.id);
+  }
+  out.oldJobsDeleted = oldJobs?.length ?? 0;
+
+  // Login links and sessions
+  await db().from('login_tokens').delete().lt('expires_at', ago(1));
+  await db().from('sessions').delete().lt('expires_at', ago(1));
+  return out;
 }

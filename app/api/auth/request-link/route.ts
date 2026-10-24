@@ -24,7 +24,11 @@ export async function POST(req: NextRequest) {
     .select('id', { count: 'exact', head: true })
     .eq('email', email)
     .neq('status', 'draft');
-  if (!count) return done;
+  if (!count) {
+    // Main contractor users log in the same way
+    const { count: cu } = await db().from('contractor_users').select('id', { count: 'exact', head: true }).eq('email', email).is('removed_at', null);
+    if (!cu) return done;
+  }
   if ((await recentLoginRequests(email)) >= 5) return done;
 
   const token = await createLoginToken(email, LINK_MINUTES);

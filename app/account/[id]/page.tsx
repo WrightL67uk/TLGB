@@ -177,6 +177,30 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
         </section>
       )}
 
+      {b.status === 'approved' && (
+        <section className="panel" id="job-alerts">
+          <h2>Jobs from main contractors</h2>
+          {isPaid(b) ? (
+            <div className="cp-summary">
+              <p>
+                Job emails are <strong>{(b as { job_alerts?: boolean }).job_alerts === false ? 'off' : 'on'}</strong>. We email you when a main contractor posts a job that matches your trades, area, insurance and accreditations.
+                <br /><span className="muted small">Contractors can also invite you to price directly; those emails always come through.</span>
+              </p>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <form method="post" action="/api/account/job-alerts">
+                  <input type="hidden" name="business_id" value={b.id} />
+                  <input type="hidden" name="on" value={(b as { job_alerts?: boolean }).job_alerts === false ? '1' : '0'} />
+                  <button type="submit">{(b as { job_alerts?: boolean }).job_alerts === false ? 'Turn job emails on' : 'Turn job emails off'}</button>
+                </form>
+                <Link href="/jobs" className="sq sq-rust">See jobs</Link>
+              </div>
+            </div>
+          ) : (
+            <p className="muted">Main contractors post work packages here. Members get matching jobs by email and reply with their compliance pack attached.</p>
+          )}
+        </section>
+      )}
+
       <AccountEditor
         b={{
           id: b.id,

@@ -36,6 +36,7 @@ export default async function MenuPage() {
       title: 'Find work',
       items: [
         { label: 'Leads', href: '/leads', note: 'Public contracts and planning leads for landscaping and external works.', k: 'tenders work opportunities contracts finder planning', tag: memberTag ? 'Full feed for members' : undefined },
+        { label: 'Jobs from main contractors', href: '/jobs', note: 'Packages posted direct by main contractors and housebuilders. Matching jobs are emailed to members.', k: 'contractor packages tenders price invite', tag: memberTag },
         { label: 'Supply chain finder', href: '/supply-chains', note: 'Where to register with main contractors, housebuilders, portals and frameworks.' },
         { label: 'Help board', href: '/help-board', note: 'Need a hand on a job, or have spare capacity? Ask other trades.' },
         { label: 'Post on the help board', href: '/help-board/new', note: 'Ask for labour, a subcontractor, a machine or cover.', tag: memberTag },
@@ -70,6 +71,28 @@ export default async function MenuPage() {
       title: 'Templates (Word)',
       intro: 'Starter documents with your company name filled in. Have a competent person check them before you use them.',
       items: TEMPLATES.map((t) => ({ label: t.title, href: `/api/templates/${t.slug}`, note: t.note, tag: memberTag, download: m.paid, k: 'template word policy document download' + (t.slug.startsWith('rams') ? ' rams method statement risk assessment' : '') })),
+    },
+    {
+      title: 'For main contractors',
+      intro: 'Free accounts for main contractors, housebuilders and developers.',
+      items: [
+        { label: 'How it works for contractors', href: '/contractors', note: 'Shortlist checked trades, post packages and get replies with paperwork attached.', k: 'main contractor housebuilder developer free' },
+        { label: 'Create a contractor account', href: '/contractors/join', note: 'Free. We check your company before you can post jobs.', k: 'sign up register' },
+        { label: 'Contractor dashboard', href: '/contractor', note: 'Your shortlist, jobs, replies and team.', k: 'favourites shortlist post job replies team' },
+        { label: 'Post a job', href: '/contractor/jobs/new', note: 'Send a package to every member who matches your trade, area and requirements.', k: 'package tender invite' },
+      ],
+    },
+    {
+      title: 'Legal and policies',
+      items: [
+        { label: 'Website terms', href: '/legal/terms', note: 'The rules for using this website.', k: 'terms and conditions' },
+        { label: 'Member terms', href: '/legal/member-terms', note: 'Membership, payment, renewal, cancellation and refunds for listed trades.', k: 'subscription cancel refund payment' },
+        { label: 'Contractor terms', href: '/legal/contractor-terms', note: 'Using the free contractor account and posting jobs.' },
+        { label: 'Privacy notice', href: '/legal/privacy', note: 'What personal data we hold, why, who we share it with and your rights.', k: 'gdpr data protection personal information' },
+        { label: 'Cookie policy', href: '/legal/cookies', note: 'The one cookie we use and why.', k: 'cookies' },
+        { label: 'Acceptable use', href: '/legal/acceptable-use', note: 'What you must not do on the site.' },
+        { label: 'Complaints', href: '/legal/complaints', note: 'How to raise a complaint and what happens next.', k: 'complain dispute' },
+      ],
     },
     {
       title: 'Your account',

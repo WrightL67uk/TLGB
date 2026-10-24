@@ -26,7 +26,7 @@ function footer() {
   const addr = process.env.BUSINESS_POSTAL_ADDRESS;
   return `<p style="color:#777;font-size:12px;margin-top:32px;border-top:1px solid #eee;padding-top:12px">
 The Little Green Book${addr ? `, ${esc(addr)}` : ''}<br>
-You are receiving this because of an application made on ${esc(siteUrl().replace(/^https?:\/\//, ''))}.
+You are receiving this because of an account, listing or application on ${esc(siteUrl().replace(/^https?:\/\//, ''))}. <a href="${siteUrl()}/legal/privacy" style="color:#777">Privacy notice</a>
 </p>`;
 }
 
@@ -397,5 +397,118 @@ export async function emailPqqFigures(m: { email: string; contactName: string; t
 <p>Most questionnaires ask for the last three years, so add your latest year now and every answer you copy or share stays up to date.</p>
 <p>${button(`${siteUrl()}/account/${m.businessId}/pqq#sec-finance`, 'Update my figures')}</p>`,
     'pqq-reminder'
+  );
+}
+
+// ---------------------------------------------------------------
+// Main contractors
+// ---------------------------------------------------------------
+const para = (s: string) => esc(s).replace(/\n/g, '<br>');
+
+export async function emailAdminNewContractor(c: { id: string; name: string; companyNumber: string | null; website: string | null; userName: string; email: string; domainNote: string }) {
+  await send(
+    adminList(),
+    `Contractor to approve: ${c.name}`,
+    `<p>A main contractor has asked to join.</p>
+<p><strong>${esc(c.name)}</strong>${c.companyNumber ? ` (company ${esc(c.companyNumber)})` : ''}<br>
+${esc(c.userName)} (${esc(c.email)})<br>
+${c.website ? `Website: ${esc(c.website)}<br>` : ''}${esc(c.domainNote)}</p>
+<p>${button(`${siteUrl()}/admin/contractors`, 'Review in admin')}</p>`,
+    'admin-contractor'
+  );
+}
+
+export async function emailContractorReceived(to: string, name: string, company: string) {
+  await send(
+    to,
+    'We have your contractor account request',
+    `<p>Hi ${esc(name)},</p>
+<p>Thanks for registering <strong>${esc(company)}</strong> on The Little Green Book.</p>
+<p>We check every contractor before they can post jobs, usually within one working day. In the meantime you can log in, search trades and start saving them to your shortlist.</p>
+<p>${button(`${siteUrl()}/login?next=/contractor`, 'Log in')}</p>`,
+    'contractor-received'
+  );
+}
+
+export async function emailContractorDecision(to: string, name: string, company: string, approved: boolean, reason?: string | null) {
+  await send(
+    to,
+    approved ? `${company} is approved on The Little Green Book` : `Your contractor account for ${company}`,
+    approved
+      ? `<p>Hi ${esc(name)},</p>
+<p>Good news: <strong>${esc(company)}</strong> is approved. You can now post jobs, invite trades from your shortlist to price, and add colleagues to your account.</p>
+<p>It is free to use.</p>
+<p>${button(`${siteUrl()}/login?next=/contractor`, 'Go to my dashboard')}</p>`
+      : `<p>Hi ${esc(name)},</p>
+<p>We could not approve the contractor account for <strong>${esc(company)}</strong>.</p>
+${reason ? `<p>Reason: ${para(reason)}</p>` : ''}
+<p>If you think this is a mistake, reply to this email.</p>`,
+    approved ? 'contractor-approved' : 'contractor-rejected'
+  );
+}
+
+export async function emailContractorUserAdded(to: string, name: string, company: string, addedBy: string) {
+  await send(
+    to,
+    `You have been added to ${company} on The Little Green Book`,
+    `<p>Hi ${esc(name)},</p>
+<p>${esc(addedBy)} has added you to the <strong>${esc(company)}</strong> account on The Little Green Book, where your team keeps its shortlist of landscaping and external works trades and posts work packages.</p>
+<p>There is no password. Log in with this email address and we will send you a link.</p>
+<p>${button(`${siteUrl()}/login?next=/contractor`, 'Log in')}</p>`,
+    'contractor-user-added'
+  );
+}
+
+export type JobAlert = { id: string; title: string; company: string; town: string | null; postcode: string; trades: string; value: string | null; returnDate: string | null; startDate: string | null };
+
+/** To a matching member, or a trade the contractor invited. */
+export async function emailJobAlert(to: string, contactName: string, tradingName: string, j: JobAlert, invited: boolean) {
+  const where = j.town ? `${j.town} (${j.postcode.split(' ')[0]})` : j.postcode.split(' ')[0];
+  await send(
+    to,
+    invited ? `${j.company} has invited you to price: ${j.title}` : `New job from ${j.company}: ${j.title}`,
+    `<p>Hi ${esc(contactName)},</p>
+<p>${invited
+      ? `<strong>${esc(j.company)}</strong> has invited <strong>${esc(tradingName)}</strong> to price a job.`
+      : `<strong>${esc(j.company)}</strong> has posted a job that matches <strong>${esc(tradingName)}</strong>: your trade, your area and their requirements.`}</p>
+<p><strong>${esc(j.title)}</strong><br>
+${esc(j.trades)}<br>
+Location: ${esc(where)}<br>
+${j.value ? `Value: ${esc(j.value)}<br>` : ''}${j.startDate ? `Start: ${esc(ukDate(j.startDate))}<br>` : ''}${j.returnDate ? `Reply by: ${esc(ukDate(j.returnDate))}` : ''}</p>
+<p>${button(`${siteUrl()}/jobs/${j.id}`, 'See the job and reply')}</p>
+<p style="color:#777;font-size:13px">You get these because your listing matches jobs posted by main contractors. Turn job emails off from your listing page.</p>`,
+    invited ? 'job-invite' : 'job-alert'
+  );
+}
+
+export async function emailAdminNewJob(j: { id: string; title: string; company: string; matched: number }) {
+  await send(
+    adminList(),
+    `Job posted: ${j.title}`,
+    `<p><strong>${esc(j.company)}</strong> posted a job and it was sent to ${j.matched} matching member${j.matched === 1 ? '' : 's'}.</p>
+<p><strong>${esc(j.title)}</strong></p>
+<p>${button(`${siteUrl()}/admin/contractors`, 'Open contractor admin')}</p>`,
+    'admin-job'
+  );
+}
+
+export async function emailContractorNewReply(to: string[], j: { id: string; title: string }, tradingName: string, message: string | null) {
+  await send(
+    to,
+    `${tradingName} replied to ${j.title}`,
+    `<p><strong>${esc(tradingName)}</strong> is interested in <strong>${esc(j.title)}</strong>.</p>
+${message ? `<p>${para(message)}</p>` : ''}
+<p>${button(`${siteUrl()}/contractor/jobs/${j.id}`, 'See replies')}</p>`,
+    'job-reply'
+  );
+}
+
+export async function emailAdminJobReport(j: { id: string; title: string }, by: string, reason: string) {
+  await send(
+    adminList(),
+    `Job reported: ${j.title}`,
+    `<p>${esc(by)} reported a job.</p><p><strong>${esc(j.title)}</strong></p><p>${para(reason || 'No reason given')}</p>
+<p>${button(`${siteUrl()}/admin/contractors`, 'Open contractor admin')}</p>`,
+    'admin-job-report'
   );
 }

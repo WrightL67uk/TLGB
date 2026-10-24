@@ -4,6 +4,8 @@ import { getMembership } from '@/lib/membership';
 import { TRADES, tradeLabel } from '@/lib/config';
 import './leads.css';
 import { KIND_LABEL, type LeadKind, type LeadSource } from '@/lib/leads';
+import { openJobs } from '@/lib/contractors';
+import '../contractor.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
@@ -74,7 +76,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
   if (region) q = q.eq('region', region);
   if (type) q = q.eq('kind', type);
   else if (!wantsTrees) q = q.neq('kind', 'trees');
-  const { data } = await q;
+  const [{ data }, directAll] = await Promise.all([q, openJobs(50)]);
+  const directJobs = directAll.filter((j) => !trade || j.trades.includes(trade)).filter((j) => !(view === 'mine' && myTrades.length && !trade) || j.trades.some((t) => myTrades.includes(t)));
   let leads = (data ?? []) as Lead[];
 
   // "Matched to me": also within the miles the trade travels, when we know where the buyer is
@@ -114,6 +117,18 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
           <Link href="/guides/finding-leads">how to pick the leads worth chasing</Link>.
         </p>
       </section>
+
+      {directJobs.length > 0 && (
+        <section className="direct-jobs">
+          <h2>{directJobs.length} job{directJobs.length === 1 ? '' : 's'} posted direct by main contractors</h2>
+          {loggedIn ? (
+            <ul>
+              {directJobs.slice(0, 5).map((j) => <li key={j.id}><Link href={`/jobs/${j.id}`}>{j.title}</Link> <span className="muted small">{j.company}, {j.town ?? j.postcode.split(' ')[0]}</span></li>)}
+            </ul>
+          ) : <p className="small" style={{ margin: 0 }}>Members see who posted them and reply with their paperwork attached.</p>}
+          <p className="small" style={{ margin: '6px 0 0' }}><Link href="/jobs">See all jobs from contractors</Link></p>
+        </section>
+      )}
 
       <form className="leads-filters" method="get" action="/leads">
         {loggedIn && myTrades.length > 0 && (
