@@ -20,6 +20,10 @@ export default function GuidesPage() {
           <h2>Winning tenders and PQQs</h2>
           <p>Getting through prequalification, pricing to win and getting onto contractors&rsquo; approved lists.</p>
         </Link>
+        <Link href="/tools/payment-dates">
+          <h2>Payment dates calculator</h2>
+          <p>Every Construction Act deadline for an application: payment notice, pay less notice, final date and suspension.</p>
+        </Link>
         <Link href="/supply-chains">
           <h2>Supply chain finder</h2>
           <p>Where to register with main contractors, housebuilders, portals and frameworks.</p>

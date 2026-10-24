@@ -45,6 +45,7 @@ export default async function MenuPage() {
     {
       title: 'Guides and help',
       items: [
+        { label: 'Payment dates calculator', href: '/tools/payment-dates', note: 'Due date, payment notice, pay less notice and final date under the Construction Act. Free.', k: 'payment notice pay less final date scheme construction act late payment interest suspend' },
         { label: 'All guides', href: '/guides', note: 'Every guide and tool in one list.' },
         { label: 'Finding leads worth chasing', href: '/guides/finding-leads', note: 'Which leads turn into work and how to work each type.' },
         { label: 'Winning tenders and PQQs', href: '/guides/winning-tenders', note: 'Prequalification, pricing to win and getting on approved lists.', k: 'pqq tender bid' },
@@ -57,6 +58,7 @@ export default async function MenuPage() {
         { label: 'My listing', href: m.loggedIn ? mine('', '/account') : '/login?next=/account', note: 'Edit your details, insurance, accreditations, photos and membership.', k: 'account profile certificate expiry renew payment billing subscription logo', tag: m.loggedIn ? undefined : 'Log in' },
         { label: 'Compliance pack', href: m.loggedIn ? mine('/compliance', '/account/compliance') : '/login?next=/account/compliance', note: 'Insurance, accreditations, RAMS and policies in one place, with share links for contractors.', k: 'documents certificates upload share link chas smas constructionline ssip method statement risk assessment policy expiry', tag: memberTag },
         { label: 'PQQ answer bank', href: m.loggedIn ? mine('/pqq', '/account/pqq') : '/login?next=/account/pqq', note: 'Save answers to the questions every PQQ and supplier portal asks, then copy them in.', k: 'prequalification questionnaire tender portal answers turnover accident figures sq selection', tag: memberTag },
+        { label: 'Payment tracker', href: m.loggedIn ? mine('/payments', '/account/payments') : '/login?next=/account/payments', note: 'Every application, deadline and retention, with alerts and ready-made notices.', k: 'payment notice pay less final date retention suspend interest late payment construction act application valuation', tag: memberTag },
         { label: 'Project references', href: m.loggedIn ? `${mine('/pqq', '/account/pqq')}#sec-projects` : '/login?next=/account/pqq', note: 'Your library of past jobs and client references for tenders.', k: 'case studies experience similar contracts referees', tag: memberTag },
       ],
     },

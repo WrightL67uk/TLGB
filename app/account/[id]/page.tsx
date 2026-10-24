@@ -177,6 +177,18 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
         </section>
       )}
 
+      {b.status === 'approved' && isPaid(b) && (
+        <section className="panel">
+          <h2>Payment tracker</h2>
+          <div className="cp-summary">
+            <p>
+              Log each application and we work out every Construction Act deadline, warn you when a payment notice is missed or a payment is late, track retentions and write the notices for you.
+            </p>
+            <Link href={`/account/${b.id}/payments`} className="sq sq-rust">Open payment tracker</Link>
+          </div>
+        </section>
+      )}
+
       {b.status === 'approved' && (
         <section className="panel" id="job-alerts">
           <h2>Jobs from main contractors</h2>

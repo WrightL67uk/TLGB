@@ -512,3 +512,23 @@ export async function emailAdminJobReport(j: { id: string; title: string }, by: 
     'admin-job-report'
   );
 }
+
+// ---------------------------------------------------------------
+// Payment tracker
+// ---------------------------------------------------------------
+export type PayAlert = { job: string; contractor: string; line: string; jobId: string };
+
+/** One email a day at most, listing every payment deadline that needs attention. */
+export async function emailPaymentAlerts(m: { email: string; contactName: string; tradingName: string; businessId: string }, items: PayAlert[]) {
+  const list = items.map((i) => `<li><strong>${esc(i.job)}</strong> (${esc(i.contractor)}): ${esc(i.line)} <a href="${siteUrl()}/account/${m.businessId}/payments/${i.jobId}">Open</a></li>`).join('');
+  await send(
+    m.email,
+    items.length === 1 ? `Payment alert: ${items[0].job}` : `${items.length} payment alerts for ${m.tradingName}`,
+    `<p>Hi ${esc(m.contactName)},</p>
+<p>Your payment tracker has spotted ${items.length === 1 ? 'something' : 'some things'} that need${items.length === 1 ? 's' : ''} attention:</p>
+<ul>${list}</ul>
+<p>Each job page has the right notice ready to download, filled in with the dates and amounts.</p>
+<p>${button(`${siteUrl()}/account/${m.businessId}/payments`, 'Open my payment tracker')}</p>`,
+    'payment-alert'
+  );
+}

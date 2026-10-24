@@ -114,6 +114,14 @@ export async function runDataCleanup() {
   }
   out.packFilesDeleted = docs;
 
+  // Payment tracker records two years after a membership ends
+  const { data: longGone } = await db().from('businesses').select('id')
+    .eq('founding_member', false).in('subscription_status', ['cancelled', 'none']).lt('paid_until', ago(730)).limit(500);
+  if (longGone?.length) {
+    const { count } = await db().from('pay_jobs').delete({ count: 'exact' }).in('business_id', longGone.map((b) => b.id));
+    out.payJobsDeleted = count ?? 0;
+  }
+
   // Old contractor jobs
   const { data: oldJobs } = await db().from('contractor_jobs').select('id').in('status', ['closed', 'removed', 'open', 'draft']).lt('updated_at', ago(730)).limit(200);
   for (const j of oldJobs ?? []) {

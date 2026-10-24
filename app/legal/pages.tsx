@@ -78,7 +78,7 @@ export const LEGAL_PAGES: LegalPage[] = [
         <p>You must keep your details up to date, and tell us promptly if your insurance or an accreditation ends, lapses or is suspended. When you change certain details, we check them again; your listing stays live meanwhile unless there is a problem.</p>
 
         <h2>3. What membership includes</h2>
-        <p>Membership gives you a verified listing in search, the full leads feed, jobs posted by main contractors, the supply chain finder, the help board, the compliance pack, the PQQ answer bank and our document templates, as described on the website at the time. Features may change over time; if we remove a major feature, you may cancel and we will refund the unused part of your fee.</p>
+        <p>Membership gives you a verified listing in search, the full leads feed, jobs posted by main contractors, the supply chain finder, the help board, the compliance pack, the PQQ answer bank, the payment tracker and our document templates, as described on the website at the time. Features may change over time; if we remove a major feature, you may cancel and we will refund the unused part of your fee.</p>
 
         <h2>4. Fees, renewal and payment</h2>
         <ul>
@@ -177,6 +177,7 @@ export const LEGAL_PAGES: LegalPage[] = [
           <li><strong>Application and listing details:</strong> business name and type, contact name, email, phone, website, address and base postcode, area covered, trades, turnover band, Companies House details, and for sole traders the owner&rsquo;s name and a letterhead. <em>Why:</em> to check you and run your listing (contract), and to keep the directory reliable (legitimate interests).</li>
           <li><strong>Insurance and accreditation certificates, and photos of your work.</strong> <em>Why:</em> to verify the claims on your listing (contract and legitimate interests).</li>
           <li><strong>Compliance pack documents, PQQ answers and project references</strong> that you choose to add. These can include personal data about your staff (for example training records) and your referees. <em>Why:</em> to store and share them as you instruct (contract). You are responsible for having the right to share them.</li>
+          <li><strong>Payment tracker records</strong> you choose to add: jobs, contractors and their contacts, applications, amounts, dates and retentions. <em>Why:</em> to work out deadlines, send your alerts and prepare your letters (contract).</li>
           <li><strong>Membership and payment records:</strong> plan, status, renewal dates and Stripe customer references. Card details are handled by Stripe, not us. <em>Why:</em> contract, and keeping accounting records (legal obligation).</li>
         </ul>
         <h3>Main contractors</h3>
@@ -220,6 +221,7 @@ export const LEGAL_PAGES: LegalPage[] = [
           <li>Login links: expire after 30 minutes. Sessions: expire after 30 days. Both are then deleted.</li>
           <li>Listings and contractor accounts: kept while active, and for up to two years after they end so we can deal with questions, then deleted or anonymised. You can ask us to delete them sooner.</li>
           <li>Payment and invoice records: six years, as required for tax.</li>
+          <li>Payment tracker jobs and applications: kept until you delete them, or two years after your membership ends.</li>
           <li>Enquiries and messages: up to two years.</li>
         </ul>
 
