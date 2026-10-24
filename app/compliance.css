@@ -1,0 +1,90 @@
+/* Compliance pack: member page (cp-) and the contractor's shared page (pk-) */
+
+.cp-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.cp-head h1 { margin-bottom: 2px; }
+.cp-head p { margin: 0; }
+.cp-meter { height: 8px; background: #e7eae2; border-radius: 99px; overflow: hidden; margin: 14px 0 8px; }
+.cp-meter b { display: block; height: 100%; background: var(--leaf); transition: width .3s; }
+.cp-group { margin-top: 28px; }
+.cp-group > h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; color: var(--rust); margin: 0 0 10px; }
+.cp-slot { display: grid; gap: 6px; margin-bottom: 6px; }
+
+.cp-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px 14px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-left: 4px solid var(--leaf); background: #fff; }
+.cp-row.missing { border-style: dashed; border-left: 4px solid #c8ccc3; color: var(--muted); }
+.cp-row.st-expiring, .cp-row.st-review { border-left-color: #d79a1c; }
+.cp-row.st-expired, .cp-row.st-rejected { border-left-color: var(--danger); }
+.cp-row.st-pending { border-left-color: var(--teal); }
+.cp-child { margin-left: 22px; background: #fafbf8; }
+.cp-doc { display: grid; gap: 2px; min-width: 0; }
+.cp-doc strong { overflow-wrap: anywhere; }
+.cp-doc span { font-size: .85rem; color: var(--muted); overflow-wrap: anywhere; }
+.cp-doc .cp-reason { color: var(--danger); }
+.cp-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.cp-btn { font: inherit; font-size: .85rem; font-weight: 700; padding: 6px 12px; border: 1px solid #c9ccc4; background: #fff; color: var(--ink); text-decoration: none; border-radius: 2px; cursor: pointer; white-space: nowrap; }
+.cp-btn:hover { border-color: var(--green); }
+.cp-btn.green { background: var(--green); border-color: var(--green); color: #fff; }
+.cp-btn.quiet { border-color: transparent; color: var(--muted); font-weight: 600; }
+.cp-btn.quiet:hover { color: var(--danger); }
+.cp-more { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.cp-pill { font-size: .75rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
+.p-checked { background: var(--forest); color: #fff; }
+.p-own { background: #e0eef0; color: var(--teal); }
+.p-ok { background: var(--accent-soft); color: var(--green); }
+.p-expiring, .p-review { background: #fff1d6; color: #8a5a00; }
+.p-expired, .p-rejected { background: #fbe4e4; color: var(--danger); }
+.p-pending { background: #e0eef0; color: var(--teal); }
+.p-missing { background: #eef0ea; color: var(--muted); }
+
+.cp-form { border: 1px solid var(--line); background: var(--sand); padding: 16px; display: grid; gap: 12px; margin: 4px 0 8px; }
+.cp-form h3 { margin: 0; font-size: 1.05rem; }
+.cp-form .hint { margin: 0; }
+.cp-form-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.cp-include { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px 14px; }
+.cp-link { display: flex; gap: 8px; }
+.cp-link input { font-family: ui-monospace, Menlo, monospace; font-size: .9rem; }
+
+.cp-table-wrap { overflow-x: auto; margin-top: 12px; }
+.cp-table { width: 100%; border-collapse: collapse; font-size: .9rem; min-width: 560px; }
+.cp-table th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border-bottom: 1px solid var(--line); padding: 6px 8px; }
+.cp-table td { border-bottom: 1px solid var(--line); padding: 8px; vertical-align: middle; }
+.cp-table tr.dead td { color: var(--muted); }
+.cp-table .cp-actions { justify-content: flex-end; }
+
+.cp-summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cp-summary p { margin: 0; }
+
+@media (max-width: 640px) {
+  .cp-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .cp-row .cp-actions { grid-column: 1 / -1; justify-content: flex-start; }
+  .cp-child { margin-left: 10px; }
+}
+
+/* Contractor's view */
+.pk { max-width: 900px; margin: 0 auto; }
+.pk-head { background: var(--forest); color: #fff; padding: 22px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.pk-head h1 { color: #fff; margin: 0 0 4px; }
+.pk-head p { margin: 0; color: #cfe0c8; font-size: .95rem; }
+.pk-verified { background: var(--leaf); color: #fff; font-weight: 800; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; padding: 6px 12px; text-decoration: none; white-space: nowrap; }
+.pk-unverified { background: #f6e3d9; color: var(--rust); font-weight: 800; font-size: .8rem; text-transform: uppercase; padding: 6px 12px; }
+.pk-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.pk-bar p { margin: 0; }
+.pk-all { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pk-group { margin-top: 22px; }
+.pk-group h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; color: var(--rust); margin: 0 0 8px; }
+.pk-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px 14px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-left: 4px solid var(--leaf); margin-bottom: 6px; }
+.pk-row.st-expired { border-left-color: var(--danger); }
+.pk-row.st-expired .pk-doc span { color: var(--danger); font-weight: 600; }
+.pk-doc { display: grid; gap: 2px; min-width: 0; }
+.pk-doc strong { overflow-wrap: anywhere; }
+.pk-doc span { font-size: .85rem; color: var(--muted); }
+.pk-pill { font-size: .75rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
+.pk-btn { font-weight: 700; font-size: .85rem; padding: 6px 14px; border: 1px solid #c9ccc4; color: var(--ink); text-decoration: none; white-space: nowrap; }
+.pk-btn:hover { border-color: var(--green); }
+.pk-foot { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--line); }
+.pk-foot p { margin: 0 0 8px; font-size: .9rem; }
+.pk-gone { padding: 40px 0; }
+@media (max-width: 640px) {
+  .pk-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .pk-row .pk-pill { grid-column: 1; justify-self: start; grid-row: 2; }
+}

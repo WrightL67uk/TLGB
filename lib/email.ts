@@ -319,3 +319,70 @@ export async function emailMemberPaymentFailed(to: string, tradingName: string) 
     'billing-member'
   );
 }
+
+const button = (href: string, label: string) =>
+  `<a href="${href}" style="display:inline-block;background:#b8562a;color:#fff;padding:10px 18px;text-decoration:none;border-radius:2px;font-weight:bold">${esc(label)}</a>`;
+
+/** A member uploaded an insurance or accreditation certificate to their compliance pack. */
+export async function emailAdminComplianceUpload(b: { id: string; tradingName: string }, title: string) {
+  await send(
+    adminList(),
+    `Compliance pack certificate to check: ${b.tradingName}`,
+    `<p><strong>${esc(b.tradingName)}</strong> has uploaded <strong>${esc(title)}</strong> to their compliance pack.</p>
+<p>Contractors will not see it until it has been checked.</p>
+<p><a href="${siteUrl()}/admin/${b.id}#pack">Check it in admin</a></p>`,
+    'pack-admin'
+  );
+}
+
+/** Tells a member we have checked, or not accepted, a certificate in their pack. */
+export async function emailComplianceChecked(
+  m: { email: string; contactName: string; tradingName: string; businessId: string },
+  title: string,
+  accepted: boolean,
+  reason?: string,
+) {
+  await send(
+    m.email,
+    accepted ? `${title} has been checked` : `${title} needs another look`,
+    accepted
+      ? `<p>Hi ${esc(m.contactName)},</p>
+<p>We have checked <strong>${esc(title)}</strong> in the compliance pack for ${esc(m.tradingName)}. It now shows as <strong>Checked by TLGB</strong> on every link you have shared.</p>
+<p>${button(`${siteUrl()}/account/${m.businessId}/compliance`, 'Open my compliance pack')}</p>`
+      : `<p>Hi ${esc(m.contactName)},</p>
+<p>We could not accept <strong>${esc(title)}</strong> in the compliance pack for ${esc(m.tradingName)}.</p>
+<p>Reason: ${esc(reason ?? '')}</p>
+<p>Upload a corrected copy and we will check it again. If you had an earlier version in date, contractors still see that one.</p>
+<p>${button(`${siteUrl()}/account/${m.businessId}/compliance`, 'Open my compliance pack')}</p>`,
+    'pack-checked'
+  );
+}
+
+export type PackReminder = { title: string; kind: 'exp30' | 'exp7' | 'expired' | 'review'; date: string; days: number; links: number };
+
+/** Daily round-up to a member of pack documents that need attention. */
+export async function emailPackReminders(
+  m: { email: string; contactName: string; tradingName: string; businessId: string },
+  items: PackReminder[],
+) {
+  const first = items[0];
+  const subject = items.length === 1
+    ? first.kind === 'expired' ? `Your ${first.title} has expired`
+      : first.kind === 'review' ? `Time to review your ${first.title}`
+      : `Your ${first.title} expires in ${first.days} day${first.days === 1 ? '' : 's'}`
+    : `${items.length} documents in your compliance pack need attention`;
+  const line = (i: PackReminder) =>
+    i.kind === 'expired' ? `<li><strong>${esc(i.title)}</strong> expired on ${ukDate(i.date)}. Contractors see it in red.</li>`
+    : i.kind === 'review' ? `<li><strong>${esc(i.title)}</strong> was last reviewed on ${ukDate(i.date)}. Read it through, update it if anything has changed, and upload it with today's date.</li>`
+    : `<li><strong>${esc(i.title)}</strong> expires on ${ukDate(i.date)}${i.links ? ` (${i.links} active link${i.links === 1 ? ' includes' : 's include'} it)` : ''}.</li>`;
+  await send(
+    m.email,
+    subject,
+    `<p>Hi ${esc(m.contactName)},</p>
+<p>This is about the compliance pack for <strong>${esc(m.tradingName)}</strong>.</p>
+<ul>${items.map(line).join('')}</ul>
+<p>Upload the new version and every link you have shared will update by itself.</p>
+<p>${button(`${siteUrl()}/account/${m.businessId}/compliance`, 'Open my compliance pack')}</p>`,
+    'pack-reminder'
+  );
+}

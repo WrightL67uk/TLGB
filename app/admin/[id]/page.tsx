@@ -4,6 +4,7 @@ import { db, photoUrl } from '@/lib/supabase';
 import { gbp, tradeLabel, turnoverBand, accreditationLabel } from '@/lib/config';
 import { daysUntil, fmtDate } from '@/lib/expiries';
 import { unverifiedReason, type Pending } from '@/lib/membership';
+import { docType, shownStatus, ukDate } from '@/lib/complianceTypes';
 
 // Where to confirm each scheme by hand. None of them offer a public API.
 function checkLink(accreditation: string, name: string) {
@@ -32,11 +33,20 @@ export default async function AdminDetail({
   const { data: b } = await db().from('businesses').select('*').eq('id', id).maybeSingle();
   if (!b) notFound();
 
-  const [{ data: docs }, { data: photos }, { data: events }] = await Promise.all([
+  const [{ data: docs }, { data: photos }, { data: events }, { data: packDocs }, { count: packLinks }] = await Promise.all([
     db().from('business_documents').select('*').eq('business_id', id).order('created_at'),
     db().from('business_photos').select('*').eq('business_id', id).order('sort_order'),
     db().from('review_events').select('*').eq('business_id', id).order('created_at', { ascending: false }),
+    db().from('compliance_docs').select('*').eq('business_id', id).is('archived_at', null).order('created_at'),
+    db().from('pack_links').select('id', { count: 'exact', head: true }).eq('business_id', id).is('revoked_at', null),
   ]);
+  const packSigned = new Map<string, string>();
+  if (packDocs?.length) {
+    const { data } = await db().storage.from('compliance').createSignedUrls(packDocs.map((d) => d.storage_path), 600);
+    for (const s of data ?? []) if (s.path && s.signedUrl) packSigned.set(s.path, s.signedUrl);
+  }
+  const packPending = (packDocs ?? []).filter((d) => d.status === 'pending');
+  const packOther = (packDocs ?? []).filter((d) => d.status !== 'pending');
 
   // Private documents: short-lived signed links for the admin only
   const signed = new Map<string, string>();
@@ -185,6 +195,41 @@ export default async function AdminDetail({
             {b.recheck_required && <label className="check"><input type="checkbox" name="clear_recheck" defaultChecked /> Also mark the listing&rsquo;s other changes as checked</label>}
             <button type="submit" className="primary">Confirm these details</button>
           </form>
+        </section>
+
+        <section className="panel" id="pack" style={packPending.length ? { borderColor: 'var(--warn)' } : undefined}>
+          <h2>Compliance pack</h2>
+          <p className="muted small">{packOther.length} document{packOther.length === 1 ? '' : 's'} live, {packLinks ?? 0} share link{packLinks === 1 ? '' : 's'}.</p>
+          {packPending.length === 0 ? <p className="muted">Nothing waiting for a check.</p> : packPending.map((d) => (
+            <div key={d.id} className="pack-check">
+              <p><strong>{docType(d.doc_type)?.label ?? d.doc_type}</strong>: {d.title}{d.replaces ? ' (replaces the current one)' : ''}<br />
+                <a href={packSigned.get(d.storage_path)} target="_blank" rel="noopener">Open {d.file_name}</a>
+                <span className="muted small"> Uploaded {ukDate(d.created_at.slice(0, 10))}. Member says it expires {ukDate(d.expiry)}.</span></p>
+              <form action="/api/admin/compliance" method="post" className="inline">
+                <input type="hidden" name="doc_id" value={d.id} />
+                <input type="hidden" name="action" value="check" />
+                <input name="title" defaultValue={d.title} aria-label="Name" style={{ maxWidth: 240 }} />
+                <input type="date" name="expiry" defaultValue={d.expiry ?? ''} aria-label="Expiry date on the certificate" required />
+                <button type="submit" className="primary">Mark as checked</button>
+              </form>
+              <form action="/api/admin/compliance" method="post" className="inline" style={{ marginTop: 6 }}>
+                <input type="hidden" name="doc_id" value={d.id} />
+                <input type="hidden" name="action" value="reject" />
+                <input name="reason" placeholder="Why it was not accepted (the member sees this)" required />
+                <button type="submit" className="danger">Not accepted</button>
+              </form>
+            </div>
+          ))}
+          {packOther.length > 0 && (
+            <ul className="docs">
+              {packOther.map((d) => (
+                <li key={d.id}>
+                  <a href={packSigned.get(d.storage_path)} target="_blank" rel="noopener">{d.title}</a>
+                  <span className="muted small"> {docType(d.doc_type)?.label} · {shownStatus(d).label}{d.expiry ? ` · expires ${ukDate(d.expiry)}` : ''}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section className="panel">

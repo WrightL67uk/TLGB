@@ -63,6 +63,13 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
   ]);
   const waiting = (newSuppliers ?? 0) + (newEnquiries ?? 0);
 
+  // Compliance pack certificates waiting for a check, grouped by listing
+  const { data: packPending } = await db().from('compliance_docs').select('business_id, title').eq('status', 'pending').is('archived_at', null).limit(500);
+  const packIds = [...new Set((packPending ?? []).map((d) => d.business_id as string))];
+  const { data: packBiz } = packIds.length
+    ? await db().from('businesses').select('id, trading_name').in('id', packIds)
+    : { data: [] as { id: string; trading_name: string }[] };
+
   return (
     <div>
       <div className="admin-head">
@@ -77,6 +84,17 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
         </Link>
       </div>
       {leadsMsg && <p className="ok-box">{leadsMsg}</p>}
+      {packIds.length > 0 && (
+        <div className="panel" style={{ borderColor: 'var(--warn)' }}>
+          <strong>Compliance pack certificates to check: {packPending!.length}</strong>
+          <ul className="docs">
+            {(packBiz ?? []).map((b) => (
+              <li key={b.id}><Link href={`/admin/${b.id}#pack`}>{b.trading_name}</Link>
+                <span className="muted small"> {packPending!.filter((d) => d.business_id === b.id).map((d) => d.title).join(', ')}</span></li>
+            ))}
+          </ul>
+        </div>
+      )}
       <nav className="tabs">
         {TABS.map((t) => (
           <Link key={t.key} href={`/admin?status=${t.key}`} className={t.key === status ? 'on' : ''}>

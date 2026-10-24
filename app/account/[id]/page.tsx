@@ -8,6 +8,8 @@ import { isPaid, unverifiedReason, type Pending } from '@/lib/membership';
 import { accreditationLabel } from '@/lib/config';
 import { stripeEnabled } from '@/lib/stripe';
 import { turnoverBand } from '@/lib/config';
+import { CORE_COUNT, DOC_TYPES } from '@/lib/complianceTypes';
+import '../../compliance.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'My listing | TLGB' };
@@ -24,11 +26,15 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
   }
   const b = own.business;
 
-  const [{ data: docs }, { data: photos }, { count: listingCount }] = await Promise.all([
+  const [{ data: docs }, { data: photos }, { count: listingCount }, { data: packDocs }, { count: packLinks }] = await Promise.all([
     db().from('business_documents').select('id, doc_type, file_name, created_at').eq('business_id', b.id).order('created_at', { ascending: false }),
     db().from('business_photos').select('id, storage_path').eq('business_id', b.id).order('sort_order'),
     db().from('businesses').select('id', { count: 'exact', head: true }).eq('email', own.email).neq('status', 'draft'),
+    db().from('compliance_docs').select('doc_type, status').eq('business_id', b.id).is('archived_at', null),
+    db().from('pack_links').select('id', { count: 'exact', head: true }).eq('business_id', b.id).is('revoked_at', null),
   ]);
+  const packFilled = DOC_TYPES.filter((t) => t.core && (packDocs ?? []).some((d) => d.doc_type === t.key && d.status !== 'rejected')).length;
+  const packWaiting = (packDocs ?? []).filter((d) => d.status === 'pending').length;
 
   const today = new Date();
   const pend: Pending = b.pending_dates ?? {};
@@ -134,6 +140,24 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
               )}
               {b.subscription_status === 'cancelled' && <p className="warn">Your membership has ended, so your listing shows as <strong>Unverified</strong> and is hidden from anyone searching for verified members only. Renew to become verified again.</p>}
             </>
+          )}
+        </section>
+      )}
+
+      {b.status === 'approved' && (
+        <section className="panel">
+          <h2>Compliance pack</h2>
+          {isPaid(b) ? (
+            <div className="cp-summary">
+              <p>
+                {packFilled} of {CORE_COUNT} documents added{packLinks ? <>, {packLinks} share link{packLinks === 1 ? '' : 's'}</> : null}.
+                {packWaiting > 0 && <> {packWaiting} waiting for our check.</>}
+                <br /><span className="muted small">Insurance, accreditations, RAMS and policies in one place, with one link to send contractors.</span>
+              </p>
+              <Link href={`/account/${b.id}/compliance`} className="sq sq-rust">Open compliance pack</Link>
+            </div>
+          ) : (
+            <p className="muted">Keep your insurance, accreditations, RAMS and policies in one place and send contractors one link. Included with membership.</p>
           )}
         </section>
       )}

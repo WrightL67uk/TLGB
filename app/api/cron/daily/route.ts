@@ -3,6 +3,7 @@ import { runExpiryJob } from '@/lib/expiryJob';
 import { importLeads } from '@/lib/leads';
 import { geocodeSuppliers } from '@/lib/suppliers';
 import { syncOverdueMemberships } from '@/lib/billingSync';
+import { runComplianceReminders } from '@/lib/complianceJob';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,5 +20,6 @@ export async function GET(req: NextRequest) {
   try { out.expiryFlags = await runExpiryJob(); } catch (err) { console.error('daily: expiries failed', err); out.expiryFlags = 'failed'; }
   try { out.suppliersPlaced = await geocodeSuppliers(); } catch (err) { console.error('daily: supplier geocode failed', err); }
   try { out.membershipsSynced = await syncOverdueMemberships(); } catch (err) { console.error('daily: billing sync failed', err); }
+  try { out.packReminders = await runComplianceReminders(); } catch (err) { console.error('daily: pack reminders failed', err); }
   return NextResponse.json({ ok: true, ...out });
 }

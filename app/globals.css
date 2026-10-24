@@ -268,3 +268,8 @@ section > .verified-warning, main > div > .verified-warning { margin: 0 0 16px; 
 .lock-bar.short { width: 55%; }
 .admin-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 @media (max-width: 720px) { .verified-warning { order: 0; } }
+
+/* Admin: compliance pack certificates waiting for a check */
+.pack-check { border-top: 1px solid var(--line); padding: 10px 0; }
+.pack-check .inline { flex-wrap: wrap; }
+.pack-check .inline input { width: auto; flex: 1 1 160px; }
