@@ -584,3 +584,16 @@ ${byTrade}
     'shortlist-alert'
   );
 }
+
+/** Someone registered interest in the retention bond and defects cover scheme. */
+export async function emailAdminRetentionInterest(e: { name: string; business: string | null; email: string; band: string | null; wants: string[] }) {
+  await send(
+    adminList(),
+    `Retention scheme interest: ${e.business ?? e.name}`,
+    `<p><strong>${esc(e.name)}</strong>${e.business ? ` from ${esc(e.business)}` : ''} (${esc(e.email)}) registered interest.</p>
+<ul>${e.wants.map((w) => `<li>${esc(w)}</li>`).join('')}</ul>
+${e.band ? `<p>Retention held: ${esc(e.band)}</p>` : ''}
+<p><a href="${siteUrl()}/admin/resources">See all enquiries</a></p>`,
+    'retention-admin'
+  );
+}

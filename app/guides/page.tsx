@@ -20,6 +20,10 @@ export default function GuidesPage() {
           <h2>Winning tenders and PQQs</h2>
           <p>Getting through prequalification, pricing to win and getting onto contractors&rsquo; approved lists.</p>
         </Link>
+        <Link href="/guides/retention-ban">
+          <h2>The retention ban</h2>
+          <p>Cash retentions are being banned. Where the law has got to, when it could start and what to do now.</p>
+        </Link>
         <Link href="/tools/payment-dates">
           <h2>Payment dates calculator</h2>
           <p>Every Construction Act deadline for an application: payment notice, pay less notice, final date and suspension.</p>

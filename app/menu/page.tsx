@@ -45,6 +45,7 @@ export default async function MenuPage() {
     {
       title: 'Guides and help',
       items: [
+        { label: 'The retention ban', href: '/guides/retention-ban', note: 'Where the Commercial Payments Bill has got to, when the ban could start, and what to do now.', k: 'retention ban commercial payments bill retentions bond defects 60 day payment terms law change' },
         { label: 'Payment dates calculator', href: '/tools/payment-dates', note: 'Due date, payment notice, pay less notice and final date under the Construction Act. Free.', k: 'payment notice pay less final date scheme construction act late payment interest suspend' },
         { label: 'All guides', href: '/guides', note: 'Every guide and tool in one list.' },
         { label: 'Finding leads worth chasing', href: '/guides/finding-leads', note: 'Which leads turn into work and how to work each type.' },

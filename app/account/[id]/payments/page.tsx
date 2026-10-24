@@ -69,6 +69,10 @@ export default async function PaymentTracker({ params, searchParams }: { params:
         <div className={`pay-stat${retDue > 0 ? ' bad' : ''}`}><b>{money(retDue) || '£0.00'}</b><span>retention due now</span></div>
       </div>
 
+      {retHeld > 0 && (
+        <p className="pay-cta small">Cash retentions are being banned. <Link href="/guides/retention-ban">See where the law has got to</Link>, and register interest in a retention bond so you can get the {money(retHeld)} you have held released sooner.</p>
+      )}
+
       <div className="pay-actions" style={{ marginBottom: 12 }}>
         <Link href={showArchived ? `/account/${b.id}/payments` : `/account/${b.id}/payments?archived=1`} className="pay-btn">{showArchived ? 'Show current jobs' : 'Show finished jobs'}</Link>
         {alerts > 0 && <span className="pay-tag bad">{alerts} job{alerts === 1 ? '' : 's'} need attention</span>}

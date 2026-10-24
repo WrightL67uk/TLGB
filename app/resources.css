@@ -47,3 +47,20 @@
 .price-cards > div { background: #fff; border: 1px solid var(--line); border-top: 4px solid var(--rust); padding: 18px; }
 .price-cards h3 { margin: 0 0 6px; color: var(--forest); }
 .price-cards p { margin: 4px 0; }
+
+/* Retention ban tracker */
+.rb-steps { list-style: none; margin: 14px 0; padding: 0; border-left: 3px solid var(--line); }
+.rb-steps li { position: relative; padding: 6px 0 12px 20px; display: grid; gap: 2px; }
+.rb-steps li::before { content: ''; position: absolute; left: -9px; top: 10px; width: 13px; height: 13px; border-radius: 50%; background: #fff; border: 3px solid var(--line); }
+.rb-steps li.done::before { background: var(--leaf); border-color: var(--leaf); }
+.rb-steps span { font-size: .85rem; font-weight: 700; color: var(--muted); }
+.rb-steps b { color: var(--forest); }
+.rb-steps em { font-style: normal; }
+.rb-form { display: grid; gap: 12px; background: #fff; border: 1px solid var(--line); padding: 18px; }
+.rb-form label { display: grid; gap: 4px; font-weight: 600; }
+.rb-form input, .rb-form select { padding: 9px 10px; border: 1px solid #bbb; border-radius: 2px; font: inherit; font-weight: 400; }
+.rb-form fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
+.rb-form legend { font-weight: 600; margin-bottom: 4px; }
+.rb-form .chk { display: flex; gap: 8px; align-items: flex-start; font-weight: 400; }
+.rb-form .chk input { margin-top: 4px; }
+.rb-form .hp { position: absolute; left: -9999px; }

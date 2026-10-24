@@ -192,7 +192,7 @@ export const LEGAL_PAGES: LegalPage[] = [
         <h3>Everyone</h3>
         <ul>
           <li><strong>Login records:</strong> your email address and secure, one-way scrambled copies of login links and session tokens. <em>Why:</em> to let you log in securely (contract and legitimate interests).</li>
-          <li><strong>Things you send us:</strong> enquiries, accreditation help requests, supplier suggestions, help board posts and job reports. <em>Why:</em> to deal with them (legitimate interests).</li>
+          <li><strong>Things you send us:</strong> enquiries, accreditation help requests, interest in our retention bond and defects cover scheme, supplier suggestions, help board posts and job reports. <em>Why:</em> to deal with them (legitimate interests).</li>
           <li><strong>Share link activity:</strong> when a compliance pack link is opened or a document downloaded, we record the time so the member can see it. <em>Why:</em> legitimate interests of the member and of us in keeping shared documents secure.</li>
           <li><strong>Technical logs:</strong> our hosting provider keeps short-term server logs, which include IP addresses, for security and fault finding (legitimate interests).</li>
         </ul>
