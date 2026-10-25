@@ -43,6 +43,15 @@ export default async function MenuPage() {
       ],
     },
     {
+      title: 'Staff and job seekers',
+      intro: 'Free profiles for people looking for landscaping and external works jobs.',
+      items: [
+        { label: 'People looking for work', href: '/workers', note: 'Search job seekers by skill, role, cards and distance. Members and checked contractors see names and contact details.', k: 'staff labour recruit hire workers operatives employees job seekers cv candidates', tag: memberTag ? 'Contact details for members' : undefined },
+        { label: 'Post a job seeker profile', href: '/looking-for-work', note: 'Free for anyone looking for landscaping, grounds maintenance or groundworks jobs.', k: 'job seeker cv looking for work employment jobs free profile' },
+        { label: 'My job seeker profile', href: '/seeker', note: 'Edit, pause, renew or delete your profile.', k: 'job seeker profile edit' },
+      ],
+    },
+    {
       title: 'Guides and help',
       items: [
         { label: 'The retention ban', href: '/guides/retention-ban', note: 'Where the Commercial Payments Bill has got to, when the ban could start, and what to do now.', k: 'retention ban commercial payments bill retentions bond defects 60 day payment terms law change' },

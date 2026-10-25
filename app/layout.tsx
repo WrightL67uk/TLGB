@@ -36,6 +36,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Link href="/search">find a trade</Link>
               <Link href="/leads">leads</Link>
               <Link href="/jobs">jobs</Link>
+              <Link href="/workers">workers</Link>
               <Link href="/suppliers">suppliers</Link>
               <Link href="/help-board">help board</Link>
               <Link href="/guides">guides</Link>
@@ -62,6 +63,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Link href="/#checks">what we check</Link>
               <Link href="/join">list your business</Link>
               <Link href="/jobs">jobs from contractors</Link>
+              <Link href="/workers">people looking for work</Link>
+              <Link href="/looking-for-work">post a job seeker profile</Link>
               <Link href="/contractors">for main contractors</Link>
               <Link href="/login">log in</Link>
               <Link href="/menu">everything on TLGB</Link>

@@ -6,7 +6,7 @@
 
 import { TLGB_EMAIL } from './config';
 
-export const LEGAL_UPDATED = '24 October 2026';
+export const LEGAL_UPDATED = '25 October 2026';
 
 export function legalDetails() {
   return {

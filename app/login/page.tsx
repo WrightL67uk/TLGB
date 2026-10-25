@@ -37,7 +37,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <p className="err big">That login link has expired or has already been used. Ask for a new one below.</p>
       )}
       <LoginForm next={next} />
-      <p className="muted" style={{ marginTop: 24 }}>Not listed yet? <Link href="/join">List your business</Link></p>
+      <p className="muted" style={{ marginTop: 24 }}>Not listed yet? <Link href="/join">List your business</Link>. Looking for work? <Link href="/looking-for-work">Post a free job seeker profile</Link>.</p>
     </div>
   );
 }

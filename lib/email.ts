@@ -597,3 +597,57 @@ ${e.band ? `<p>Retention held: ${esc(e.band)}</p>` : ''}
     'retention-admin'
   );
 }
+
+// ---------------------------------------------------------------
+// Job seekers
+// ---------------------------------------------------------------
+/** Sent when someone starts (or comes back to) a free job seeker profile. */
+export async function emailSeekerWelcome(to: string, firstName: string, link: string, minutes: number, returning: boolean) {
+  await send(
+    to,
+    returning ? 'Your link to your job seeker profile' : 'Finish your free job seeker profile',
+    `<p>Hi ${esc(firstName)},</p>
+<p>${returning ? 'Here is your link to log in and update your job seeker profile.' : 'Thanks for starting a job seeker profile on The Little Green Book. Use the link below to add your experience, skills, cards and availability, then publish it.'}</p>
+<p>${button(link, returning ? 'Log in' : 'Finish my profile')}</p>
+<p>The link works once and expires in ${minutes} minutes. After that you can always get a new one from the log in page.</p>
+<p>Your profile is free. Landscaping firms and main contractors who use the site can see it once you publish it, and you can pause or delete it at any time.</p>`,
+    'seeker-welcome'
+  );
+}
+
+/** Admin: a job seeker profile has just gone live. */
+export async function emailAdminNewSeeker(s: { id: string; name: string; headline: string | null; area: string | null }) {
+  await send(
+    adminList(),
+    `New job seeker profile: ${s.name}`,
+    `<p><strong>${esc(s.name)}</strong>${s.area ? ` (${esc(s.area)})` : ''} published a job seeker profile.</p>
+${s.headline ? `<p>${esc(s.headline)}</p>` : ''}
+<p><a href="${siteUrl()}/workers/${s.id}">View the profile</a> or <a href="${siteUrl()}/admin/workers">manage profiles in admin</a>.</p>`,
+    'seeker-admin'
+  );
+}
+
+/** A week before a profile drops off the board. */
+export async function emailSeekerExpiring(to: string, firstName: string, expires: string, views: number) {
+  await send(
+    to,
+    'Your job seeker profile comes off the board next week',
+    `<p>Hi ${esc(firstName)},</p>
+<p>Your profile on The Little Green Book will stop showing on ${ukDate(expires)}.${views ? ` Employers have looked at it ${views} time${views === 1 ? '' : 's'} so far.` : ''}</p>
+<p>If you are still looking, log in and press <strong>Keep it live</strong>. Check your availability dates while you are there. If you have found work, you do not need to do anything.</p>
+<p>${button(`${siteUrl()}/login?next=/seeker`, 'Keep my profile live')}</p>`,
+    'seeker-expiring'
+  );
+}
+
+/** Admin: someone reported a job seeker profile. */
+export async function emailAdminSeekerReport(s: { id: string; name: string }, by: string, reason: string) {
+  await send(
+    adminList(),
+    `Job seeker profile reported: ${s.name}`,
+    `<p><strong>${esc(by)}</strong> reported the profile for <strong>${esc(s.name)}</strong>.</p>
+<p>${esc(reason).replace(/\n/g, '<br>')}</p>
+<p><a href="${siteUrl()}/workers/${s.id}">View the profile</a> or <a href="${siteUrl()}/admin/workers">remove it in admin</a>.</p>`,
+    'seeker-report'
+  );
+}

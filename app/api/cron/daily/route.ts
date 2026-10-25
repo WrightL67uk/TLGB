@@ -7,6 +7,7 @@ import { runComplianceReminders, runPqqReminders, runDataCleanup } from '@/lib/c
 import { runPaymentReminders } from '@/lib/paymentJob';
 import { runTeamReminders } from '@/lib/teamJob';
 import { runShortlistAlerts } from '@/lib/shortlistJob';
+import { runSeekerHousekeeping } from '@/lib/seekerJob';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -28,6 +29,7 @@ export async function GET(req: NextRequest) {
   try { out.paymentAlerts = await runPaymentReminders(); } catch (err) { console.error('daily: payment alerts failed', err); }
   try { out.teamReminders = await runTeamReminders(); } catch (err) { console.error('daily: team reminders failed', err); }
   try { out.shortlistAlerts = await runShortlistAlerts(); } catch (err) { console.error('daily: shortlist alerts failed', err); }
+  try { out.seekers = await runSeekerHousekeeping(); } catch (err) { console.error('daily: seeker housekeeping failed', err); }
   try { out.cleanup = await runDataCleanup(); } catch (err) { console.error('daily: cleanup failed', err); }
   return NextResponse.json({ ok: true, ...out });
 }

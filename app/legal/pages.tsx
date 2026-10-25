@@ -42,21 +42,25 @@ export const LEGAL_PAGES: LegalPage[] = [
         <h2>5. Guides and templates</h2>
         <p>Our guides and document templates are general information to help you get started. They are not legal, health and safety or financial advice. A competent person should check and adapt any template, policy, risk assessment or method statement before you rely on it.</p>
 
-        <h2>6. Content you add</h2>
-        <p>You are responsible for what you put on the website, including listings, documents, PQQ answers, help board posts, job posts and replies. You must have the right to share it, it must be accurate, and it must not break the <Link href="/legal/acceptable-use">acceptable use policy</Link>. You let us host, copy, display and send it as needed to run the service. You keep any ownership you have in it.</p>
+        <h2>6. Job seeker profiles</h2>
+        <p>Anyone looking for work can post a free job seeker profile. Profiles are written by the job seekers themselves; we do not check skills, cards, qualifications, references or right to work. We are not an employment agency or employment business: we do not find work for job seekers, put forward candidates, or take part in any hiring. Anyone hiring must make their own checks, including right to work checks, and follow employment and equality law.</p>
+        <p>Job seekers must keep their profile accurate and must not include their date of birth, national insurance number, bank details or anything about their health. Employers who see a job seeker&rsquo;s contact details may use them only to talk to that person about work, and must not add them to mailing lists or pass them on.</p>
+
+        <h2>7. Content you add</h2>
+        <p>You are responsible for what you put on the website, including listings, documents, PQQ answers, help board posts, job posts, job seeker profiles and replies. You must have the right to share it, it must be accurate, and it must not break the <Link href="/legal/acceptable-use">acceptable use policy</Link>. You let us host, copy, display and send it as needed to run the service. You keep any ownership you have in it.</p>
         <p>We may edit, hide or remove anything that we reasonably think breaks these terms or the law, and suspend accounts that do.</p>
 
-        <h2>7. Our content</h2>
+        <h2>8. Our content</h2>
         <p>The website&rsquo;s design, text, guides, templates and the way we have compiled our directory belong to us or our licensors. You may use them for your own business. You may not copy the directory or leads in bulk, scrape the website, or resell our content.</p>
 
-        <h2>8. Availability and changes</h2>
+        <h2>9. Availability and changes</h2>
         <p>We aim to keep the website running but do not promise it will always be available or free of errors. We may change, add or remove features. We may update these terms; the date at the top shows when they last changed, and we will tell members and contractors by email about significant changes.</p>
 
-        <h2>9. Our liability</h2>
+        <h2>10. Our liability</h2>
         <p>Nothing in these terms limits liability for death or personal injury caused by negligence, for fraud, or for anything else that cannot be limited by law.</p>
         <p>Otherwise, we are not liable for any loss arising from your dealings with other businesses found through the website, from relying on leads, guides or templates, or for loss of profit, revenue, contracts, business or data, or any indirect loss. Our total liability to you in any 12 months is limited to the greater of £100 and the fees you paid us in that period.</p>
 
-        <h2>10. Law</h2>
+        <h2>11. Law</h2>
         <p>These terms are governed by the law of England and Wales, and the courts of England and Wales have jurisdiction. If you have a complaint, please see our <Link href="/legal/complaints">complaints procedure</Link> first.</p>
       </>
     ),
@@ -110,10 +114,13 @@ export const LEGAL_PAGES: LegalPage[] = [
         <h2>7. Jobs from main contractors</h2>
         <p>If your listing matches a job posted by a main contractor, we email you about it. You can turn these emails off on your listing page. Contractors can also invite you to price directly. When you reply to a job, the contractor sees your business name, contact details and listing, plus your compliance pack and company profile if you choose to attach them. Any quote, contract or dispute is between you and the contractor.</p>
 
-        <h2>8. Ending or suspending a listing</h2>
+        <h2>8. Job seekers</h2>
+        <p>Paying members can see the names and contact details of people who have posted a job seeker profile. Use them only to talk to that person about work, do not pass them on, and make your own checks, including right to work, before taking anyone on.</p>
+
+        <h2>9. Ending or suspending a listing</h2>
         <p>We may suspend or remove a listing, without refund, if you give false or misleading information or documents, if your insurance lapses and is not renewed, if you seriously or repeatedly break these terms or the acceptable use policy, or if we receive credible evidence of conduct that puts others at risk. Where it is reasonable to do so, we will tell you why and give you a chance to put things right.</p>
 
-        <h2>9. Liability</h2>
+        <h2>10. Liability</h2>
         <p>The liability section of the <Link href="/legal/terms">website terms</Link> applies. In particular, we do not guarantee that membership will win you any work.</p>
       </>
     ),
@@ -150,13 +157,16 @@ export const LEGAL_PAGES: LegalPage[] = [
         <p>If paperwork alerts are on, we email you when insurance or an accreditation on the listing of a trade you have saved is due to expire within 14 days, lapses or is renewed, and if they stop being a verified member. You can turn these emails off on your shortlist page. Alerts are sent once a day and may arrive after the change.</p>
         <p>Paperwork status shown on your shortlist reflects the documents we have checked. It is not a guarantee, and you remain responsible for your own pre-qualification and the checks your clients and the law require of you, including under the Construction (Design and Management) Regulations 2015.</p>
 
-        <h2>5. No commission, no agency</h2>
+        <h2>5. Job seekers</h2>
+        <p>Approved contractor accounts can see the names and contact details of people who have posted a job seeker profile. Use them only to talk to that person about work, do not pass them on, and make your own checks, including right to work, before taking anyone on.</p>
+
+        <h2>6. No commission, no agency</h2>
         <p>We do not charge commission on work, are not a party to any contract between you and a trade, and do not act as an agent for either side. Any enquiry, tender, contract, payment or dispute is between you and the trade.</p>
 
-        <h2>6. Future paid features</h2>
+        <h2>7. Future paid features</h2>
         <p>Contractor accounts are free today. We may introduce optional paid features or plans in future. If we do, we will tell you at least 30 days in advance, nothing will be charged without your agreement, and companies that joined before then keep the features they have today for free.</p>
 
-        <h2>7. Liability</h2>
+        <h2>8. Liability</h2>
         <p>The liability section of the <Link href="/legal/terms">website terms</Link> applies. As the contractor service is free, our total liability to you in any 12 months is limited to £100, except for anything that cannot be limited by law.</p>
       </>
     ),
@@ -189,6 +199,11 @@ export const LEGAL_PAGES: LegalPage[] = [
           <li><strong>Account details:</strong> company name, Companies House details, website, phone, and each user&rsquo;s name, job title and work email. <em>Why:</em> to check the company and run the account (contract and legitimate interests).</li>
           <li><strong>Shortlists, notes, jobs, drawings, invitations and replies.</strong> <em>Why:</em> to provide the service (contract).</li>
         </ul>
+        <h3>Job seekers</h3>
+        <ul>
+          <li><strong>Your profile:</strong> name, email, phone (if you add it), postcode, how far you travel, role, experience, skills, cards and licences, previous employers, availability, pay expectations, vehicle and tools, and anything you write about yourself. <em>Why:</em> to show your profile to employers as you ask (contract).</li>
+          <li><strong>Profile views:</strong> how many times employers have opened your profile. <em>Why:</em> so you can see it is working (legitimate interests).</li>
+        </ul>
         <h3>Everyone</h3>
         <ul>
           <li><strong>Login records:</strong> your email address and secure, one-way scrambled copies of login links and session tokens. <em>Why:</em> to let you log in securely (contract and legitimate interests).</li>
@@ -196,13 +211,13 @@ export const LEGAL_PAGES: LegalPage[] = [
           <li><strong>Share link activity:</strong> when a compliance pack link is opened or a document downloaded, we record the time so the member can see it. <em>Why:</em> legitimate interests of the member and of us in keeping shared documents secure.</li>
           <li><strong>Technical logs:</strong> our hosting provider keeps short-term server logs, which include IP addresses, for security and fault finding (legitimate interests).</li>
         </ul>
-        <p>Where we rely on legitimate interests, we have weighed them against your rights. You can ask us for details, and you can object (see section 7).</p>
+        <p>Where we rely on legitimate interests, we have weighed them against your rights. You can ask us for details, and you can object (see section 8).</p>
 
         <h2>3. What is public</h2>
-        <p>A member&rsquo;s listing is public: business name, trades, contact name, phone, email, website, base postcode and area covered, photos, and a summary of checked insurance and accreditations. Jobs posted by contractors are visible in summary to the public and in full to members and invited trades. Help board posts are visible to logged-in members. Compliance packs are private and only seen through share links the member creates or attaches to a reply.</p>
+        <p>A member&rsquo;s listing is public: business name, trades, contact name, phone, email, website, base postcode and area covered, photos, and a summary of checked insurance and accreditations. Jobs posted by contractors are visible in summary to the public and in full to members and invited trades. Help board posts are visible to logged-in members. Job seeker profiles are visible to anyone without the person&rsquo;s name or contact details, and only the first half of their postcode is shown; paying members and approved main contractors also see their name and the contact details they chose to show. Compliance packs are private and only seen through share links the member creates or attaches to a reply.</p>
 
         <h2>4. Emails we send</h2>
-        <p>We send emails needed to run your account: login links, application decisions, renewal and expiry reminders (including for your team&rsquo;s cards), document check results, paperwork alerts about trades on a contractor&rsquo;s shortlist, replies to your jobs and, for members, jobs from main contractors that match your listing. Members can turn job emails off on their listing page. We do not send marketing emails or sell or share your details for others&rsquo; marketing. If we start sending newsletters, we will only do so as the law allows and you will be able to opt out.</p>
+        <p>We send emails needed to run your account: login links, application decisions, renewal and expiry reminders (including for your team&rsquo;s cards), document check results, paperwork alerts about trades on a contractor&rsquo;s shortlist, reminders to job seekers before their profile comes off the board, replies to your jobs and, for members, jobs from main contractors that match your listing. Members can turn job emails off on their listing page. We do not send marketing emails or sell or share your details for others&rsquo; marketing. If we start sending newsletters, we will only do so as the law allows and you will be able to opt out.</p>
 
         <h2>5. Who we share it with</h2>
         <p>We use these service providers, who act on our instructions under data processing terms:</p>
@@ -221,6 +236,7 @@ export const LEGAL_PAGES: LegalPage[] = [
         <h2>7. How long we keep it</h2>
         <ul>
           <li>Compliance pack documents and team training records: deleted automatically 90 days after a paid membership ends, or straight away when you delete them.</li>
+          <li>Job seeker profiles: deleted straight away when you delete them; unfinished profiles after 90 days; any other profile after 12 months without an update.</li>
           <li>Contractor jobs, drawings, invitations and replies: deleted automatically two years after the job was last updated.</li>
           <li>Login links: expire after 30 minutes. Sessions: expire after 30 days. Both are then deleted.</li>
           <li>Listings and contractor accounts: kept while active, and for up to two years after they end so we can deal with questions, then deleted or anonymised. You can ask us to delete them sooner.</li>
