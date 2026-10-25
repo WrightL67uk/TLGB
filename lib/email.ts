@@ -10,6 +10,9 @@ function init() {
   }
 }
 
+/** Admin alerts always go to the shared TLGB inbox, which Ed and Trudy both read. */
+const adminList = () => [TLGB_EMAIL];
+
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
@@ -97,9 +100,9 @@ export type ApplicationSummary = {
   postcode: string;
 };
 
-/** Sent to every address in ADMIN_EMAILS each time an application needs approval. */
+/** Sent to the TLGB admin inbox each time an application needs approval. */
 export async function emailAdminNewApplication(a: ApplicationSummary) {
-  const admins = (process.env.ADMIN_EMAILS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  const admins = adminList();
   const link = `${siteUrl()}/admin/${a.id}`;
   const check =
     a.businessType === 'ltd'
@@ -178,7 +181,7 @@ export async function emailAdminChanges(
   kind: 'changed' | 'resubmitted',
   detail: string
 ) {
-  const admins = (process.env.ADMIN_EMAILS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  const admins = adminList();
   const link = `${siteUrl()}/admin/${a.id}`;
   const subject = kind === 'resubmitted' ? `Resubmitted: ${a.tradingName}` : `Changes to check: ${a.tradingName}`;
   const intro =
@@ -232,7 +235,7 @@ ${shortlisted ? `<p><strong>${shortlisted} main contractor${shortlisted === 1 ? 
 /** Daily round-up for admins of everything that hit a reminder stage today. */
 export async function emailAdminExpiries(rows: { id: string; tradingName: string; items: ExpiryNotice[] }[]) {
   if (!rows.length) return;
-  const admins = (process.env.ADMIN_EMAILS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  const admins = adminList();
   const expiredCount = rows.reduce((n, r) => n + r.items.filter((i) => i.stage === 'expired').length, 0);
   const body = rows
     .map(
@@ -250,7 +253,7 @@ export async function emailAdminExpiries(rows: { id: string; tradingName: string
   );
 }
 
-const adminList = () => (process.env.ADMIN_EMAILS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+
 
 export type Enquiry = { name: string; business?: string | null; email: string; phone?: string | null; schemes: string[]; message?: string | null };
 

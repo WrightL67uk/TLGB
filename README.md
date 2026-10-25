@@ -10,7 +10,7 @@ Directory of vetted landscape and external works trades. Contractors search by j
 2. Everyone picks an **annual turnover band**, which sets their listing price (bands and placeholder prices live in `lib/config.ts`, so they are a one-line change once agreed). They then give contact details, trades (15 categories, from landscapers and architects to nurseries, suppliers, trainers and gritters), base postcode and travel radius, public liability cover, expiry and certificate (required), optional employers liability, accreditations and up to 6 photos.
 3. Files upload straight from the browser to Supabase Storage (avoids Vercel's 4.5MB request limit). The application is held as a `draft` until every file has arrived, then moves to `pending_review`.
 4. **SendGrid emails:**
-   - Admin gets "Approval needed: {business}" with a Review button (every address in `ADMIN_EMAILS`).
+   - Admin gets "Approval needed: {business}" with a Review button (sent to the shared admin@tlgb.co.uk inbox).
    - Applicant gets "We have your application".
 5. **Admin** at `/admin` (username and password prompt) sees the queue, opens an application, views documents (private, 10 minute links), sees the Companies House result or a sole trader checklist, then:
    - **Approve** (optionally as a free founding member) and the applicant is emailed, or
