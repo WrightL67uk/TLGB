@@ -5,6 +5,7 @@ import { seekerByEmail, seekerLive } from '@/lib/seekers';
 import { LEVELS, SKILL_GROUPS, LICENCES, VEHICLE, TOOLS, WORK_TYPES, PAY_PERIODS, SEEKER_LIVE_DAYS, type Opt } from '@/lib/seekerTypes';
 import { QUAL_TYPES, QUAL_GROUPS } from '@/lib/teamTypes';
 import { ukDate } from '@/lib/complianceTypes';
+import SeekerForm from './SeekerForm';
 import '../workers.css';
 
 export const dynamic = 'force-dynamic';
@@ -76,7 +77,7 @@ export default async function SeekerPage({ searchParams }: { searchParams: SP })
         </div>
       </div>
 
-      <form method="post" action="/api/seeker/save" className="wk-form">
+      <SeekerForm>
         <div className="wk-section">
           <h2>About you</h2>
           <div className="row">
@@ -174,7 +175,7 @@ export default async function SeekerPage({ searchParams }: { searchParams: SP })
           {!live && <button type="submit" className="wk-btn">Save without publishing</button>}
         </div>
         <p className="muted small" style={{ margin: 0 }}>Profiles stay on the board for {SEEKER_LIVE_DAYS} days. We email you a week before so you can keep it live. Please do not include your date of birth, national insurance number or anything you would not want an employer to see.</p>
-      </form>
+      </SeekerForm>
 
       <details className="panel" style={{ marginTop: 24 }}>
         <summary><strong>Delete my profile</strong></summary>

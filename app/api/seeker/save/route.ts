@@ -51,11 +51,18 @@ const Schema = z.object({
 
 export async function POST(req: NextRequest) {
   const fd = await req.formData().catch(() => null);
-  const go = (q: string) => NextResponse.redirect(new URL(`/seeker?${q}`, req.url), 303);
+  const wantsJson = (req.headers.get('accept') ?? '').includes('application/json');
+  const go = (q: string) => {
+    if (wantsJson) {
+      const error = new URLSearchParams(q).get('error');
+      return error ? NextResponse.json({ ok: false, error }, { status: 400 }) : NextResponse.json({ ok: true, next: `/seeker?${q}` });
+    }
+    return NextResponse.redirect(new URL(`/seeker?${q}`, req.url), 303);
+  };
   if (!fd) return go('error=' + encodeURIComponent('Something went wrong. Please try again.'));
   if (!sameOrigin(req)) return go('error=' + encodeURIComponent('Please use the form on our website.'));
   const me = await getSeeker();
-  if (!me) return NextResponse.redirect(new URL('/login?next=/seeker', req.url), 303);
+  if (!me) return wantsJson ? NextResponse.json({ ok: true, next: '/login?next=/seeker' }) : NextResponse.redirect(new URL('/login?next=/seeker', req.url), 303);
   if (me.status === 'removed') return go('error=' + encodeURIComponent('This profile has been removed.'));
 
   const all = (k: string) => fd.getAll(k).map(String);
