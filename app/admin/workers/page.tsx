@@ -1,3 +1,4 @@
+import DeleteForm from '@/app/admin/DeleteForm';
 import Link from 'next/link';
 import { db } from '@/lib/supabase';
 import { seekerLive, seekerName, type Seeker } from '@/lib/seekers';
@@ -18,7 +19,8 @@ function Act({ id, action, label: text, reason }: { id: string; action: string; 
   );
 }
 
-export default async function AdminWorkers() {
+export default async function AdminWorkers({ searchParams }: { searchParams: Promise<{ deleted?: string; delete_error?: string }> }) {
+  const sp = await searchParams;
   const { data } = await db().from('job_seekers').select('*').order('created_at', { ascending: false }).limit(500);
   const rows = (data ?? []) as Seeker[];
   const status = (s: Seeker) => (s.status === 'live' ? (seekerLive(s) ? 'Live' : 'Expired') : s.status === 'draft' ? 'Not finished' : s.status === 'paused' ? 'Paused' : 'Removed');
@@ -27,6 +29,8 @@ export default async function AdminWorkers() {
     <div>
       <p><Link href="/admin">&larr; Back to listings</Link></p>
       <h1>Job seeker profiles</h1>
+      {sp.deleted && <p className="ok-box">Deleted {sp.deleted}.</p>}
+      {sp.delete_error && <p className="err big">{sp.delete_error}</p>}
       <p className="muted">{rows.filter(seekerLive).length} live, {rows.length} in total. Profiles go live as soon as the job seeker publishes them; remove anything inappropriate here.</p>
       <div style={{ overflowX: "auto" }}>
         <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -44,6 +48,7 @@ export default async function AdminWorkers() {
                   {s.status === 'removed'
                     ? <><Act id={s.id} action="restore" label="Restore (paused)" /> <Act id={s.id} action="delete" label="Delete" /></>
                     : <Act id={s.id} action="remove" label="Remove" reason />}
+                  {' '}<DeleteForm kind="seeker" id={s.id} name={`${s.first_name} ${s.last_name}`} from="/admin/workers" what="their profile" />
                 </td>
               </tr>
             ))}

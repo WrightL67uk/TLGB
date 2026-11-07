@@ -1,3 +1,4 @@
+import DeleteForm from '@/app/admin/DeleteForm';
 import Link from 'next/link';
 import { db } from '@/lib/supabase';
 import { PLANS } from '@/lib/contractorPlans';
@@ -18,7 +19,8 @@ function Act({ id, action, label, extra }: { id: string; action: string; label: 
   );
 }
 
-export default async function AdminContractors() {
+export default async function AdminContractors({ searchParams }: { searchParams: Promise<{ deleted?: string; delete_error?: string }> }) {
+  const sp = await searchParams;
   const [{ data: companies }, { data: users }, { data: jobs }, { data: reports }] = await Promise.all([
     db().from('contractor_companies').select('*').order('created_at', { ascending: false }).limit(500),
     db().from('contractor_users').select('company_id, name, email, job_title, role').is('removed_at', null),
@@ -41,6 +43,8 @@ export default async function AdminContractors() {
     <div>
       <p><Link href="/admin">&larr; Back to listings</Link></p>
       <h1>Main contractors</h1>
+      {sp.deleted && <p className="ok-box">Deleted {sp.deleted}.</p>}
+      {sp.delete_error && <p className="err big">{sp.delete_error}</p>}
 
       <h2>Waiting for a check ({pending.length})</h2>
       {!pending.length && <p className="muted">None waiting.</p>}
@@ -112,6 +116,7 @@ export default async function AdminContractors() {
                 {c.status === 'suspended' && <Act id={c.id} action="unsuspend" label="Unsuspend" />}
                 {c.status === 'rejected' && <Act id={c.id} action="approve" label="Approve" />}
                 {' '}<Act id={c.id} action="founding" label={c.founding ? 'Remove founding' : 'Make founding'} extra={{ on: c.founding ? '0' : '1' }} />
+                {' '}<DeleteForm kind="contractor" id={c.id} name={c.name} from="/admin/contractors" what="all their users, lists, notes and jobs" />
               </td>
             </tr>
           ))}

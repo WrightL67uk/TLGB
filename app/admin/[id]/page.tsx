@@ -1,3 +1,4 @@
+import DeleteForm from '@/app/admin/DeleteForm';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db, photoUrl } from '@/lib/supabase';
@@ -25,9 +26,9 @@ const DOC_LABEL: Record<string, string> = {
 
 export default async function AdminDetail({
   params, searchParams,
-}: { params: Promise<{ id: string }>; searchParams: Promise<{ done?: string; login_link?: string; error?: string }> }) {
+}: { params: Promise<{ id: string }>; searchParams: Promise<{ done?: string; login_link?: string; error?: string; delete_error?: string }> }) {
   const { id } = await params;
-  const { done, login_link, error: formError } = await searchParams;
+  const { done, login_link, error: formError, delete_error: deleteError } = await searchParams;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 
   const { data: b } = await db().from('businesses').select('*').eq('id', id).maybeSingle();
@@ -301,6 +302,13 @@ export default async function AdminDetail({
           </form>
         </section>
       )}
+
+      <section className="panel">
+        <h2>Delete this listing</h2>
+        {deleteError && <p className="err big">{deleteError}</p>}
+        <p className="muted small">Removes the listing, its documents, photos, compliance pack, team records, payment tracker, PQQ answers and price requests, and cancels any Stripe subscription. Their job seeker profile or contractor account, if they have one, is not touched.</p>
+        <DeleteForm kind="business" id={b.id} name={b.trading_name} from={`/admin/${b.id}`} what="everything on their account" />
+      </section>
 
       {events && events.length > 0 && (
         <section className="panel">

@@ -1,3 +1,4 @@
+import DeleteForm from '@/app/admin/DeleteForm';
 import Link from 'next/link';
 import { db } from '@/lib/supabase';
 import { supplierCategoryLabel, helpKindLabel } from '@/lib/resources';
@@ -17,7 +18,7 @@ function Act({ table, id, action, label }: { table: string; id: string; action: 
   );
 }
 
-export default async function AdminResources({ searchParams }: { searchParams: Promise<{ supplier_error?: string }> }) {
+export default async function AdminResources({ searchParams }: { searchParams: Promise<{ supplier_error?: string; deleted?: string; delete_error?: string }> }) {
   const sp = await searchParams;
   const [{ data: pendingNew }, { data: enquiries }, { data: help }, { data: approved }, { data: requests }] = await Promise.all([
     db().from('suppliers').select('id, created_at, name, categories, description, website, phone, town, postcode, email, wants_requests').eq('status', 'pending').order('created_at'),
@@ -32,6 +33,8 @@ export default async function AdminResources({ searchParams }: { searchParams: P
     <div>
       <p><Link href="/admin">&larr; Back to listings</Link></p>
       <h1>Suppliers, enquiries and help board</h1>
+      {sp.deleted && <p className="ok-box">Deleted {sp.deleted}.</p>}
+      {sp.delete_error && <p className="err big">{sp.delete_error}</p>}
 
       <h2>Suppliers waiting for a check ({pending?.length ?? 0})</h2>
       {!pending?.length && <p className="muted">None waiting.</p>}
@@ -45,6 +48,7 @@ export default async function AdminResources({ searchParams }: { searchParams: P
           <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
             <Act table="suppliers" id={s.id} action="approve" label="Approve" />
             <Act table="suppliers" id={s.id} action="reject" label="Reject" />
+            <DeleteForm kind="supplier" id={s.id} name={s.name} from="/admin/resources" what="their listing" />
           </div>
         </div>
       ))}
@@ -70,6 +74,7 @@ export default async function AdminResources({ searchParams }: { searchParams: P
                   <input name="paid_until" type="date" defaultValue={s.quote_paid_until ?? ''} />
                   <button type="submit">Save</button>
                 </form>
+                <DeleteForm kind="supplier" id={s.id} name={s.name} from="/admin/resources" what="their listing, quotes and ratings" />
               </td>
             </tr>
           ))}

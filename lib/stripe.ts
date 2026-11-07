@@ -21,7 +21,7 @@ function encode(params: Params, prefix = '', out: string[] = []) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function stripe<T = any>(method: 'GET' | 'POST', path: string, params: Params = {}): Promise<T> {
+export async function stripe<T = any>(method: 'GET' | 'POST' | 'DELETE', path: string, params: Params = {}): Promise<T> {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error('Stripe is not set up (STRIPE_SECRET_KEY missing)');
   const body = encode(params).join('&');

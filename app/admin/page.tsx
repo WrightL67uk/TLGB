@@ -13,8 +13,9 @@ const TABS = [
   { key: 'suspended', label: 'Suspended' },
 ];
 
-export default async function AdminQueue({ searchParams }: { searchParams: Promise<{ status?: string; leads?: string }> }) {
-  const { status: s, leads: leadsMsg } = await searchParams;
+export default async function AdminQueue({ searchParams }: { searchParams: Promise<{ status?: string; leads?: string; deleted?: string; delete_error?: string }> }) {
+  const sp = await searchParams;
+  const { status: s, leads: leadsMsg } = sp;
   const status = TABS.some((t) => t.key === s) ? s! : 'pending_review';
 
   // Approved listings with insurance or an accreditation due within 30 days, or already expired
@@ -75,6 +76,8 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
     <div>
       <div className="admin-head">
         <h1>Admin</h1>
+        {sp.deleted && <p className="ok-box">Deleted {sp.deleted}.</p>}
+        {sp.delete_error && <p className="err big">{sp.delete_error}</p>}
         <form action="/api/admin/leads-import" method="post" className="inline">
           <input type="hidden" name="days" value="14" />
           <button type="submit">Fetch leads now (last 14 days)</button>
