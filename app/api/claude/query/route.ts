@@ -35,6 +35,6 @@ export async function GET(req: NextRequest) {
   }
   const { data, error, count } = await q;
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  const rows = (data ?? []).map((r: Record<string, unknown>) => Object.fromEntries(Object.entries(r).filter(([k]) => !HIDDEN_COLUMNS.has(k))));
+  const rows = ((data ?? []) as unknown as Record<string, unknown>[]).map((r) => Object.fromEntries(Object.entries(r).filter(([k]) => !HIDDEN_COLUMNS.has(k))));
   return NextResponse.json({ table, count, rows });
 }
