@@ -160,7 +160,7 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
                   <p className="code-row">
                     <label htmlFor="promo-code">Got a code?</label>{' '}
                     <input id="promo-code" name="code" autoComplete="off" maxLength={20} placeholder="e.g. TAPE12" />{' '}
-                    <span className="muted small">A code gives you Pro free for 12 months when you pay for Verified.</span>
+                    <span className="muted small">Any discount or free upgrade shows on the payment page before you pay.</span>
                   </p>
                   <button type="submit" className="primary">{b.subscription_status === 'cancelled' ? 'Renew membership' : 'Start membership'}</button>
                   <span className="muted small"> Secure card payment through Stripe. Renews yearly; cancel any time.</span>

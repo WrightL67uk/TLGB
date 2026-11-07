@@ -87,7 +87,7 @@ export const LEGAL_PAGES: LegalPage[] = [
         <h2>4. Fees, renewal and payment</h2>
         <ul>
           <li>Membership is a yearly subscription. The price depends on whether you choose Verified or Pro and is shown before you pay. Prices include VAT only where stated.</li>
-          <li>We may give out codes that add Pro free for a set time, usually 12 months, when you pay for Verified. Each code has a closing date and may be limited in number. A listing can use one code only, and codes cannot be combined with other offers or exchanged for money. When the free time ends, your membership carries on as Verified at the Verified price unless you choose to keep Pro.</li>
+          <li>We may give out codes. A code either adds Pro free for a set time when you pay for Verified, or takes money off your membership for the first year or every year, as stated with the code and shown before you pay. Codes may have a closing date and may be limited in number. A listing can use one code only, and codes cannot be combined with other offers or exchanged for money. When free Pro ends, your membership carries on as Verified at the Verified price unless you choose to keep Pro.</li>
           <li>You pay by card through our payment provider, Stripe. We never see or store your full card details.</li>
           <li>Your membership renews automatically each year on the same date unless you cancel. We will remind you before renewal.</li>
           <li>We may change prices for future years. We will tell you at least 30 days before your renewal, and you can cancel before the new price applies.</li>

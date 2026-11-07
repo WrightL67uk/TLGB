@@ -28,12 +28,13 @@ async function applySubscription(sub: Json) {
     paid_until: periodEnd(sub),
     ...(sub.metadata?.plan === 'pro' || sub.metadata?.plan === 'verified' ? { plan: sub.metadata.plan } : {}),
   }).eq('id', b.id);
-  // A marketing code switches Pro on once the first payment (or trial) has started
+  // A marketing code is recorded once the first payment (or trial) has started; free Pro switches on then
   if (sub.metadata?.promo_code && (status === 'active' || status === 'trialing')) {
-    const until = await redeemCode(b.id, sub.metadata.promo_code);
-    if (until) {
-      await db().from('review_events').insert({ business_id: b.id, action: 'billing', actor: 'stripe', detail: `Code ${sub.metadata.promo_code}: Pro free until ${until.slice(0, 10)}` });
-      await emailAdminBilling(`Code used: ${sub.metadata.promo_code}`, `${b.trading_name} joined with code ${sub.metadata.promo_code} and has Pro free for a year.`, b.id);
+    const r = await redeemCode(b.id, sub.metadata.promo_code);
+    if (r) {
+      const what = r.until ? `Pro free until ${new Date(r.until).toLocaleDateString('en-GB')}` : 'a discount on their membership';
+      await db().from('review_events').insert({ business_id: b.id, action: 'billing', actor: 'stripe', detail: `Code ${r.code}: ${what}` });
+      await emailAdminBilling(`Code used: ${r.code}`, `${b.trading_name} joined with code ${r.code} and gets ${what}.`, b.id);
     }
   }
   if (status !== b.subscription_status) {

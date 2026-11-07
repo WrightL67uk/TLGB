@@ -5,16 +5,29 @@ import { ownedBusiness } from '@/lib/account';
 import { isPaid } from '@/lib/membership';
 import { stripe, stripeEnabled } from '@/lib/stripe';
 import { siteUrl } from '@/lib/config';
-import { MEMBER_PLANS, planKey, checkCode } from '@/lib/plans';
+import { MEMBER_PLANS, planKey, checkCode, type PromoCode } from '@/lib/plans';
 
 export const runtime = 'nodejs';
 
 const back = (req: NextRequest, id: string, q: string) => NextResponse.redirect(new URL(`/account/${id}?${q}`, req.url), 303);
 
+/** The Stripe coupon behind a money-off code, made the first time the code is used. */
+async function couponFor(p: PromoCode) {
+  if (p.stripe_coupon_id) return p.stripe_coupon_id;
+  const c = await stripe('POST', 'coupons', {
+    name: p.code,
+    duration: p.duration,
+    ...(p.kind === 'amount_off' ? { amount_off: (p.amount_off ?? 0) * 100, currency: 'gbp' } : { percent_off: p.percent_off }),
+    metadata: { tlgb_code: p.code },
+  });
+  await db().from('promo_codes').update({ stripe_coupon_id: c.id }).eq('code', p.code);
+  return c.id as string;
+}
+
 /**
  * Sends an approved trade to Stripe's payment page for a yearly Verified or Pro membership.
- * A marketing code charges the Verified price and switches Pro on free for the code's months
- * once the payment goes through (see the Stripe webhook).
+ * Codes: a free Pro code charges the Verified price and switches Pro on once the payment goes
+ * through (see the Stripe webhook). A money-off code takes its discount off whichever plan they chose.
  */
 export async function POST(req: NextRequest) {
   const fd = await req.formData().catch(() => null);
@@ -28,14 +41,15 @@ export async function POST(req: NextRequest) {
   if (b.status !== 'approved') return back(req, id, 'billing=' + encodeURIComponent('You can pay once your listing has been approved.'));
   if (isPaid(b)) return back(req, id, 'billing=' + encodeURIComponent('Your membership is already active.'));
   const rawCode = String(fd?.get('code') ?? '').trim();
-  let code: string | null = null;
+  let promo: PromoCode | null = null;
   if (rawCode) {
     const check = await checkCode(rawCode, b.id);
     if (!check.ok) return back(req, id, 'billing=' + encodeURIComponent(check.reason));
-    code = check.code;
+    promo = check.promo;
   }
-  // A code always goes with Verified: they pay the Verified price and get Pro free
-  const plan = code ? MEMBER_PLANS.verified : MEMBER_PLANS[planKey(fd?.get('plan'))];
+  const code = promo?.code ?? null;
+  // A free Pro code always goes with Verified: they pay the Verified price and get Pro free
+  const plan = promo?.kind === 'pro_free' ? MEMBER_PLANS.verified : MEMBER_PLANS[planKey(fd?.get('plan'))];
 
   try {
     let customer = b.stripe_customer_id;
@@ -48,6 +62,7 @@ export async function POST(req: NextRequest) {
       customer = c.id as string;
       await db().from('businesses').update({ stripe_customer_id: customer }).eq('id', b.id);
     }
+    const coupon = promo && promo.kind !== 'pro_free' ? await couponFor(promo) : null;
     const trial = Number(process.env.STRIPE_TRIAL_DAYS || 0);
     const tax = process.env.STRIPE_AUTOMATIC_TAX === '1';
     const session = await stripe('POST', 'checkout/sessions', {
@@ -70,7 +85,7 @@ export async function POST(req: NextRequest) {
       },
       metadata: { business_id: b.id, plan: plan.key, ...(code ? { promo_code: code } : {}) },
       // Our own codes and Stripe's discount codes don't stack
-      ...(code ? {} : { allow_promotion_codes: 'true' }),
+      ...(coupon ? { discounts: [{ coupon }] } : code ? {} : { allow_promotion_codes: 'true' }),
       billing_address_collection: 'auto',
       customer_update: { address: 'auto', name: 'auto' },
       ...(tax ? { automatic_tax: { enabled: 'true' }, tax_id_collection: { enabled: 'true' } } : {}),

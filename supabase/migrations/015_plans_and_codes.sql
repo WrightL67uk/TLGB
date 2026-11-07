@@ -1,4 +1,4 @@
--- 015: Verified and Pro plans, and marketing codes that give Pro free for 12 months
+-- 015: Verified and Pro plans, and marketing codes: free Pro for a set time, money off, or a percentage off
 
 -- Which plan a member pays for. Pro can also come free for a while from a code (pro_until).
 alter table businesses add column if not exists plan text not null default 'verified';
@@ -10,15 +10,26 @@ alter table businesses add column if not exists promo_code text;
 alter table businesses add column if not exists pro_reminder smallint not null default 0;
 
 -- Codes handed out with marketing (tape measures, seed packets, brokers...). One code per channel
--- shows which marketing brings paying members.
+-- shows which marketing brings paying members. Each code is one kind of offer:
+--   pro_free     pay for Verified, get Pro free for pro_months
+--   amount_off   pounds off the membership price
+--   percent_off  a percentage off the membership price
+-- Money off applies to the first year only ('once') or every year ('forever').
 create table if not exists promo_codes (
-  code            text primary key check (code ~ '^[A-Z0-9]{3,20}$'),
-  label           text not null,
-  pro_months      int  not null default 12 check (pro_months between 1 and 24),
-  max_redemptions int  check (max_redemptions is null or max_redemptions > 0),
-  redeem_by       date,
-  active          boolean not null default true,
-  created_at      timestamptz not null default now()
+  code             text primary key check (code ~ '^[A-Z0-9]{3,20}$'),
+  label            text not null,
+  kind             text not null default 'pro_free' check (kind in ('pro_free', 'amount_off', 'percent_off')),
+  pro_months       int  not null default 12 check (pro_months between 1 and 24),
+  amount_off       int  check (amount_off is null or amount_off between 1 and 10000),
+  percent_off      int  check (percent_off is null or percent_off between 1 and 100),
+  duration         text not null default 'once' check (duration in ('once', 'forever')),
+  stripe_coupon_id text,
+  max_redemptions  int  check (max_redemptions is null or max_redemptions > 0),
+  redeem_by        date,
+  active           boolean not null default true,
+  created_at       timestamptz not null default now(),
+  check (kind <> 'amount_off' or amount_off is not null),
+  check (kind <> 'percent_off' or percent_off is not null)
 );
 alter table promo_codes enable row level security;
 
@@ -27,7 +38,7 @@ create table if not exists promo_redemptions (
   business_id uuid primary key references businesses(id) on delete cascade,
   code        text not null references promo_codes(code),
   redeemed_at timestamptz not null default now(),
-  pro_until   timestamptz not null
+  pro_until   timestamptz            -- only for free Pro codes
 );
 create index if not exists promo_redemptions_code_idx on promo_redemptions (code);
 alter table promo_redemptions enable row level security;
