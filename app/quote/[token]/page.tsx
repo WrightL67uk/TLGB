@@ -42,7 +42,7 @@ export default async function SupplierQuote({ params, searchParams }: { params: 
 
   return (
     <div className="qt">
-      <p className="small muted">The Little Green Book · price request for {supplier.name}</p>
+      <p className="small muted">The Little Green Book · you are pricing as <b>{supplier.name}</b></p>
       <h1>{buyer?.trading_name ?? 'A member'} would like prices</h1>
       <div className="qt-meta" style={{ marginBottom: 16 }}>
         <span>Reference: <b>{request.reference}</b></span>
@@ -52,7 +52,7 @@ export default async function SupplierQuote({ params, searchParams }: { params: 
       </div>
       {request.delivery_notes && <div className="panel"><p><b>Delivery notes:</b> {request.delivery_notes}</p></div>}
 
-      {sp.saved && <p className="ok-box">Thank you. Your prices have been sent to {buyer?.trading_name ?? 'the buyer'}. You can change them here until the deadline.</p>}
+      {sp.saved && <p className="ok-box">Thank you, {supplier.name}. Your prices are now with the buyer, {buyer?.trading_name ?? 'who asked for them'}, and we have emailed them to say so. You can change your prices here until the deadline.</p>}
       {sp.error && <p className="err big">{sp.error}</p>}
 
       {invite.status === 'won' && <p className="ok-box"><b>Your prices were accepted.</b> We have emailed you the buyer&apos;s contact details so you can confirm the order.</p>}
