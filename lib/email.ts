@@ -759,3 +759,19 @@ export async function emailAdminPriceRequestShort(r: { reference: string; tradin
     'admin-quote'
   );
 }
+
+/** To a supplier when we approve their listing. */
+export async function emailSupplierApproved(to: string, name: string, wantsRequests: boolean) {
+  await send(
+    to,
+    `${name} is now listed on The Little Green Book`,
+    `<p>Hello,</p>
+<p>Thanks for listing <strong>${esc(name)}</strong>. We have checked the details and you are now live on our supplier page, where landscaping firms can find you free of charge.</p>
+<p>${button(`${siteUrl()}/suppliers`, 'See the supplier page')}</p>
+${wantsRequests
+    ? '<p>You asked to receive price requests from our members. We will be in touch shortly to confirm the email address they should go to and switch them on.</p>'
+    : '<p>Our members can also send plant and material lists to suppliers for pricing, and compare the quotes side by side. If you would like to receive these price requests, just reply to this email.</p>'}
+<p>If anything on your listing needs changing, reply to this email and we will update it.</p>`,
+    'supplier-approved'
+  );
+}
