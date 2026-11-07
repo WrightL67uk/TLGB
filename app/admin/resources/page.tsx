@@ -19,13 +19,14 @@ function Act({ table, id, action, label }: { table: string; id: string; action: 
 
 export default async function AdminResources({ searchParams }: { searchParams: Promise<{ supplier_error?: string }> }) {
   const sp = await searchParams;
-  const [{ data: pending }, { data: enquiries }, { data: help }, { data: approved }, { data: requests }] = await Promise.all([
+  const [{ data: pendingNew }, { data: enquiries }, { data: help }, { data: approved }, { data: requests }] = await Promise.all([
     db().from('suppliers').select('id, created_at, name, categories, description, website, phone, town, postcode, email, wants_requests').eq('status', 'pending').order('created_at'),
     db().from('service_enquiries').select('id, created_at, service, name, business_name, email, phone, schemes, message, handled').order('created_at', { ascending: false }).limit(100),
     db().from('help_requests').select('id, created_at, email, business_name, kind, title, status').eq('status', 'open').order('created_at', { ascending: false }).limit(100),
     db().from('suppliers').select('id, name, town, email, categories, quote_requests, quote_plan, quote_paid_until, wants_requests').eq('status', 'approved').order('name'),
     db().from('quote_requests').select('id, created_at, reference, postcode, status').order('created_at', { ascending: false }).limit(20),
   ]);
+  const pending = pendingNew ?? (await db().from('suppliers').select('id, created_at, name, categories, description, website, phone, town, postcode, email').eq('status', 'pending').order('created_at')).data?.map((x) => ({ ...x, wants_requests: false }));
 
   return (
     <div>

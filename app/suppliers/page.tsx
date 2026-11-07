@@ -36,7 +36,14 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
     const term = q.replace(/[%_,()]/g, ' ');
     query = query.or(`name.ilike.%${term}%,description.ilike.%${term}%,town.ilike.%${term}%`);
   }
-  const { data } = await query;
+  let { data, error } = await query;
+  if (error) {
+    // Database not yet updated for price requests: fall back to the basic columns.
+    let basic = db().from('suppliers').select('id, name, categories, description, website, phone, town, postcode, lat, lng, delivers_nationally').eq('status', 'approved').order('name').limit(500);
+    if (category) basic = basic.contains('categories', [category]);
+    if (q) { const term = q.replace(/[%_,()]/g, ' '); basic = basic.or(`name.ilike.%${term}%,description.ilike.%${term}%,town.ilike.%${term}%`); }
+    ({ data, error } = await basic as unknown as { data: typeof data; error: typeof error });
+  }
   let rows = ((data ?? []) as Supplier[]).map((s) => ({
     ...s,
     dist: where?.ok && s.lat != null && s.lng != null ? miles(where.lat, where.lng, s.lat, s.lng) : null,
