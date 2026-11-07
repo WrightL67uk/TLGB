@@ -102,6 +102,17 @@ export default function FindingLeadsGuide() {
         <li>The council decision and any conditions are public, which helps you price accurately.</li>
       </ul>
 
+      <h2>Jobs that come to you</h2>
+      <p>
+        As well as the leads feed, main contractors post landscaping and external works packages straight onto The Little Green Book.
+        Members whose trades, area, insurance and accreditations match get an email, and can reply with their compliance pack attached.
+        Contractors can also invite trades from their shortlist. See <Link href="/guides/jobs-from-contractors">jobs from main contractors</Link>.
+      </p>
+      <p>
+        Short of labour or kit to take a job on? Ask other trades on the <Link href="/help-board">help board</Link>, or find people on the{' '}
+        <Link href="/workers">workers board</Link>.
+      </p>
+
       <h2>Make the filters do the work</h2>
       <ul>
         <li>Log in and the leads page shows <strong>matched to me</strong>: only the trades on your listing, within the area you cover.</li>
