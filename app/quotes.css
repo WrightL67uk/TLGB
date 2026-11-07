@@ -30,7 +30,7 @@
 }
 
 .qt-sups { display: grid; gap: 6px; }
-.qt-sup { display: flex; gap: 10px; align-items: flex-start; background: #fff; border: 1px solid var(--line); padding: 10px 12px; font-weight: 400 !important; }
+.qt-sup, .qt-box label.qt-sup, .qt-form label.qt-sup { display: flex; gap: 10px; align-items: flex-start; background: #fff; border: 1px solid var(--line); padding: 10px 12px; font-weight: 400 !important; }
 .qt-sup input { margin-top: 4px; }
 .qt-sup b { color: var(--forest); }
 .qt-sup .meta { color: var(--muted); font-size: .88rem; }
