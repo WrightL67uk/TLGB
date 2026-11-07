@@ -33,6 +33,11 @@ export default async function AddSupplierPage({ searchParams }: { searchParams: 
           </div>
           <label className="checks" style={{ fontWeight: 400 }}><input type="checkbox" name="delivers_nationally" value="1" /> We deliver nationally</label>
           <label>Your email (not shown on the site)<input name="email" type="email" required maxLength={200} /></label>
+          <div className="panel" style={{ margin: 0 }}>
+            <label className="checks" style={{ fontWeight: 400 }}><input type="checkbox" name="wants_requests" value="1" /> <span><strong>Send us price requests.</strong> Landscaping firms on The Little Green Book send their plant and material lists to suppliers who stock them and deliver to their site. You price online and they compare. Free for our founding suppliers; we will confirm the cost before anything is charged.</span></label>
+            <p className="small muted" style={{ margin: '6px 0 0' }}>Price requests go to the email address above.</p>
+          </div>
+          <label className="checks" style={{ fontWeight: 400 }}><input type="checkbox" name="no_marketing" value="1" /> Do not send us news about new Little Green Book services. (You can unsubscribe at any time.)</label>
           <label className="hp" aria-hidden="true">Leave this empty<input name="company_url" tabIndex={-1} autoComplete="off" /></label>
           <button type="submit" className="primary">submit for checking</button>
         </form>

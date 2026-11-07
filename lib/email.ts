@@ -280,11 +280,11 @@ ${e.message ? `<p>${esc(e.message).replace(/\n/g, '<br>')}</p>` : ''}`,
 }
 
 /** A supplier asked to be listed. */
-export async function emailAdminSupplierSubmission(name: string, website: string | null, email: string) {
+export async function emailAdminSupplierSubmission(name: string, website: string | null, email: string, wantsRequests = false) {
   await send(
     adminList(),
     `New supplier to check: ${name}`,
-    `<p><strong>${esc(name)}</strong> has asked to be listed on the supplier page.</p>
+    `<p><strong>${esc(name)}</strong> has asked to be listed on the supplier page.${wantsRequests ? ' They would also like to receive price requests from members.' : ''}</p>
 <p>${website ? `Website: <a href="${esc(website)}">${esc(website)}</a><br>` : ''}Submitted by: ${esc(email)}</p>
 <p><a href="${siteUrl()}/admin/resources">Review it in admin</a></p>`,
     'supplier-admin'
@@ -652,5 +652,110 @@ export async function emailAdminSeekerReport(s: { id: string; name: string }, by
 <p>${esc(reason).replace(/\n/g, '<br>')}</p>
 <p><a href="${siteUrl()}/workers/${s.id}">View the profile</a> or <a href="${siteUrl()}/admin/workers">remove it in admin</a>.</p>`,
     'seeker-report'
+  );
+}
+
+// ---------- Price requests ----------
+
+const dateTime = (iso: string) =>
+  new Date(iso).toLocaleString('en-GB', { timeZone: 'Europe/London', weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+
+export type PriceRequestMail = { reference: string; tradingName: string; area: string | null; lines: number; closesAt: string; neededBy: string | null; summary: string[] };
+
+/** To a supplier: a member wants prices. The link works without a password. */
+export async function emailSupplierPriceRequest(to: string, supplierName: string, r: PriceRequestMail, link: string) {
+  await send(
+    to,
+    `Price request from ${r.tradingName}: ${r.lines} item${r.lines === 1 ? '' : 's'}${r.area ? ` to ${r.area}` : ''}`,
+    `<p>Hello ${esc(supplierName)},</p>
+<p><strong>${esc(r.tradingName)}</strong>, a landscaping firm listed on The Little Green Book, would like prices for ${r.lines} item${r.lines === 1 ? '' : 's'}${r.area ? ` delivered to ${esc(r.area)}` : ''}.</p>
+<p>${r.summary.map(esc).join('<br>')}${r.lines > r.summary.length ? `<br>and ${r.lines - r.summary.length} more` : ''}</p>
+<p>Reference: ${esc(r.reference)}<br>
+${r.neededBy ? `Needed by: ${esc(ukDate(r.neededBy))}<br>` : ''}Prices wanted by: <strong>${esc(dateTime(r.closesAt))}</strong></p>
+<p>${button(link, 'See the full list and price it')}</p>
+<p style="color:#777;font-size:13px">No login needed: the button takes you straight to this request. Price what you can, offer alternatives where you are short, or tell them you cannot quote. Please keep this email, as the link is only for you.</p>`,
+    'quote-request'
+  );
+}
+
+export async function emailSupplierQuoteReminder(to: string, supplierName: string, reference: string, tradingName: string, closesAt: string, link: string) {
+  await send(
+    to,
+    `Reminder: prices for ${tradingName} wanted by ${dateTime(closesAt)}`,
+    `<p>Hello ${esc(supplierName)},</p>
+<p>${esc(tradingName)} is still waiting for your prices for <strong>${esc(reference)}</strong>. Prices are wanted by ${esc(dateTime(closesAt))}.</p>
+<p>${button(link, 'Price the list')}</p>
+<p style="color:#777;font-size:13px">If you cannot supply this one, press "We cannot quote" on the page and we will not remind you again.</p>`,
+    'quote-reminder'
+  );
+}
+
+export async function emailMemberQuoteIn(to: string, contactName: string, reference: string, supplierName: string, quoted: number, invited: number, url: string) {
+  await send(
+    to,
+    `${supplierName} has priced ${reference}`,
+    `<p>Hi ${esc(contactName)},</p>
+<p><strong>${esc(supplierName)}</strong> has sent prices for <strong>${esc(reference)}</strong>. That is ${quoted} of ${invited} supplier${invited === 1 ? '' : 's'} so far.</p>
+<p>${button(url, 'Compare prices')}</p>`,
+    'quote-in'
+  );
+}
+
+export async function emailMemberQuotesClosed(to: string, contactName: string, reference: string, quoted: number, invited: number, url: string) {
+  await send(
+    to,
+    quoted ? `Your prices are in: ${reference}` : `No prices came back for ${reference}`,
+    `<p>Hi ${esc(contactName)},</p>
+<p>The deadline for <strong>${esc(reference)}</strong> has passed. ${quoted} of ${invited} supplier${invited === 1 ? '' : 's'} sent prices.${quoted ? ' Compare them side by side and accept the one you want.' : ' You can send the list again to more suppliers from the request page.'}</p>
+<p>${button(url, quoted ? 'Compare prices' : 'Open the request')}</p>`,
+    'quote-closed'
+  );
+}
+
+export type WonContact = { tradingName: string; contactName: string; email: string; phone: string | null; deliveryPostcode: string; neededBy: string | null; deliveryNotes: string | null };
+
+export async function emailSupplierWon(to: string, supplierName: string, reference: string, c: WonContact, link: string) {
+  await send(
+    to,
+    `${c.tradingName} has accepted your prices: ${reference}`,
+    `<p>Hello ${esc(supplierName)},</p>
+<p>Good news. <strong>${esc(c.tradingName)}</strong> has accepted your prices for <strong>${esc(reference)}</strong>. Please get in touch with them to confirm the order, delivery and payment.</p>
+<p>${esc(c.contactName)}<br>
+<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>${c.phone ? `<br>${esc(c.phone)}` : ''}<br>
+Delivery to: ${esc(c.deliveryPostcode)}${c.neededBy ? `<br>Needed by: ${esc(ukDate(c.neededBy))}` : ''}</p>
+${c.deliveryNotes ? `<p>Delivery notes: ${para(c.deliveryNotes)}</p>` : ''}
+<p>${button(link, 'See your quote')}</p>
+<p style="color:#777;font-size:13px">The order is between you and the buyer. The Little Green Book does not take payment or deliveries. After delivery the buyer can rate you, and ratings show on your supplier listing.</p>`,
+    'quote-won'
+  );
+}
+
+export async function emailSupplierLost(to: string, supplierName: string, reference: string, tradingName: string) {
+  await send(
+    to,
+    `${tradingName} has placed ${reference} elsewhere`,
+    `<p>Hello ${esc(supplierName)},</p>
+<p>Thank you for pricing <strong>${esc(reference)}</strong>. ${esc(tradingName)} has gone with another supplier this time.</p>`,
+    'quote-lost'
+  );
+}
+
+export async function emailAdminNewPriceRequest(r: { reference: string; tradingName: string; lines: number; suppliers: string[] }) {
+  await send(
+    adminList(),
+    `Price request sent: ${r.tradingName}, ${r.reference}`,
+    `<p><strong>${esc(r.tradingName)}</strong> sent a price request (${r.lines} item${r.lines === 1 ? '' : 's'}) to ${r.suppliers.length} supplier${r.suppliers.length === 1 ? '' : 's'}:</p>
+<p>${r.suppliers.map(esc).join('<br>')}</p>`,
+    'admin-quote'
+  );
+}
+
+export async function emailAdminPriceRequestShort(r: { reference: string; tradingName: string; categories: string[]; postcode: string; found: number }) {
+  await send(
+    adminList(),
+    `Not enough suppliers for a price request: ${r.tradingName}`,
+    `<p><strong>${esc(r.tradingName)}</strong> tried to get prices for ${esc(r.categories.join(', '))} delivered to ${esc(r.postcode)}, and only ${r.found} supplier${r.found === 1 ? '' : 's'} taking price requests cover that.</p>
+<p>Worth signing up more suppliers for that area. <a href="${siteUrl()}/admin/resources">Supplier admin</a></p>`,
+    'admin-quote'
   );
 }

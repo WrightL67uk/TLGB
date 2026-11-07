@@ -17,11 +17,14 @@ function Act({ table, id, action, label }: { table: string; id: string; action: 
   );
 }
 
-export default async function AdminResources() {
-  const [{ data: pending }, { data: enquiries }, { data: help }] = await Promise.all([
-    db().from('suppliers').select('id, created_at, name, categories, description, website, phone, town, postcode, email').eq('status', 'pending').order('created_at'),
+export default async function AdminResources({ searchParams }: { searchParams: Promise<{ supplier_error?: string }> }) {
+  const sp = await searchParams;
+  const [{ data: pending }, { data: enquiries }, { data: help }, { data: approved }, { data: requests }] = await Promise.all([
+    db().from('suppliers').select('id, created_at, name, categories, description, website, phone, town, postcode, email, wants_requests').eq('status', 'pending').order('created_at'),
     db().from('service_enquiries').select('id, created_at, service, name, business_name, email, phone, schemes, message, handled').order('created_at', { ascending: false }).limit(100),
     db().from('help_requests').select('id, created_at, email, business_name, kind, title, status').eq('status', 'open').order('created_at', { ascending: false }).limit(100),
+    db().from('suppliers').select('id, name, town, email, categories, quote_requests, quote_plan, quote_paid_until, wants_requests').eq('status', 'approved').order('name'),
+    db().from('quote_requests').select('id, created_at, reference, postcode, status').order('created_at', { ascending: false }).limit(20),
   ]);
 
   return (
@@ -37,12 +40,43 @@ export default async function AdminResources() {
           {s.description}<br />
           {s.website && <><a href={s.website} target="_blank" rel="noopener">{s.website}</a> &middot; </>}
           {s.phone} &middot; {s.town} {s.postcode} &middot; submitted by {s.email} on {ukDate(s.created_at)}
+          {s.wants_requests && <><br /><strong>Wants price requests.</strong> Switch them on below once approved.</>}
           <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
             <Act table="suppliers" id={s.id} action="approve" label="Approve" />
             <Act table="suppliers" id={s.id} action="reject" label="Reject" />
           </div>
         </div>
       ))}
+
+      <h2 id="price-requests">Price requests: which suppliers receive them</h2>
+      <p className="muted">Suppliers need an email address and a plan to receive price requests. Founding is free; paid needs a &quot;paid until&quot; date and stops after it.</p>
+      {sp.supplier_error && <p className="err big">{sp.supplier_error}</p>}
+      <table className="table">
+        <thead><tr><th>Supplier</th><th>Email for requests</th><th>Plan</th><th>Paid until</th><th></th></tr></thead>
+        <tbody>
+          {approved?.map((s) => (
+            <tr key={s.id}>
+              <td><strong>{s.name}</strong>{s.town ? `, ${s.town}` : ''}<br /><span className="muted small">{s.categories.map(supplierCategoryLabel).join(', ')}</span>{s.wants_requests && !s.quote_requests && <><br /><strong className="small">Asked for price requests</strong></>}</td>
+              <td colSpan={4}>
+                <form method="post" action="/api/admin/suppliers" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <input type="hidden" name="id" value={s.id} />
+                  <input name="email" type="email" defaultValue={s.email ?? ''} placeholder="sales@..." style={{ minWidth: 200 }} />
+                  <select name="plan" defaultValue={s.quote_requests ? s.quote_plan ?? 'founding' : 'off'}>
+                    <option value="off">Off</option>
+                    <option value="founding">Founding (free)</option>
+                    <option value="paid">Paid</option>
+                  </select>
+                  <input name="paid_until" type="date" defaultValue={s.quote_paid_until ?? ''} />
+                  <button type="submit">Save</button>
+                </form>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <h3>Latest price requests</h3>
+      {!requests?.length && <p className="muted">None yet.</p>}
+      {requests?.map((q) => <p key={q.id} style={{ margin: '2px 0' }}>{ukDate(q.created_at)}: {q.reference} ({q.postcode}), {q.status}</p>)}
 
       <h2>Accreditation help enquiries</h2>
       {!enquiries?.length && <p className="muted">None yet.</p>}

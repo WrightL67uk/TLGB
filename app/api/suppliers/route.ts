@@ -46,11 +46,12 @@ export async function POST(req: NextRequest) {
     status: 'pending', name: s.name, categories: s.categories, description: s.description, website,
     phone: s.phone ?? null, town: s.town ?? null, ...pos, delivers_nationally: fd.get('delivers_nationally') === '1',
     email: s.email, submitted_by: s.email,
+    wants_requests: fd.get('wants_requests') === '1', marketing_ok: fd.get('no_marketing') !== '1',
   });
   if (error) {
     console.error('supplier save failed', error);
     return back(req, 'error=' + encodeURIComponent('Something went wrong. Please try again.'));
   }
-  await emailAdminSupplierSubmission(s.name, website, s.email);
+  await emailAdminSupplierSubmission(s.name, website, s.email, fd.get('wants_requests') === '1');
   return back(req, 'sent=1');
 }

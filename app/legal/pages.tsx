@@ -46,6 +46,9 @@ export const LEGAL_PAGES: LegalPage[] = [
         <p>Anyone looking for work can post a free job seeker profile. Profiles are written by the job seekers themselves; we do not check skills, cards, qualifications, references or right to work. We are not an employment agency or employment business: we do not find work for job seekers, put forward candidates, or take part in any hiring. Anyone hiring must make their own checks, including right to work checks, and follow employment and equality law.</p>
         <p>Job seekers must keep their profile accurate and must not include their date of birth, national insurance number, bank details or anything about their health. Employers who see a job seeker&rsquo;s contact details may use them only to talk to that person about work, and must not add them to mailing lists or pass them on.</p>
 
+        <h2>6A. Price requests to suppliers</h2>
+        <p>Members can send a list of plants or materials to suppliers who have asked to receive price requests. We pass the request on; we are not a party to any quote, order or sale. Prices, stock, delivery, payment and returns are agreed between the buyer and the supplier, and we are not responsible for them. Suppliers&rsquo; prices are their own and are shown to the member who asked. Members who accept a quote can rate the supplier; ratings must be honest, based on that order, and must follow the acceptable use policy. We may hide ratings that do not.</p>
+
         <h2>7. Content you add</h2>
         <p>You are responsible for what you put on the website, including listings, documents, PQQ answers, help board posts, job posts, job seeker profiles and replies. You must have the right to share it, it must be accurate, and it must not break the <Link href="/legal/acceptable-use">acceptable use policy</Link>. You let us host, copy, display and send it as needed to run the service. You keep any ownership you have in it.</p>
         <p>We may edit, hide or remove anything that we reasonably think breaks these terms or the law, and suspend accounts that do.</p>
@@ -116,6 +119,9 @@ export const LEGAL_PAGES: LegalPage[] = [
 
         <h2>8. Job seekers</h2>
         <p>Paying members can see the names and contact details of people who have posted a job seeker profile. Use them only to talk to that person about work, do not pass them on, and make your own checks, including right to work, before taking anyone on.</p>
+
+        <h2>8A. Price requests</h2>
+        <p>Paying members can send price requests to suppliers. Only send requests for genuine requirements, and do not use them to collect prices for resale or to send unrequested marketing. When you accept a quote we send the supplier your business name, contact name, email, phone, delivery postcode and delivery notes so they can confirm the order with you. The order is between you and the supplier. If you rate a supplier, your rating must be honest and based on that order.</p>
 
         <h2>9. Ending or suspending a listing</h2>
         <p>We may suspend or remove a listing, without refund, if you give false or misleading information or documents, if your insurance lapses and is not renewed, if you seriously or repeatedly break these terms or the acceptable use policy, or if we receive credible evidence of conduct that puts others at risk. Where it is reasonable to do so, we will tell you why and give you a chance to put things right.</p>
@@ -192,6 +198,8 @@ export const LEGAL_PAGES: LegalPage[] = [
           <li><strong>Compliance pack documents, PQQ answers and project references</strong> that you choose to add. These can include personal data about your staff (for example training records) and your referees. <em>Why:</em> to store and share them as you instruct (contract). You are responsible for having the right to share them.</li>
           <li><strong>Team and training records</strong> you choose to add: your staff&rsquo;s names, roles, cards and qualifications, card numbers and dates. <em>Why:</em> to remind you before they expire, build your training matrix and share it as you instruct (contract). You are responsible for telling your staff.</li>
           <li><strong>Payment tracker records</strong> you choose to add: jobs, contractors and their contacts, applications, amounts, dates and retentions. <em>Why:</em> to work out deadlines, send your alerts and prepare your letters (contract).</li>
+          <li><strong>Price requests</strong> you send: your list, delivery postcode, dates, delivery notes, the prices suppliers send back and any rating you give. <em>Why:</em> to send your request and show you the prices (contract). Suppliers see your business name and delivery area; when you accept a quote, that supplier also gets your contact name, email, phone, delivery postcode and delivery notes.</li>
+          <li><strong>Suppliers who receive price requests:</strong> the email address requests go to, the prices and notes you send, and ratings members give you, which show on your public supplier listing. <em>Why:</em> to run the service (contract and legitimate interests).</li>
           <li><strong>Membership and payment records:</strong> plan, status, renewal dates and Stripe customer references. Card details are handled by Stripe, not us. <em>Why:</em> contract, and keeping accounting records (legal obligation).</li>
         </ul>
         <h3>Main contractors</h3>
@@ -217,7 +225,8 @@ export const LEGAL_PAGES: LegalPage[] = [
         <p>A member&rsquo;s listing is public: business name, trades, contact name, phone, email, website, base postcode and area covered, photos, and a summary of checked insurance and accreditations. Jobs posted by contractors are visible in summary to the public and in full to members and invited trades. Help board posts are visible to logged-in members. Job seeker profiles are visible to anyone without the person&rsquo;s name or contact details, and only the first half of their postcode is shown; paying members and approved main contractors also see their name and the contact details they chose to show. Compliance packs are private and only seen through share links the member creates or attaches to a reply.</p>
 
         <h2>4. Emails we send</h2>
-        <p>We send emails needed to run your account: login links, application decisions, renewal and expiry reminders (including for your team&rsquo;s cards), document check results, paperwork alerts about trades on a contractor&rsquo;s shortlist, reminders to job seekers before their profile comes off the board, replies to your jobs and, for members, jobs from main contractors that match your listing. Members can turn job emails off on their listing page. We do not send marketing emails or sell or share your details for others&rsquo; marketing. If we start sending newsletters, we will only do so as the law allows and you will be able to opt out.</p>
+        <p>We send emails needed to run your account: login links, application decisions, renewal and expiry reminders (including for your team&rsquo;s cards), document check results, paperwork alerts about trades on a contractor&rsquo;s shortlist, reminders to job seekers before their profile comes off the board, replies to your jobs, price requests and the quotes that come back, and, for members, jobs from main contractors that match your listing. Members can turn job emails off on their listing page.</p>
+        <p>We may also email businesses that list with us about new Little Green Book services. We only do this as the law allows, every such email has an unsubscribe link, and suppliers can opt out when they sign up. We do not sell your details or share them for anyone else&rsquo;s marketing.</p>
 
         <h2>5. Who we share it with</h2>
         <p>We use these service providers, who act on our instructions under data processing terms:</p>
@@ -238,6 +247,7 @@ export const LEGAL_PAGES: LegalPage[] = [
           <li>Compliance pack documents and team training records: deleted automatically 90 days after a paid membership ends, or straight away when you delete them.</li>
           <li>Job seeker profiles: deleted straight away when you delete them; unfinished profiles after 90 days; any other profile after 12 months without an update.</li>
           <li>Contractor jobs, drawings, invitations and replies: deleted automatically two years after the job was last updated.</li>
+          <li>Price requests, quotes and ratings: kept while the member&rsquo;s listing is active so they can look back at past prices, then deleted with the listing.</li>
           <li>Login links: expire after 30 minutes. Sessions: expire after 30 days. Both are then deleted.</li>
           <li>Listings and contractor accounts: kept while active, and for up to two years after they end so we can deal with questions, then deleted or anonymised. You can ask us to delete them sooner.</li>
           <li>Payment and invoice records: six years, as required for tax.</li>
