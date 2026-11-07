@@ -654,3 +654,26 @@ export async function emailAdminSeekerReport(s: { id: string; name: string }, by
     'seeker-report'
   );
 }
+
+// ---------------------------------------------------------------
+// Free Pro from a marketing code
+// ---------------------------------------------------------------
+
+/** Sent 60 and 30 days before free Pro from a code ends, so the member can choose to keep it. */
+export async function emailProEnding(m: { email: string; contactName: string; tradingName: string; businessId: string }, until: string, days: number, prices: { verified: number; pro: number }, leads: number) {
+  await send(
+    m.email,
+    days <= 30 ? `Your free Pro ends in ${days} days` : `Your free Pro ends on ${ukDate(until.slice(0, 10))}`,
+    `<p>Hi ${esc(m.contactName)},</p>
+<p>The free Pro upgrade for <strong>${esc(m.tradingName)}</strong> ends on <strong>${ukDate(until.slice(0, 10))}</strong>.</p>
+<p>After that your membership carries on as Verified at &pound;${prices.verified} a year, and you lose:</p>
+<ul>
+<li>the full tender board${leads > 0 ? `, with ${leads} new leads added in the last 90 days` : ''}</li>
+<li>the supply chain finder</li>
+<li>top placement when contractors search for your trade in your area</li>
+</ul>
+<p>To keep Pro, press <strong>Keep Pro when I renew</strong> on your listing. There is nothing to pay now; your renewal is simply &pound;${prices.pro} instead of &pound;${prices.verified}.</p>
+<p>${button(`${siteUrl()}/account/${m.businessId}`, 'Keep Pro')}</p>`,
+    'pro-ending'
+  );
+}

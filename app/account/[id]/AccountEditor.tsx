@@ -136,7 +136,7 @@ export default function AccountEditor({ b, docs, photos }: Props) {
           <label htmlFor="turnover_band">Annual turnover
             <select id="turnover_band" name="turnover_band" defaultValue={b.turnover_band} required>
               <option value="" disabled>Choose</option>
-              {TURNOVER_BANDS.map((t) => <option key={t.key} value={t.key}>{t.label} (£{t.price} a year)</option>)}
+              {TURNOVER_BANDS.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
             </select>
           </label>
           <label htmlFor="description">About your business

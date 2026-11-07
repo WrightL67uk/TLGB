@@ -4,13 +4,18 @@ import { sameOrigin } from '@/lib/session';
 import { ownedBusiness } from '@/lib/account';
 import { isPaid } from '@/lib/membership';
 import { stripe, stripeEnabled } from '@/lib/stripe';
-import { siteUrl, turnoverBand } from '@/lib/config';
+import { siteUrl } from '@/lib/config';
+import { MEMBER_PLANS, planKey, checkCode } from '@/lib/plans';
 
 export const runtime = 'nodejs';
 
 const back = (req: NextRequest, id: string, q: string) => NextResponse.redirect(new URL(`/account/${id}?${q}`, req.url), 303);
 
-/** Sends an approved trade to Stripe's payment page for a yearly listing at their turnover band price. */
+/**
+ * Sends an approved trade to Stripe's payment page for a yearly Verified or Pro membership.
+ * A marketing code charges the Verified price and switches Pro on free for the code's months
+ * once the payment goes through (see the Stripe webhook).
+ */
 export async function POST(req: NextRequest) {
   const fd = await req.formData().catch(() => null);
   const id = String(fd?.get('business_id') ?? '');
@@ -22,8 +27,15 @@ export async function POST(req: NextRequest) {
   if (!stripeEnabled()) return back(req, id, 'billing=' + encodeURIComponent('Online payment is not switched on yet. We will be in touch.'));
   if (b.status !== 'approved') return back(req, id, 'billing=' + encodeURIComponent('You can pay once your listing has been approved.'));
   if (isPaid(b)) return back(req, id, 'billing=' + encodeURIComponent('Your membership is already active.'));
-  const band = turnoverBand(b.turnover_band);
-  if (!band) return back(req, id, 'billing=' + encodeURIComponent('Choose your annual turnover below and save, then try again.'));
+  const rawCode = String(fd?.get('code') ?? '').trim();
+  let code: string | null = null;
+  if (rawCode) {
+    const check = await checkCode(rawCode, b.id);
+    if (!check.ok) return back(req, id, 'billing=' + encodeURIComponent(check.reason));
+    code = check.code;
+  }
+  // A code always goes with Verified: they pay the Verified price and get Pro free
+  const plan = code ? MEMBER_PLANS.verified : MEMBER_PLANS[planKey(fd?.get('plan'))];
 
   try {
     let customer = b.stripe_customer_id;
@@ -46,18 +58,19 @@ export async function POST(req: NextRequest) {
         quantity: 1,
         price_data: {
           currency: 'gbp',
-          unit_amount: band.price * 100,
+          unit_amount: plan.price * 100,
           recurring: { interval: 'year' },
-          product_data: { name: `The Little Green Book listing (${band.label} turnover)` },
+          product_data: { name: `The Little Green Book ${plan.label} membership` },
           ...(tax ? { tax_behavior: 'exclusive' } : {}),
         },
       }],
       subscription_data: {
-        metadata: { business_id: b.id },
+        metadata: { business_id: b.id, plan: plan.key, ...(code ? { promo_code: code } : {}) },
         ...(trial > 0 ? { trial_period_days: trial } : {}),
       },
-      metadata: { business_id: b.id },
-      allow_promotion_codes: 'true',
+      metadata: { business_id: b.id, plan: plan.key, ...(code ? { promo_code: code } : {}) },
+      // Our own codes and Stripe's discount codes don't stack
+      ...(code ? {} : { allow_promotion_codes: 'true' }),
       billing_address_collection: 'auto',
       customer_update: { address: 'auto', name: 'auto' },
       ...(tax ? { automatic_tax: { enabled: 'true' }, tax_id_collection: { enabled: 'true' } } : {}),

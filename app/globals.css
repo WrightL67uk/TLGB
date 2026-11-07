@@ -276,3 +276,11 @@ section > .verified-warning, main > div > .verified-warning { margin: 0 0 16px; 
 .pack-check { border-top: 1px solid var(--line); padding: 10px 0; }
 .pack-check .inline { flex-wrap: wrap; }
 .pack-check .inline input { width: auto; flex: 1 1 160px; }
+
+/* Membership plan choice on the listing page */
+.plan-choice { border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 14px; margin: 0 0 12px; display: grid; gap: 10px; }
+.plan-choice legend { font-weight: 700; padding: 0 4px; }
+.plan-choice label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.plan-choice input { margin-top: 5px; }
+.code-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; }
+.code-row input { text-transform: uppercase; max-width: 160px; }

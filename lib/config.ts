@@ -144,3 +144,10 @@ export const siteUrl = () => process.env.SITE_URL ?? 'http://localhost:3000';
 
 export const gbp = (n: number | null | undefined) =>
   n == null ? 'Not given' : `£${(n / 1_000_000).toLocaleString('en-GB')}m`;
+
+// Membership plans for trades. Prices are yearly, in pounds. Turnover bands are still asked
+// for, but no longer set the price.
+export const MEMBER_PLANS = {
+  verified: { key: 'verified', label: 'Verified', price: 295 },
+  pro: { key: 'pro', label: 'Pro', price: 595 },
+} as const;

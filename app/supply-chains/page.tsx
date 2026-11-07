@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic';
 export default async function SupplyChainsPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
   const m = await getMembership();
-  if (!m.paid) return <MembersOnly loggedIn={m.loggedIn} approved={m.approved} unpaidId={m.unpaidId} />;
+  if (!m.pro) return <MembersOnly loggedIn={m.loggedIn} approved={m.approved} paid={m.paid} unpaidId={m.unpaidId} />;
   const q = (sp.q ?? '').trim().toLowerCase().slice(0, 80);
   const group = GROUPS.includes(sp.group as ChainGroup) ? (sp.group as ChainGroup) : '';
   const rows = SUPPLY_CHAINS.filter(
@@ -77,26 +77,28 @@ export default async function SupplyChainsPage({ searchParams }: { searchParams:
   );
 }
 
-function MembersOnly({ loggedIn, approved, unpaidId }: { loggedIn: boolean; approved: boolean; unpaidId: string | null }) {
+function MembersOnly({ loggedIn, approved, paid, unpaidId }: { loggedIn: boolean; approved: boolean; paid: boolean; unpaidId: string | null }) {
   return (
     <div>
       <h1>Supply chain finder</h1>
       <p className="lead">
         Where to register to get onto approved supplier lists: main contractors, housebuilders, tender portals, frameworks and
-        the accreditations they ask for. Included with every paid Little Green Book membership.
+        the accreditations they ask for. Included with Pro membership.
       </p>
       <div className="lead-gate" style={{ margin: '0 0 24px' }}>
-        <h2>{SUPPLY_CHAINS.length} supply chain and tender links for members</h2>
+        <h2>{SUPPLY_CHAINS.length} supply chain and tender links for Pro members</h2>
         <p>
           {!loggedIn
-            ? 'List your business to get the supply chain finder, the full leads feed and the help board.'
-            : approved
-              ? 'Start your membership to use the supply chain finder.'
+            ? 'List your business and choose Pro to get the supply chain finder and the full tender board.'
+            : paid
+              ? 'The supply chain finder is part of Pro. Upgrade from your listing page to use it.'
+              : approved
+              ? 'Choose Pro membership to use the supply chain finder.'
               : 'Your listing needs to be approved before you can start your membership.'}
         </p>
         <div className="gate-btns">
           {loggedIn
-            ? <Link href={unpaidId ? `/account/${unpaidId}` : '/account'} className="sq sq-rust">{approved ? 'start membership' : 'check my listing'}</Link>
+            ? <Link href={unpaidId ? `/account/${unpaidId}` : '/account'} className="sq sq-rust">{paid ? 'upgrade to pro' : approved ? 'start membership' : 'check my listing'}</Link>
             : <>
                 <Link href="/join" className="sq sq-rust">list your business</Link>
                 <Link href="/login?next=/supply-chains" className="sq sq-ghost">log in</Link>

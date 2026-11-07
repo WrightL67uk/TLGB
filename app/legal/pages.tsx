@@ -82,16 +82,17 @@ export const LEGAL_PAGES: LegalPage[] = [
         <p>You must keep your details up to date, and tell us promptly if your insurance or an accreditation ends, lapses or is suspended. When you change certain details, we check them again; your listing stays live meanwhile unless there is a problem.</p>
 
         <h2>3. What membership includes</h2>
-        <p>Membership gives you a verified listing in search, the full leads feed, jobs posted by main contractors, the supply chain finder, the help board, the compliance pack, the PQQ answer bank, the payment tracker and our document templates, as described on the website at the time. Features may change over time; if we remove a major feature, you may cancel and we will refund the unused part of your fee.</p>
+        <p>There are two memberships. <strong>Verified</strong> gives you a verified listing in search, jobs posted by main contractors, the help board, the compliance pack, the PQQ answer bank, the payment tracker and our document templates. <strong>Pro</strong> adds the full tender board, the supply chain finder and higher placement in search results. Both are as described on the website at the time. Features may change over time; if we remove a major feature, you may cancel and we will refund the unused part of your fee.</p>
 
         <h2>4. Fees, renewal and payment</h2>
         <ul>
-          <li>Membership is a yearly subscription. The price depends on your turnover band and is shown before you pay. Prices include VAT only where stated.</li>
+          <li>Membership is a yearly subscription. The price depends on whether you choose Verified or Pro and is shown before you pay. Prices include VAT only where stated.</li>
+          <li>We may give out codes that add Pro free for a set time, usually 12 months, when you pay for Verified. Each code has a closing date and may be limited in number. A listing can use one code only, and codes cannot be combined with other offers or exchanged for money. When the free time ends, your membership carries on as Verified at the Verified price unless you choose to keep Pro.</li>
           <li>You pay by card through our payment provider, Stripe. We never see or store your full card details.</li>
           <li>Your membership renews automatically each year on the same date unless you cancel. We will remind you before renewal.</li>
           <li>We may change prices for future years. We will tell you at least 30 days before your renewal, and you can cancel before the new price applies.</li>
           <li>If a payment fails, we will try again and email you. If it is still unpaid, your listing shows as &ldquo;Unverified&rdquo; and member tools stop until it is paid.</li>
-          <li>If you correctly told us you are in a lower turnover band, you pay that band&rsquo;s price. If your turnover moves into a higher band, please update it before your next renewal.</li>
+          <li>You can move from Verified to Pro at any time. If you are paying for Verified, you pay the difference for the rest of your membership year when you upgrade.</li>
         </ul>
         <p>Founding members who were offered free membership keep the features they had at the time free for as long as that offer says.</p>
 

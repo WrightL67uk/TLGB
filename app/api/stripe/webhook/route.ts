@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
 import { stripe, verifyWebhook, mapStatus, periodEnd } from '@/lib/stripe';
 import { emailAdminBilling, emailMemberPaymentFailed } from '@/lib/email';
+import { redeemCode } from '@/lib/plans';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,11 +26,20 @@ async function applySubscription(sub: Json) {
     stripe_customer_id: typeof sub.customer === 'string' ? sub.customer : sub.customer?.id,
     subscription_status: status,
     paid_until: periodEnd(sub),
+    ...(sub.metadata?.plan === 'pro' || sub.metadata?.plan === 'verified' ? { plan: sub.metadata.plan } : {}),
   }).eq('id', b.id);
+  // A marketing code switches Pro on once the first payment (or trial) has started
+  if (sub.metadata?.promo_code && (status === 'active' || status === 'trialing')) {
+    const until = await redeemCode(b.id, sub.metadata.promo_code);
+    if (until) {
+      await db().from('review_events').insert({ business_id: b.id, action: 'billing', actor: 'stripe', detail: `Code ${sub.metadata.promo_code}: Pro free until ${until.slice(0, 10)}` });
+      await emailAdminBilling(`Code used: ${sub.metadata.promo_code}`, `${b.trading_name} joined with code ${sub.metadata.promo_code} and has Pro free for a year.`, b.id);
+    }
+  }
   if (status !== b.subscription_status) {
     await db().from('review_events').insert({ business_id: b.id, action: 'billing', actor: 'stripe', detail: `Membership ${b.subscription_status} to ${status}` });
     if (status === 'active' && (b.subscription_status === 'none' || b.subscription_status === 'cancelled')) {
-      await emailAdminBilling(`New paying member: ${b.trading_name}`, `${b.trading_name} has started a paid membership.`, b.id);
+      await emailAdminBilling(`New paying member: ${b.trading_name}`, `${b.trading_name} has started a paid ${sub.metadata?.plan === 'pro' ? 'Pro' : 'Verified'} membership.`, b.id);
     }
     if (status === 'trialing' && b.subscription_status === 'none') {
       await emailAdminBilling(`New member on trial: ${b.trading_name}`, `${b.trading_name} has started a membership trial.`, b.id);

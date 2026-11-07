@@ -129,7 +129,7 @@ export default async function AdminDetail({
           <p>Base {b.base_postcode}, travels {b.radius_miles} miles</p>
           <p>{b.trades.map(tradeLabel).join(', ')}</p>
           <p>Turnover: {turnoverBand(b.turnover_band)?.label ?? 'not given'}
-            {turnoverBand(b.turnover_band) && <span className="muted"> (listing £{turnoverBand(b.turnover_band)!.price}/yr)</span>}</p>
+            <span className="muted"> ({b.founding_member ? 'founding member' : `${b.plan === 'pro' ? 'Pro' : 'Verified'}${b.pro_until && new Date(b.pro_until) > new Date() && b.plan !== 'pro' ? `, free Pro until ${new Date(b.pro_until).toLocaleDateString('en-GB')}${b.promo_code ? ` (${b.promo_code})` : ''}` : ''}`})</span></p>
         </section>
 
         <section className="panel">

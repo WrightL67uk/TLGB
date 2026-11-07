@@ -47,8 +47,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
   const sp = await searchParams;
   const m = await getMembership();
   const email = m.email;
-  // Only paying (or founding) members get the full feed; everyone else sees a sample
-  const loggedIn = m.paid;
+  // Only Pro members (paid, free from a code, or founding) get the full tender board; everyone else sees a sample
+  const loggedIn = m.pro;
 
   // A logged-in trade sees leads matched to their listing by default
   const { data: mine } = loggedIn
@@ -216,16 +216,18 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
               <h2>{leads.length - 1} more {leads.length - 1 === 1 ? 'lead' : 'leads'} {trade || region || type ? 'match this search' : 'live now'}</h2>
               {m.loggedIn ? (
                 <>
-                  <p>{m.approved
-                    ? 'Start your membership to get the full leads feed, matched to your trades and the area you cover.'
-                    : 'Your listing is waiting for approval. Once it is approved you can start your membership and see every lead.'}</p>
+                  <p>{m.paid
+                    ? 'The full tender board is part of Pro. Upgrade to see every lead, matched to your trades and the area you cover.'
+                    : m.approved
+                    ? 'Choose Pro membership to get the full tender board, matched to your trades and the area you cover.'
+                    : 'Your listing is waiting for approval. Once it is approved you can choose Pro and see every lead.'}</p>
                   <div className="gate-btns">
-                    <Link href={m.unpaidId ? `/account/${m.unpaidId}` : '/account'} className="sq sq-rust">{m.approved ? 'start membership' : 'check my listing'}</Link>
+                    <Link href={m.unpaidId ? `/account/${m.unpaidId}` : '/account'} className="sq sq-rust">{m.paid ? 'upgrade to pro' : m.approved ? 'start membership' : 'check my listing'}</Link>
                   </div>
                 </>
               ) : (
                 <>
-                  <p>Members get the full leads feed, matched to their trades and the area they cover.</p>
+                  <p>Pro members get the full tender board, matched to their trades and the area they cover.</p>
                   <div className="gate-btns">
                     <Link href="/join" className="sq sq-rust">list your business</Link>
                     <Link href="/login?next=/leads" className="sq sq-ghost">log in</Link>

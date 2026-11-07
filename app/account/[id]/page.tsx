@@ -7,7 +7,7 @@ import { expiryItems, daysUntil, fmtDate } from '@/lib/expiries';
 import { isPaid, unverifiedReason, type Pending } from '@/lib/membership';
 import { accreditationLabel } from '@/lib/config';
 import { stripeEnabled } from '@/lib/stripe';
-import { turnoverBand } from '@/lib/config';
+import { MEMBER_PLANS, hasPro, freeProUntil } from '@/lib/plans';
 import { CORE_COUNT, DOC_TYPES } from '@/lib/complianceTypes';
 import { PQQ_COUNTABLE } from '@/lib/pqq';
 import '../../compliance.css';
@@ -109,14 +109,27 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
           {justPaid && <p className="ok-box">Thank you. Your payment has gone through and your membership will show as active in a moment.</p>}
           {billingMsg && <p className="warn">{billingMsg}</p>}
           {b.founding_member ? (
-            <p><span className="status approved">Founding member</span> Your listing and every member tool are free.</p>
+            <p><span className="status approved">Founding member</span> Your listing and every member tool, including Pro, are free.</p>
           ) : isPaid(b) ? (
             <>
               <p>
                 <span className="status approved">{b.subscription_status === 'trialing' ? 'Free trial' : b.subscription_status === 'past_due' ? 'Payment due' : 'Active'}</span>{' '}
+                <strong>{hasPro(b) ? 'Pro' : 'Verified'}</strong>{' '}
                 {b.paid_until && <>{b.subscription_status === 'trialing' ? 'Trial ends' : 'Renews'} on {fmt(b.paid_until)}.</>}
                 {b.subscription_status === 'past_due' && <> Your last payment did not go through. Update your card to keep your listing live.</>}
               </p>
+              {freeProUntil(b) && (
+                <p className="ok-box">You have Pro free until <strong>{fmt(freeProUntil(b)!)}</strong>{b.promo_code ? <> with code {b.promo_code}</> : null}. After that your membership carries on as Verified unless you choose to keep Pro.</p>
+              )}
+              {b.plan !== 'pro' && stripeEnabled() && b.stripe_subscription_id && (
+                <form method="post" action="/api/billing/upgrade">
+                  <input type="hidden" name="business_id" value={b.id} />
+                  <button type="submit" className="primary">{freeProUntil(b) ? 'Keep Pro when I renew' : 'Upgrade to Pro'}</button>
+                  <span className="muted small">{freeProUntil(b)
+                    ? <> Nothing to pay now. Your renewal will be &pound;{MEMBER_PLANS.pro.price} a year instead of &pound;{MEMBER_PLANS.verified.price}.</>
+                    : <> &pound;{MEMBER_PLANS.pro.price} a year. You pay the difference for the rest of this year now.</>}</span>
+                </form>
+              )}
               {b.stripe_customer_id && (
                 <form method="post" action="/api/billing/portal">
                   <input type="hidden" name="business_id" value={b.id} />
@@ -128,12 +141,27 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
           ) : (
             <>
               <p>
-                {b.subscription_status === 'cancelled' ? 'Renew your membership to show as verified again' : 'Your listing is approved. Start your membership to appear in search'} and get the full leads feed, the supply chain finder and the help board.
-                {turnoverBand(b.turnover_band) && <> Your price is <strong>&pound;{turnoverBand(b.turnover_band)!.price} a year</strong> for the {turnoverBand(b.turnover_band)!.label} turnover band.</>}
+                {b.subscription_status === 'cancelled' ? 'Renew your membership to show as verified again.' : 'Your listing is approved. Choose a membership to appear in search as verified.'}
               </p>
               {stripeEnabled() ? (
-                <form method="post" action="/api/billing/checkout">
+                <form method="post" action="/api/billing/checkout" className="plan-form">
                   <input type="hidden" name="business_id" value={b.id} />
+                  <fieldset className="plan-choice">
+                    <legend>Membership</legend>
+                    <label>
+                      <input type="radio" name="plan" value="verified" defaultChecked />
+                      <span><strong>Verified, &pound;{MEMBER_PLANS.verified.price} a year.</strong> Checked badge, shown in contractor searches, job leads from main contractors, payment tracker, team records and expiry reminders.</span>
+                    </label>
+                    <label>
+                      <input type="radio" name="plan" value="pro" />
+                      <span><strong>Pro, &pound;{MEMBER_PLANS.pro.price} a year.</strong> Everything in Verified, plus the tender board and PQQ finder, and top placement in searches for your trade and area.</span>
+                    </label>
+                  </fieldset>
+                  <p className="code-row">
+                    <label htmlFor="promo-code">Got a code?</label>{' '}
+                    <input id="promo-code" name="code" autoComplete="off" maxLength={20} placeholder="e.g. TAPE12" />{' '}
+                    <span className="muted small">A code gives you Pro free for 12 months when you pay for Verified.</span>
+                  </p>
                   <button type="submit" className="primary">{b.subscription_status === 'cancelled' ? 'Renew membership' : 'Start membership'}</button>
                   <span className="muted small"> Secure card payment through Stripe. Renews yearly; cancel any time.</span>
                 </form>

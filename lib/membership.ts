@@ -1,10 +1,11 @@
 import 'server-only';
 import { db } from './supabase';
 import { getSessionEmail } from './session';
+import { hasPro } from './plans';
 
 export const PAID_STATUSES = ['active', 'trialing', 'past_due'];
 
-export type MemberRow = { id: string; status: string; founding_member: boolean; subscription_status: string };
+export type MemberRow = { id: string; status: string; founding_member: boolean; subscription_status: string; plan?: string | null; pro_until?: string | null };
 
 /** A listing counts as a paying member if it is approved and either free (founding) or subscribed. */
 export const isPaid = (b: Pick<MemberRow, 'status' | 'founding_member' | 'subscription_status'>) =>
@@ -15,16 +16,17 @@ export type Membership = {
   loggedIn: boolean;
   approved: boolean;   // has at least one approved listing
   paid: boolean;       // has at least one approved, paid listing
+  pro: boolean;        // has at least one approved, paid listing with Pro (paid or free from a code)
   unpaidId: string | null; // an approved listing that still needs paying for
 };
 
 /** Who is looking at the page, and what they have paid for. */
 export async function getMembership(): Promise<Membership> {
   const email = await getSessionEmail();
-  if (!email) return { email: null, loggedIn: false, approved: false, paid: false, unpaidId: null };
+  if (!email) return { email: null, loggedIn: false, approved: false, paid: false, pro: false, unpaidId: null };
   const { data } = await db()
     .from('businesses')
-    .select('id, status, founding_member, subscription_status')
+    .select('id, status, founding_member, subscription_status, plan, pro_until')
     .eq('email', email)
     .neq('status', 'draft');
   const rows = (data ?? []) as MemberRow[];
@@ -34,6 +36,7 @@ export async function getMembership(): Promise<Membership> {
     loggedIn: true,
     approved: approved.length > 0,
     paid: approved.some(isPaid),
+    pro: approved.some((r) => isPaid(r) && hasPro(r)),
     unpaidId: approved.find((r) => !isPaid(r))?.id ?? null,
   };
 }

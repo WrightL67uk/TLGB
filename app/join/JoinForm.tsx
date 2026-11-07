@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadToSignedUrl } from '@/lib/supabaseBrowser';
 import AccreditationPicker, { readAccreditationExpiries } from '@/app/AccreditationPicker';
-import { TRADES, TURNOVER_BANDS, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
+import { TRADES, TURNOVER_BANDS, PL_COVER_OPTIONS, MAX_PHOTOS, gbp, MEMBER_PLANS } from '@/lib/config';
 
 type CompanyInfo = { name: string; status: string; incorporatedOn: string | null; registeredAddress: string; companyNumber: string };
 type FileField = 'letterhead' | 'pl_certificate' | 'el_certificate' | 'accreditation_docs' | 'photos';
@@ -20,7 +20,6 @@ export default function JoinForm() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
   const [band, setBand] = useState('');
-  const price = TURNOVER_BANDS.find((b) => b.key === band)?.price;
 
   async function lookupCompany() {
     setChecking(true);
@@ -181,7 +180,7 @@ export default function JoinForm() {
               {TURNOVER_BANDS.map((b) => <option key={b.key} value={b.key}>{b.label}</option>)}
             </select>
             <span className="hint">
-              {price ? `Your listing: £${price} a year.` : 'Listing prices are banded by turnover, so smaller firms pay less.'}
+              {`Membership is £${MEMBER_PLANS.verified.price} a year for Verified or £${MEMBER_PLANS.pro.price} for Pro. You choose once your listing is approved.`}
             </span>
           </label>
         )}
