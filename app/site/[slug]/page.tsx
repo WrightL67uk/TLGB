@@ -23,7 +23,7 @@ export default async function SiteHome({ params }: { params: Promise<{ slug: str
           <div>
             {b.trades.length > 0 && <p className="ms-eyebrow">{site.areas ? site.areas.replace(/\.$/, '') : shortName(b)}</p>}
             <h1>{site.headline}</h1>
-            {site.intro && <p className="lead">{site.intro}</p>}
+            {site.intro && <p className="ms-lead">{site.intro}</p>}
             <a className="ms-btn go" href={`${ctx.base}/contact`}>Ask for a price</a>
             <a className="ms-btn ghost" href={`${ctx.base}/services`}>See our work</a>
           </div>

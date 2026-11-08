@@ -22,7 +22,7 @@ export default async function SiteContact({ params, searchParams }: { params: Pr
           <div>
             <p className="ms-eyebrow" style={{ color: 'var(--sa)' }}>Get a quote</p>
             <h2>Tell us about the job</h2>
-            <p className="sub">Send the site, the scope and your dates. Drawings or a bill of quantities help us price it accurately.</p>
+            <p className="ms-sub">Send the site, the scope and your dates. Drawings or a bill of quantities help us price it accurately.</p>
             {sp.sent && <div className="ms-ok"><strong>Thank you, we have your enquiry.</strong> We will be in touch soon.</div>}
             {sp.error && <div className="ms-err">{sp.error}</div>}
             {!sp.sent && (

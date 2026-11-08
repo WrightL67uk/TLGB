@@ -18,7 +18,7 @@ export default async function SiteServices({ params }: { params: Promise<{ slug:
         <div className="wrap">
           <p className="ms-eyebrow" style={{ color: 'var(--sa)' }}>Services</p>
           <h2>What we do</h2>
-          <p className="sub">{tradesText(b.trades).join(' · ')}</p>
+          <p className="ms-sub">{tradesText(b.trades).join(' · ')}</p>
           <div className="ms-grid3">
             {site.services.map((s) => <div key={s.title} className="ms-card"><h3>{s.title}</h3><p>{s.text}</p></div>)}
           </div>
@@ -46,7 +46,7 @@ export default async function SiteServices({ params }: { params: Promise<{ slug:
         <div className="wrap ms-split">
           <div>
             <h2>Where we work</h2>
-            <p className="sub" style={{ marginBottom: 0 }}>{site.areas}</p>
+            <p className="ms-sub" style={{ marginBottom: 0 }}>{site.areas}</p>
           </div>
           <div className="ms-card">
             <h3>Our paperwork, checked</h3>
