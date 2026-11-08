@@ -79,7 +79,7 @@ export default async function AdminCodes({ searchParams }: { searchParams: Promi
             <input name="expires_on" type="date" />
           </label>
         </div>
-        <label><input type="checkbox" name="first_time_only" /> New members only (not for someone who has paid before)</label>
+        <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}><input type="checkbox" name="first_time_only" style={{ width: 'auto', margin: 0 }} /> New members only (not for someone who has paid before)</label>
         <label>Note for yourself (who it is for, where it was shared)
           <input name="note" maxLength={200} />
         </label>
