@@ -9,6 +9,7 @@ import { runTeamReminders } from '@/lib/teamJob';
 import { runShortlistAlerts } from '@/lib/shortlistJob';
 import { runSeekerHousekeeping } from '@/lib/seekerJob';
 import { runQuoteJob } from '@/lib/quoteJob';
+import { db } from '@/lib/supabase';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -31,6 +32,7 @@ export async function GET(req: NextRequest) {
   try { out.teamReminders = await runTeamReminders(); } catch (err) { console.error('daily: team reminders failed', err); }
   try { out.shortlistAlerts = await runShortlistAlerts(); } catch (err) { console.error('daily: shortlist alerts failed', err); }
   try { out.seekers = await runSeekerHousekeeping(); } catch (err) { console.error('daily: seeker housekeeping failed', err); }
+  try { const { count } = await db().from('site_enquiries').delete({ count: 'exact' }).lt('created_at', new Date(Date.now() - 730 * 86_400_000).toISOString()); out.siteEnquiriesDeleted = count ?? 0; } catch (err) { console.error('daily: site enquiry clean-up failed', err); }
   try { out.quotes = await runQuoteJob(); } catch (err) { console.error('daily: price requests failed', err); out.quotes = 'failed'; }
   try { out.cleanup = await runDataCleanup(); } catch (err) { console.error('daily: cleanup failed', err); }
   return NextResponse.json({ ok: true, ...out });

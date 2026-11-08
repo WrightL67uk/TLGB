@@ -235,6 +235,46 @@ export const HOW_TOS: HowTo[] = [
   },
 
   {
+    slug: 'member-website',
+    group: 'trades',
+    title: 'Your free website',
+    summary: 'Publish a three-page website at yourname.tlgb.co.uk, written from your listing, with an enquiry form.',
+    intro: 'Every paying member can have a website at their own tlgb.co.uk address. We write it from your listing, you check it and publish it.',
+    sections: [
+      {
+        h: 'Make it',
+        steps: [
+          'Open [your website](/account/website) from your listing page.',
+          'Pick your address, such as greenscapes.tlgb.co.uk, and your colours, then press "Make my website".',
+          'We write the headline, introduction, about section, services and reasons to choose you from your listing, and use your listing photos.',
+        ],
+      },
+      {
+        h: 'Check it and publish',
+        list: [
+          'Press Preview to see the site as visitors will. It has a home page, a services and work page with your photos, and a contact page.',
+          'Change any wording, pick the main photo, and choose whether to show your phone number and email.',
+          'Not keen on the wording? Press "Rewrite the wording for me" for a fresh version from your listing.',
+          'Press Publish. You can edit, take it offline and republish at any time.',
+        ],
+      },
+      {
+        h: 'Enquiries',
+        p: ['The contact page has a quote form. Each enquiry is emailed to you, and replying goes straight to the person who asked. They are also listed on your website page with your visit and enquiry counts.'],
+        tip: 'Add more photos and keep your description up to date on your listing. They feed straight into your website. Your checked accreditations and insurance show automatically, with a link to your Verified listing.',
+      },
+      {
+        h: 'Good to know',
+        list: [
+          'Your site is live while your membership is active and your listing is approved.',
+          'You are responsible for what it says, and for having the right to use your photos.',
+        ],
+      },
+    ],
+    cta: [{ label: 'open my website', href: '/account/website' }],
+  },
+
+  {
     slug: 'jobs-from-contractors',
     group: 'trades',
     title: 'Jobs from main contractors',

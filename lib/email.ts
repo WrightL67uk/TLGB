@@ -58,7 +58,7 @@ function toText(html: string) {
     .trim();
 }
 
-async function send(to: string | string[], subject: string, body: string, category: string) {
+async function send(to: string | string[], subject: string, body: string, category: string, replyTo: string = TLGB_EMAIL) {
   // Lets the site run for demos before SendGrid is set up: emails are skipped, not crashed on.
   if (!process.env.SENDGRID_API_KEY) {
     console.warn(`Email skipped (SendGrid not configured): ${subject}`);
@@ -73,7 +73,7 @@ async function send(to: string | string[], subject: string, body: string, catego
       await sgMail.send({
         to: rcpt,
         from: { email: TLGB_EMAIL, name: 'The Little Green Book' },
-        replyTo: TLGB_EMAIL,
+        replyTo,
         subject,
         html,
         text,
@@ -774,4 +774,33 @@ ${wantsRequests
 <p>If anything on your listing needs changing, reply to this email and we will update it.</p>`,
     'supplier-approved'
   );
+}
+
+// ---------- Member websites ----------
+
+export type SiteEnquiryMail = { name: string; company: string | null; email: string; phone: string | null; postcode: string | null; kind: string | null; message: string };
+
+/** To the member: someone used the enquiry form on their TLGB website. Reply goes straight to the enquirer. */
+export async function emailMemberSiteEnquiry(to: string, tradingName: string, siteAddress: string, e: SiteEnquiryMail, accountUrl: string) {
+  await send(
+    to,
+    `New enquiry from your website: ${e.name}${e.company ? `, ${e.company}` : ''}`,
+    `<p>You have a new enquiry from your website <strong>${esc(siteAddress)}</strong>.</p>
+<p><strong>${esc(e.name)}</strong>${e.company ? `<br>${esc(e.company)}` : ''}<br>
+<a href="mailto:${esc(e.email)}">${esc(e.email)}</a>${e.phone ? `<br>${esc(e.phone)}` : ''}
+${e.postcode ? `<br>Site postcode: ${esc(e.postcode)}` : ''}${e.kind ? `<br>Type of job: ${esc(e.kind)}` : ''}</p>
+<p>${para(e.message)}</p>
+<p>Reply to this email to answer ${esc(e.name)} directly.</p>
+<p style="color:#777;font-size:13px">${esc(tradingName)}: your website enquiries are also listed in your <a href="${accountUrl}">Little Green Book account</a>.</p>`,
+    'site-enquiry',
+    e.email
+  );
+}
+
+export async function emailAdminSitePublished(tradingName: string, address: string) {
+  await send(adminList(), `Member website published: ${tradingName}`, `<p><strong>${esc(tradingName)}</strong> has published their website at <a href="https://${esc(address)}">${esc(address)}</a>.</p>`, 'admin-site');
+}
+
+export async function emailAdminSiteEnquiry(tradingName: string, address: string) {
+  await send(adminList(), `Website enquiry sent to ${tradingName}`, `<p>Someone sent an enquiry through <a href="https://${esc(address)}">${esc(address)}</a>.</p>`, 'admin-site');
 }

@@ -191,6 +191,18 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
 
       {b.status === 'approved' && isPaid(b) && (
         <section className="panel">
+          <h2>Your free website</h2>
+          <div className="cp-summary">
+            <p>
+              A three-page website at your own tlgb.co.uk address, written from your listing, with your photos, checked paperwork and an enquiry form.
+            </p>
+            <Link href={`/account/${b.id}/website`} className="sq sq-rust">Open my website</Link>
+          </div>
+        </section>
+      )}
+
+      {b.status === 'approved' && isPaid(b) && (
+        <section className="panel">
           <h2>Price requests</h2>
           <div className="cp-summary">
             <p>

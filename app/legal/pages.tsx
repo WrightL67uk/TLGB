@@ -123,6 +123,9 @@ export const LEGAL_PAGES: LegalPage[] = [
         <h2>8A. Price requests</h2>
         <p>Paying members can send price requests to suppliers. Only send requests for genuine requirements, and do not use them to collect prices for resale or to send unrequested marketing. When you accept a quote we send the supplier your business name, contact name, email, phone, delivery postcode and delivery notes so they can confirm the order with you. The order is between you and the supplier. If you rate a supplier, your rating must be honest and based on that order.</p>
 
+        <h2>8B. Your free website</h2>
+        <p>Paying members can publish a website at an address on tlgb.co.uk. We write a first draft from your listing; you are responsible for checking and keeping everything on it accurate, and for having the right to use the photos. The address stays ours: your site is available while your membership is active and your listing is approved, and is taken offline if either ends. We may take down a site, or change wording, that breaks these terms or the acceptable use policy. Enquiries sent through your site are emailed to you, and we keep a copy.</p>
+
         <h2>9. Ending or suspending a listing</h2>
         <p>We may suspend or remove a listing, without refund, if you give false or misleading information or documents, if your insurance lapses and is not renewed, if you seriously or repeatedly break these terms or the acceptable use policy, or if we receive credible evidence of conduct that puts others at risk. Where it is reasonable to do so, we will tell you why and give you a chance to put things right.</p>
 
@@ -199,6 +202,7 @@ export const LEGAL_PAGES: LegalPage[] = [
           <li><strong>Team and training records</strong> you choose to add: your staff&rsquo;s names, roles, cards and qualifications, card numbers and dates. <em>Why:</em> to remind you before they expire, build your training matrix and share it as you instruct (contract). You are responsible for telling your staff.</li>
           <li><strong>Payment tracker records</strong> you choose to add: jobs, contractors and their contacts, applications, amounts, dates and retentions. <em>Why:</em> to work out deadlines, send your alerts and prepare your letters (contract).</li>
           <li><strong>Price requests</strong> you send: your list, delivery postcode, dates, delivery notes, the prices suppliers send back and any rating you give. <em>Why:</em> to send your request and show you the prices (contract). Suppliers see your business name and delivery area; when you accept a quote, that supplier also gets your contact name, email, phone, delivery postcode and delivery notes.</li>
+          <li><strong>Enquiries sent through a member&rsquo;s website</strong> on tlgb.co.uk: name, company, email, phone, postcode and message. <em>Why:</em> to pass your enquiry to that business (legitimate interests). We send it to the member and keep a copy for 2 years, so we can deal with problems and spam.</li>
           <li><strong>Suppliers who receive price requests:</strong> the email address requests go to, the prices and notes you send, and ratings members give you, which show on your public supplier listing. <em>Why:</em> to run the service (contract and legitimate interests).</li>
           <li><strong>Membership and payment records:</strong> plan, status, renewal dates and Stripe customer references. Card details are handled by Stripe, not us. <em>Why:</em> contract, and keeping accounting records (legal obligation).</li>
         </ul>

@@ -27,7 +27,7 @@ export const READABLE = new Set([
   'contractor_companies', 'contractor_users', 'contractor_favourites', 'contractor_lists', 'contractor_list_items',
   'contractor_jobs', 'contractor_job_files', 'contractor_job_invites', 'contractor_job_replies', 'contractor_job_reports',
   'pay_jobs', 'pay_apps', 'team_people', 'team_quals', 'shortlist_watch', 'job_seekers',
-  'quote_requests', 'quote_lines', 'quote_invites', 'quote_prices', 'supplier_ratings',
+  'quote_requests', 'quote_lines', 'quote_invites', 'quote_prices', 'supplier_ratings', 'member_sites', 'site_enquiries',
 ]);
 
 /** Columns never returned, whatever table they are in. */

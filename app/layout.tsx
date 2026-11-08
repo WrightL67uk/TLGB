@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { SESSION_COOKIE } from '@/lib/session';
 import { LOGO_SRC } from '@/lib/logo';
 import './globals.css';
@@ -12,6 +12,14 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Member websites (<slug>.tlgb.co.uk) carry their own header and footer.
+  if ((await headers()).get('x-tlgb-site')) {
+    return (
+      <html lang="en-GB">
+        <body className="msite-body">{children}</body>
+      </html>
+    );
+  }
   const loggedIn = (await cookies()).has(SESSION_COOKIE);
   return (
     <html lang="en-GB">

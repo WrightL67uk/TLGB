@@ -27,6 +27,7 @@ export default async function AdminResources({ searchParams }: { searchParams: P
     db().from('suppliers').select('id, name, town, email, categories, quote_requests, quote_plan, quote_paid_until, wants_requests').eq('status', 'approved').order('name'),
     db().from('quote_requests').select('id, created_at, reference, postcode, status').order('created_at', { ascending: false }).limit(20),
   ]);
+  const { data: sites } = await db().from('member_sites').select('slug, status, views, enquiries, business_id, updated_at').order('updated_at', { ascending: false }).limit(200);
   const pending = pendingNew ?? (await db().from('suppliers').select('id, created_at, name, categories, description, website, phone, town, postcode, email').eq('status', 'pending').order('created_at')).data?.map((x) => ({ ...x, wants_requests: false }));
 
   return (
@@ -83,6 +84,14 @@ export default async function AdminResources({ searchParams }: { searchParams: P
       <h3>Latest price requests</h3>
       {!requests?.length && <p className="muted">None yet.</p>}
       {requests?.map((q) => <p key={q.id} style={{ margin: '2px 0' }}>{ukDate(q.created_at)}: {q.reference} ({q.postcode}), {q.status}</p>)}
+
+      <h2>Member websites</h2>
+      {!sites?.length && <p className="muted">None yet.</p>}
+      {sites?.map((m) => (
+        <p key={m.slug} style={{ margin: '2px 0' }}>
+          <a href={m.status === 'live' ? `https://${m.slug}.tlgb.co.uk` : `/site/${m.slug}`} target="_blank" rel="noopener">{m.slug}.tlgb.co.uk</a> · {m.status} · {m.views} visits · {m.enquiries} enquiries · <Link href={`/admin/${m.business_id}`}>listing</Link>
+        </p>
+      ))}
 
       <h2>Accreditation help enquiries</h2>
       {!enquiries?.length && <p className="muted">None yet.</p>}
