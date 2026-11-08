@@ -58,7 +58,7 @@ function toText(html: string) {
     .trim();
 }
 
-async function send(to: string | string[], subject: string, body: string, category: string, replyTo: string = TLGB_EMAIL) {
+async function send(to: string | string[], subject: string, body: string, category: string, replyTo: string = TLGB_EMAIL, fromName = 'The Little Green Book') {
   // Lets the site run for demos before SendGrid is set up: emails are skipped, not crashed on.
   if (!process.env.SENDGRID_API_KEY) {
     console.warn(`Email skipped (SendGrid not configured): ${subject}`);
@@ -72,7 +72,7 @@ async function send(to: string | string[], subject: string, body: string, catego
     try {
       await sgMail.send({
         to: rcpt,
-        from: { email: TLGB_EMAIL, name: 'The Little Green Book' },
+        from: { email: TLGB_EMAIL, name: fromName },
         replyTo,
         subject,
         html,
@@ -803,4 +803,22 @@ export async function emailAdminSitePublished(tradingName: string, address: stri
 
 export async function emailAdminSiteEnquiry(tradingName: string, address: string) {
   await send(adminList(), `Website enquiry sent to ${tradingName}`, `<p>Someone sent an enquiry through <a href="https://${esc(address)}">${esc(address)}</a>.</p>`, 'admin-site');
+}
+
+/** To the person who used a member's website enquiry form: a thank-you with a copy of what they sent. Replies go to the member. */
+export async function emailEnquirerThanks(to: string, name: string, businessName: string, businessEmail: string, businessPhone: string | null, e: SiteEnquiryMail) {
+  await send(
+    to,
+    `Thank you for your enquiry to ${businessName}`,
+    `<p>Hello ${esc(name)},</p>
+<p>Thank you for your enquiry. <strong>${esc(businessName)}</strong> has received your details and will be in touch shortly.</p>
+<p>If you need to add anything, just reply to this email and it will go straight to them${businessPhone ? `, or call ${esc(businessPhone)}` : ''}.</p>
+<p style="color:#555;margin-top:20px"><strong>Your enquiry</strong><br>
+${e.company ? `${esc(e.company)}<br>` : ''}${e.postcode ? `Site postcode: ${esc(e.postcode)}<br>` : ''}${e.kind ? `Type of job: ${esc(e.kind)}<br>` : ''}</p>
+<p style="color:#555">${para(e.message)}</p>
+<p style="color:#777;font-size:13px">${esc(businessName)} is a Verified member of The Little Green Book, whose insurance and accreditations we check. This email was sent because your address was entered on their website enquiry form. If that was not you, you can ignore it.</p>`,
+    'site-enquiry-thanks',
+    businessEmail,
+    businessName
+  );
 }

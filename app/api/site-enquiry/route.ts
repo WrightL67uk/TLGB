@@ -5,7 +5,7 @@ import { db } from '@/lib/supabase';
 import { siteUrl } from '@/lib/config';
 import { sameOrigin } from '@/lib/session';
 import { loadSiteBySlug, siteAllowed, siteAddress } from '@/lib/memberSites';
-import { emailMemberSiteEnquiry, emailAdminSiteEnquiry } from '@/lib/email';
+import { emailMemberSiteEnquiry, emailAdminSiteEnquiry, emailEnquirerThanks } from '@/lib/email';
 
 export const runtime = 'nodejs';
 
@@ -51,6 +51,8 @@ export async function POST(req: NextRequest) {
   await emailMemberSiteEnquiry(data.business.email, data.business.trading_name, address, {
     name: d.name, company: d.company ?? null, email: d.email, phone: d.phone ?? null, postcode: d.postcode ?? null, kind: d.kind ?? null, message: d.message,
   }, `${siteUrl()}/account/${data.business.id}/website`);
+  const mail = { name: d.name, company: d.company ?? null, email: d.email, phone: d.phone ?? null, postcode: d.postcode ?? null, kind: d.kind ?? null, message: d.message };
+  await emailEnquirerThanks(d.email, d.name, data.business.trading_name.replace(/\s+(ltd|limited)\.?$/i, ''), data.business.email, data.site.show_phone ? data.business.phone : null, mail);
   await emailAdminSiteEnquiry(data.business.trading_name, address);
   return back('sent=1');
 }
