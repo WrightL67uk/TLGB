@@ -34,6 +34,7 @@ export type Business = {
   founding_member: boolean;
   subscription_status: string;
   stripe_customer_id: string | null;
+  signup_code?: string | null;
   paid_until: string | null;
   pending_dates: import('./membership').Pending | null;
 };

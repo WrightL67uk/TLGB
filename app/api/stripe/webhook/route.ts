@@ -40,6 +40,21 @@ async function applySubscription(sub: Json) {
   }
 }
 
+/** Notes which discount code a paid checkout used, for the admin Discount codes page. */
+async function recordDiscount(session: Json) {
+  const promo = (session.discounts ?? []).map((d: Json) => (typeof d.promotion_code === 'string' ? d.promotion_code : d.promotion_code?.id)).find(Boolean);
+  if (!promo) return;
+  const { data: code } = await db().from('discount_codes').select('id').eq('stripe_promo_id', promo).maybeSingle();
+  if (!code) return;
+  const b = await findBusiness({ id: session.metadata?.business_id ?? session.client_reference_id, customer: session.customer });
+  await db().from('discount_redemptions').insert({
+    code_id: code.id,
+    business_id: b?.id ?? null,
+    stripe_session_id: session.id,
+    amount_off_pence: session.total_details?.amount_discount ?? null,
+  });
+}
+
 export async function POST(req: NextRequest) {
   const raw = await req.text();
   if (!verifyWebhook(raw, req.headers.get('stripe-signature'))) return NextResponse.json({ ok: false }, { status: 400 });
@@ -57,6 +72,7 @@ export async function POST(req: NextRequest) {
           const sub = await stripe('GET', `subscriptions/${obj.subscription}`);
           sub.metadata = { business_id: obj.metadata?.business_id ?? obj.client_reference_id, ...(sub.metadata ?? {}) };
           await applySubscription(sub);
+          await recordDiscount(obj);
         }
         break;
       }

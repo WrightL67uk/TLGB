@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createHash, randomBytes } from 'crypto';
 import { z } from 'zod';
 import { db } from '@/lib/supabase';
+import { cleanCode, CODE_COOKIE } from '@/lib/discounts';
 import { checkCompany } from '@/lib/companiesHouse';
 import { lookupPostcode } from '@/lib/postcodes';
 import {
@@ -162,6 +163,7 @@ export async function POST(req: NextRequest) {
       pl_expiry: d.pl_expiry,
       el_cover_amount: d.el_cover_amount ?? null,
       el_expiry: d.el_expiry ?? null,
+      signup_code: cleanCode(req.cookies.get(CODE_COOKIE)?.value) || null,
     })
     .select('id')
     .single();

@@ -61,6 +61,14 @@ export function middleware(req: NextRequest) {
     });
   }
 
+  // A shared link like /join?code=TRUDY25 remembers the code for 30 days, so it is applied at payment.
+  const code = req.nextUrl.searchParams.get('code');
+  if (code && /^[A-Za-z0-9]{3,20}$/.test(code)) {
+    const res = NextResponse.next();
+    res.cookies.set('tlgb_code', code.toUpperCase(), { maxAge: 60 * 60 * 24 * 30, path: '/', sameSite: 'lax', httpOnly: true, secure: true });
+    return res;
+  }
+
   return NextResponse.next();
 }
 

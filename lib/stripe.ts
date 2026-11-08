@@ -21,14 +21,14 @@ function encode(params: Params, prefix = '', out: string[] = []) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function stripe<T = any>(method: 'GET' | 'POST' | 'DELETE', path: string, params: Params = {}): Promise<T> {
+export async function stripe<T = any>(method: 'GET' | 'POST' | 'DELETE', path: string, params: Params = {}, version?: string): Promise<T> {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error('Stripe is not set up (STRIPE_SECRET_KEY missing)');
   const body = encode(params).join('&');
   const url = `https://api.stripe.com/v1/${path}${method === 'GET' && body ? `?${body}` : ''}`;
   const res = await fetch(url, {
     method,
-    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/x-www-form-urlencoded', ...(version ? { 'Stripe-Version': version } : {}) },
     body: method === 'POST' ? body : undefined,
     cache: 'no-store',
     signal: AbortSignal.timeout(20_000),

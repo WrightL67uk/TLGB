@@ -5,6 +5,7 @@ import { ownedBusiness } from '@/lib/account';
 import { isPaid } from '@/lib/membership';
 import { stripe, stripeEnabled } from '@/lib/stripe';
 import { siteUrl, turnoverBand } from '@/lib/config';
+import { findCode, usable } from '@/lib/discounts';
 
 export const runtime = 'nodejs';
 
@@ -38,7 +39,11 @@ export async function POST(req: NextRequest) {
     }
     const trial = Number(process.env.STRIPE_TRIAL_DAYS || 0);
     const tax = process.env.STRIPE_AUTOMATIC_TAX === '1';
-    const session = await stripe('POST', 'checkout/sessions', {
+    // A code from a shared link is applied for them. Otherwise they can type one on Stripe's page.
+    // Stripe does not allow both at once.
+    const fromLink = b.signup_code ? await findCode(b.signup_code) : null;
+    const promo = fromLink && usable(fromLink.code, fromLink.uses) ? fromLink.code.stripe_promo_id : null;
+    const params = {
       mode: 'subscription',
       customer,
       client_reference_id: b.id,
@@ -57,13 +62,23 @@ export async function POST(req: NextRequest) {
         ...(trial > 0 ? { trial_period_days: trial } : {}),
       },
       metadata: { business_id: b.id },
-      allow_promotion_codes: 'true',
+      ...(promo ? { discounts: [{ promotion_code: promo }] } : { allow_promotion_codes: 'true' }),
       billing_address_collection: 'auto',
       customer_update: { address: 'auto', name: 'auto' },
       ...(tax ? { automatic_tax: { enabled: 'true' }, tax_id_collection: { enabled: 'true' } } : {}),
       success_url: `${siteUrl()}/account/${b.id}?paid=1`,
       cancel_url: `${siteUrl()}/account/${b.id}`,
-    });
+    };
+    let session;
+    try {
+      session = await stripe('POST', 'checkout/sessions', params);
+    } catch (e) {
+      // If Stripe will not take the code (used up, ended), open the page without it so they can still pay.
+      if (!promo) throw e;
+      console.warn('checkout with code failed, retrying without', e);
+      const { discounts: _drop, ...rest } = params as Record<string, unknown>; // eslint-disable-line @typescript-eslint/no-unused-vars
+      session = await stripe('POST', 'checkout/sessions', { ...rest, allow_promotion_codes: 'true' });
+    }
     return NextResponse.redirect(session.url as string, 303);
   } catch (err) {
     console.error('checkout failed', err);
