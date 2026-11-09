@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getPricing, upgradeHref, upgradeLabel, type Pricing } from '@/lib/pricing';
 import '../resources.css';
 import { GROUP_HELP, GROUP_LABEL, SUPPLY_CHAINS, type ChainGroup } from '@/lib/supplyChains';
 import { shortUrl } from '@/lib/resources';
@@ -18,7 +19,7 @@ export const dynamic = 'force-dynamic';
 export default async function SupplyChainsPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
   const m = await getMembership();
-  if (!m.pro) return <MembersOnly loggedIn={m.loggedIn} approved={m.approved} unpaidId={m.unpaidId} upgradeId={m.paidNotPro} />;
+  if (!m.pro) return <MembersOnly loggedIn={m.loggedIn} approved={m.approved} unpaidId={m.unpaidId} upgradeId={m.paidNotPro} pricing={await getPricing()} />;
   const q = (sp.q ?? '').trim().toLowerCase().slice(0, 80);
   const group = GROUPS.includes(sp.group as ChainGroup) ? (sp.group as ChainGroup) : '';
   const rows = SUPPLY_CHAINS.filter(
@@ -77,7 +78,7 @@ export default async function SupplyChainsPage({ searchParams }: { searchParams:
   );
 }
 
-function MembersOnly({ loggedIn, approved, unpaidId, upgradeId }: { loggedIn: boolean; approved: boolean; unpaidId: string | null; upgradeId: string | null }) {
+function MembersOnly({ loggedIn, approved, unpaidId, upgradeId, pricing }: { loggedIn: boolean; approved: boolean; unpaidId: string | null; upgradeId: string | null; pricing: Pricing }) {
   return (
     <div>
       <h1>Supply chain finder</h1>
@@ -100,7 +101,7 @@ function MembersOnly({ loggedIn, approved, unpaidId, upgradeId }: { loggedIn: bo
           {upgradeId
             ? <Link href={`/account/${upgradeId}#membership`} className="sq sq-rust">upgrade to pro</Link>
             : loggedIn
-            ? <Link href={unpaidId ? `/account/${unpaidId}` : '/account'} className="sq sq-rust">{approved ? 'start membership' : 'check my listing'}</Link>
+            ? <Link href={unpaidId ? upgradeHref(pricing, unpaidId) : '/account'} className="sq sq-rust">{approved ? upgradeLabel(pricing) : 'check my listing'}</Link>
             : <>
                 <Link href="/join" className="sq sq-rust">list your business</Link>
                 <Link href="/login?next=/supply-chains" className="sq sq-ghost">log in</Link>

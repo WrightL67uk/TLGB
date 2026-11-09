@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getPricing, upgradeHref, upgradeLabel } from '@/lib/pricing';
 import { db } from '@/lib/supabase';
 import { getMembership } from '@/lib/membership';
 import { TRADES, tradeLabel } from '@/lib/config';
@@ -45,6 +46,7 @@ function miles(aLat: number, aLng: number, bLat: number, bLng: number) {
 
 export default async function LeadsPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
+  const pricing = await getPricing();
   const m = await getMembership();
   const email = m.email;
   // Only paying (or founding) members get the full feed (Pro only, when Verified and Pro pricing is on)
@@ -229,7 +231,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
                     ? 'Start your membership to get the full leads feed, matched to your trades and the area you cover.'
                     : 'Your listing is waiting for approval. Once it is approved you can start your membership and see every lead.'}</p>
                   <div className="gate-btns">
-                    <Link href={m.paidNotPro ? `/account/${m.paidNotPro}#membership` : m.unpaidId ? `/account/${m.unpaidId}` : '/account'} className="sq sq-rust">{m.paidNotPro ? 'upgrade to pro' : m.approved ? 'start membership' : 'check my listing'}</Link>
+                    <Link href={m.paidNotPro ? `/account/${m.paidNotPro}#membership` : m.unpaidId ? upgradeHref(pricing, m.unpaidId) : '/account'} className="sq sq-rust">{m.paidNotPro ? 'upgrade to pro' : m.approved ? upgradeLabel(pricing) : 'check my listing'}</Link>
                   </div>
                 </>
               ) : (

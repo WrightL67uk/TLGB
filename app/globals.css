@@ -276,3 +276,6 @@ section > .verified-warning, main > div > .verified-warning { margin: 0 0 16px; 
 .pack-check { border-top: 1px solid var(--line); padding: 10px 0; }
 .pack-check .inline { flex-wrap: wrap; }
 .pack-check .inline input { width: auto; flex: 1 1 160px; }
+.upgrade-panel { border-left: 4px solid var(--green); border-radius: 0; }
+.upgrade-list { margin: 8px 0 14px; padding-left: 0; list-style: none; line-height: 1.8; }
+.upgrade-list li::before { content: '\2713'; color: var(--green); font-weight: 700; margin-right: 8px; }

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import UpgradePanel from '@/app/UpgradePanel';
 import { notFound, redirect } from 'next/navigation';
 import { db } from '@/lib/supabase';
 import { ownedBusiness } from '@/lib/account';
@@ -26,7 +27,8 @@ export default async function PaymentTracker({ params, searchParams }: { params:
         <p className="small"><Link href={`/account/${b.id}`}>Back to my listing</Link></p>
         <h1>Payment tracker</h1>
         <p className="lead">Track every application, get warned before payment notice and final date deadlines, chase retentions and send the right notice in one click.</p>
-        <div className="panel"><p>The payment tracker is included with every paid membership. Anyone can use the <Link href="/tools/payment-dates">free payment dates calculator</Link>.</p></div>
+        <UpgradePanel b={b} feature="The payment tracker" />
+        <p className="small">Anyone can use the <Link href="/tools/payment-dates">free payment dates calculator</Link>.</p>
       </div>
     );
   }

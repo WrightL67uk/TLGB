@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getPricing, upgradeHref, upgradeLabel } from '@/lib/pricing';
 import '../resources.css';
 import { db } from '@/lib/supabase';
 import { getMembership } from '@/lib/membership';
@@ -23,6 +24,7 @@ const ukDate = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: 'nu
 export default async function HelpBoardPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
   const m = await getMembership();
+  const pricing = await getPricing();
   const email = m.paid ? m.email : null; // contact details and posting are for paying members
   const kind = HELP_KINDS.some((k) => k.key === sp.kind) ? sp.kind! : '';
   const trade = TRADES.some((t) => t.slug === sp.trade) ? sp.trade! : '';
@@ -59,7 +61,7 @@ export default async function HelpBoardPage({ searchParams }: { searchParams: SP
         {email
           ? <Link href="/help-board/new" className="sq sq-rust">ask for help</Link>
           : m.loggedIn
-            ? <span className="muted">Posting and contact details are for paying members. <Link href={m.unpaidId ? `/account/${m.unpaidId}` : '/account'}>Start your membership</Link>.</span>
+            ? <span className="muted">Posting and contact details are for paying members. <Link href={m.unpaidId ? upgradeHref(pricing, m.unpaidId) : '/account'}>{m.unpaidId ? upgradeLabel(pricing).replace(/^s/, 'S') : 'Start your membership'}</Link>.</span>
             : <span className="muted">To post a request, <Link href="/login?next=/help-board">log in</Link> or <Link href="/join">list your business</Link>.</span>}
       </div>
 

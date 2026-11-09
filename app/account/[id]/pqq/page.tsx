@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import UpgradePanel from '@/app/UpgradePanel';
 import { notFound, redirect } from 'next/navigation';
 import { ownedBusiness } from '@/lib/account';
 import { isPaid } from '@/lib/membership';
@@ -25,10 +26,7 @@ export default async function PqqPage({ params }: { params: Promise<{ id: string
         <p className="small"><Link href={`/account/${b.id}`}>Back to my listing</Link></p>
         <h1>PQQ answer bank</h1>
         <p className="lead">Save your answers to the questions every prequalification questionnaire and supplier portal asks, and reuse them in seconds.</p>
-        <div className="panel">
-          <p>The answer bank is included with every paid membership.</p>
-          {b.status === 'approved' && <Link href={`/account/${b.id}`} className="sq sq-rust">Start membership</Link>}
-        </div>
+        <UpgradePanel b={b} feature="The PQQ answer bank" />
       </div>
     );
   }

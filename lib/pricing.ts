@@ -95,3 +95,15 @@ export function yearlySaving(p: Pricing) {
   const pounds = monthly * 12 - yearly;
   return { pounds: Math.max(0, pounds), months: pounds > 0 ? Math.round(pounds / monthly) : 0, perMonth: Math.round((yearly / 12) * 100) / 100 };
 }
+
+/** Where an unpaid trade goes to join or upgrade: the plan screen when members choose free, monthly or yearly. */
+export function upgradeHref(p: Pricing, businessId: string) {
+  return p.mode === 'membership' ? `/account/${businessId}/plan` : `/account/${businessId}#membership`;
+}
+
+/** Button wording for joining or upgrading. */
+export function upgradeLabel(p: Pricing, hasPaidBefore = false) {
+  return p.mode === 'membership' && p.membership.trial_days > 0 && !hasPaidBefore
+    ? `start ${p.membership.trial_days} day free trial`
+    : 'start membership';
+}

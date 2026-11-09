@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import UpgradePanel from '@/app/UpgradePanel';
 import { notFound, redirect } from 'next/navigation';
 import { db } from '@/lib/supabase';
 import { ownedBusiness } from '@/lib/account';
@@ -28,12 +29,7 @@ export default async function CompliancePage({ params }: { params: Promise<{ id:
         <p className="small"><Link href={`/account/${b.id}`}>Back to my listing</Link></p>
         <h1>Compliance pack</h1>
         <p className="lead">Keep your insurance, accreditations, RAMS and policies in one place and send contractors a single link instead of filling in another portal.</p>
-        <div className="panel">
-          <p>The compliance pack is included with every paid membership.</p>
-          {b.status === 'approved'
-            ? <Link href={`/account/${b.id}`} className="sq sq-rust">Start membership</Link>
-            : <p className="muted">It becomes available once your listing is approved and your membership has started.</p>}
-        </div>
+        <UpgradePanel b={b} feature="The compliance pack" />
       </div>
     );
   }

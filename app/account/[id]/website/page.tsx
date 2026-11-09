@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import UpgradePanel from '@/app/UpgradePanel';
 import { notFound, redirect } from 'next/navigation';
 import { db, photoUrl } from '@/lib/supabase';
 import { ownedBusiness } from '@/lib/account';
@@ -40,7 +41,7 @@ export default async function WebsitePage({ params }: { params: Promise<{ id: st
       <h1>Your website</h1>
       <p className="lead">A free three-page website at your own tlgb.co.uk address, built from your listing.</p>
 
-      {!allowed && <div className="panel"><p>Websites are included with paid membership. Once your listing is approved and membership is active, you can make yours here.</p></div>}
+      {!allowed && <UpgradePanel b={b} feature="Your own free website" />}
 
       {allowed && !site && <CreateSite businessId={b.id} suggestion={suggestion} themes={themes} />}
 

@@ -64,6 +64,21 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
         <form action="/api/auth/logout" method="post"><button type="submit">Log out</button></form>
       </div>
 
+      {pricing.mode === 'membership' && b.status === 'approved' && b.free_listing && !isPaid(b) && (
+        <div className="panel upgrade-panel">
+          <p style={{ margin: 0 }}>
+            <strong>You are on the free listing, shown to contractors as Unverified.</strong>{' '}
+            Verified members get the badge, appear first, and see every lead and contractor job.
+          </p>
+          <p style={{ margin: '10px 0 0' }}>
+            <Link href={`/account/${b.id}/plan`} className="primary" style={{ display: 'inline-block', textDecoration: 'none' }}>
+              {pricing.membership.trial_days > 0 && !b.stripe_subscription_id ? `Start ${pricing.membership.trial_days} day free trial` : 'Get verified'}
+            </Link>
+            <span className="muted small"> From &pound;{pricing.membership.monthly} a month. Cancel any time.</span>
+          </p>
+        </div>
+      )}
+
       <section className="panel status-panel">
         {b.status === 'approved' && (
           <p><span className="status approved">Live</span> Your listing is showing in search.{' '}

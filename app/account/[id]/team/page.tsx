@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import UpgradePanel from '@/app/UpgradePanel';
 import { notFound, redirect } from 'next/navigation';
 import { ownedBusiness } from '@/lib/account';
 import { isPaid } from '@/lib/membership';
@@ -60,7 +61,7 @@ export default async function TeamPage({ params, searchParams }: { params: Promi
         <p className="small"><Link href={`/account/${b.id}`}>Back to my listing</Link></p>
         <h1>Team and training</h1>
         <p className="lead">Record every CSCS card, plant ticket, PA1/PA6 and first aid certificate your team holds. We remind you before anything runs out and build your training matrix for you.</p>
-        <div className="panel"><p>Team and training records are included with every paid membership.</p></div>
+        <UpgradePanel b={b} feature="Team and training records" />
       </div>
     );
   }

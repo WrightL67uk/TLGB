@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getPricing, upgradeHref, upgradeLabel } from '@/lib/pricing';
 import { db } from '@/lib/supabase';
 import { getSessionEmail } from '@/lib/session';
 import { isPaid } from '@/lib/membership';
@@ -22,6 +23,8 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   const { data: rows } = email ? await db().from('businesses').select(CANDIDATE_COLS).eq('email', email).neq('status', 'draft') : { data: null };
   const mine = ((rows ?? []) as Candidate[]).filter((b) => b.status === 'approved' && isPaid(b));
   const member = mine.length > 0;
+  const unpaid = ((rows ?? []) as Candidate[]).find((b) => b.status === 'approved' && !isPaid(b))?.id ?? null;
+  const pricing = await getPricing();
 
   let jobs = await openJobs();
   const trade = TRADES.some((t) => t.slug === sp.trade) ? sp.trade! : '';
@@ -53,7 +56,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
       {!member && (
         <div className="job-lock">
           <strong>Members only.</strong> {email ? 'Start or renew your membership' : <><Link href="/login?next=/jobs">Log in</Link> or <Link href="/join">list your business</Link></>} to see who posted each job, read the full details and reply.
-          {email && <> <Link href="/account">Go to my listing</Link></>}
+          {email && <> <Link href={unpaid ? upgradeHref(pricing, unpaid) : '/account'}>{unpaid ? upgradeLabel(pricing).replace(/^s/, 'S') : 'Go to my listing'}</Link></>}
         </div>
       )}
 

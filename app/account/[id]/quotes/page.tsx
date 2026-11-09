@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import UpgradePanel from '@/app/UpgradePanel';
 import { notFound, redirect } from 'next/navigation';
 import { db } from '@/lib/supabase';
 import { ownedBusiness } from '@/lib/account';
@@ -32,7 +33,7 @@ export default async function QuotesList({ params }: { params: Promise<{ id: str
       <h1>Price requests</h1>
       <p className="lead">Send one list of plants or materials to several suppliers, get their prices back on one page, and pick the best deal.</p>
       {!paid ? (
-        <div className="panel"><p>Price requests are included with every paid membership.</p></div>
+        <UpgradePanel b={b} feature="Sending price requests to suppliers" />
       ) : (
         <p><Link href={`/account/${b.id}/quotes/new`} className="sq sq-rust">New price request</Link></p>
       )}
