@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   const pricing = await getPricing();
 
   if (pricing.mode !== 'plans') return back(req, id, 'Your membership already includes every tool.');
-  if (b.founding_member || b.plan === 'pro') return back(req, id, 'You already have Pro.');
+  if (b.founding_member || b.plan !== 'verified') return back(req, id, 'Your membership already includes every Pro tool.');
   if (!stripeEnabled() || !b.stripe_subscription_id || !isPaid(b)) {
     return back(req, id, 'We could not upgrade this membership online. Email admin@tlgb.co.uk and we will sort it.');
   }

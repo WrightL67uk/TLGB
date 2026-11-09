@@ -116,7 +116,7 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
             <>
               <p>
                 <span className="status approved">{b.subscription_status === 'trialing' ? 'Free trial' : b.subscription_status === 'past_due' ? 'Payment due' : 'Active'}</span>{' '}
-                {pricing.mode === 'plans' && <strong>{PLAN_INFO[b.plan === 'pro' ? 'pro' : 'verified'].label} plan. </strong>}
+                {pricing.mode === 'plans' && b.plan && <strong>{PLAN_INFO[b.plan === 'pro' ? 'pro' : 'verified'].label} plan. </strong>}
                 {b.paid_until && <>{b.subscription_status === 'trialing' ? 'Trial ends' : 'Renews'} on {fmt(b.paid_until)}.</>}
                 {b.subscription_status === 'past_due' && <> Your last payment did not go through. Update your card to keep your listing live.</>}
               </p>
@@ -127,7 +127,7 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
                   <span className="muted small"> Change your card, download invoices or cancel.</span>
                 </form>
               )}
-              {pricing.mode === 'plans' && b.plan !== 'pro' && b.stripe_subscription_id && stripeEnabled() && (
+              {pricing.mode === 'plans' && b.plan === 'verified' && b.stripe_subscription_id && stripeEnabled() && (
                 <form method="post" action="/api/billing/upgrade" style={{ marginTop: 12 }}>
                   <input type="hidden" name="business_id" value={b.id} />
                   <p className="small">{PLAN_INFO.pro.blurb} <strong>&pound;{pricing.plans.pro} a year.</strong></p>

@@ -17,7 +17,8 @@ export default async function AdminPrices({ searchParams }: { searchParams: Prom
     .in('subscription_status', PAID_STATUSES);
   const rows = paying ?? [];
   const byBand = (k: string) => rows.filter((r) => r.turnover_band === k).length;
-  const byPlan = (k: PlanKey) => rows.filter((r) => (r.plan ?? 'verified') === k && (k === 'pro' ? r.plan === 'pro' : r.plan !== 'pro')).length;
+  const byPlan = (k: PlanKey) => rows.filter((r) => r.plan === k).length;
+  const legacy = rows.filter((r) => !r.plan).length;
 
   return (
     <div>
@@ -76,7 +77,10 @@ export default async function AdminPrices({ searchParams }: { searchParams: Prom
           </table>
         </div>
 
-        <p className="muted small">Founding members stay free whichever way you charge. Discount codes work with both.</p>
+        <p className="muted small">
+          Founding members stay free whichever way you charge. Discount codes work with both.
+          Members who joined on turnover pricing ({legacy} paying now) keep every tool, including Pro ones, if you switch to plans.
+        </p>
         <button type="submit" className="primary">Save prices</button>
       </form>
     </div>

@@ -71,7 +71,11 @@ export function bandPrice(p: Pricing, key: string | null | undefined) {
 
 export const planKey = (v: unknown): PlanKey => (v === 'pro' ? 'pro' : 'verified');
 
-/** Does this paid listing get Pro-only tools? With turnover pricing, every member gets everything. */
+/**
+ * Does this paid listing get Pro-only tools? With turnover pricing, every member gets everything.
+ * Members who joined on turnover pricing have no plan; they keep every tool they paid for if
+ * pricing is later switched to Verified and Pro.
+ */
 export function hasPro(p: Pricing, b: { founding_member: boolean; plan?: string | null }) {
-  return p.mode === 'bands' || b.founding_member || b.plan === 'pro';
+  return p.mode === 'bands' || b.founding_member || b.plan === 'pro' || !b.plan;
 }
