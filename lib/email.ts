@@ -1,4 +1,5 @@
 import 'server-only';
+import { getPricing } from './pricing';
 import sgMail from '@sendgrid/mail';
 import { env, siteUrl, TLGB_EMAIL } from './config';
 
@@ -134,6 +135,9 @@ export async function emailApplicantReceived(a: ApplicationSummary) {
 }
 
 export async function emailApplicantApproved(to: string, name: string, tradingName: string, founding = false) {
+  const pricing = await getPricing();
+  const membershipMode = pricing.mode === 'membership';
+  const trialDays = pricing.membership.trial_days;
   const login = `<a href="${siteUrl()}/login?next=/account">${esc(siteUrl().replace(/^https?:\/\//, ''))}/login</a>`;
   await send(
     to,
@@ -145,7 +149,9 @@ export async function emailApplicantApproved(to: string, name: string, tradingNa
 <p><strong>There is no password to set up.</strong> Go to ${login}, enter this email address, and we will email you a link that logs you straight in.</p>`
       : `<p>Hi ${esc(name)},</p>
 <p>Good news. <strong>${esc(tradingName)}</strong> has been approved.</p>
-<p>To go live, log in and press <strong>Start membership</strong> on your listing page. Once you have paid, contractors searching your area can find you, and you get the full leads feed, the supply chain finder and the help board.</p>
+${membershipMode
+  ? `<p>Log in to choose how you are listed: a free listing, or verified membership paid monthly or yearly${trialDays ? `, starting with ${trialDays} days free` : ''}. Verified members get the badge, every lead and contractor job, and all the member tools.</p>`
+  : `<p>To go live, log in and press <strong>Start membership</strong> on your listing page. Once you have paid, contractors searching your area can find you, and you get the full leads feed, the supply chain finder and the help board.</p>`}
 <p><strong>There is no password to set up.</strong> Go to ${login}, enter this email address, and we will email you a link that logs you straight in.</p>`,
     'application-approved'
   );

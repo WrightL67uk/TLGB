@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { db } from '@/lib/supabase';
 import { TURNOVER_BANDS } from '@/lib/config';
-import { getPricing, PLAN_INFO, type PlanKey } from '@/lib/pricing';
+import { getPricing, yearlySaving, PLAN_INFO, type PlanKey } from '@/lib/pricing';
 import { PAID_STATUSES } from '@/lib/membership';
 
 export const dynamic = 'force-dynamic';
@@ -11,7 +11,7 @@ export default async function AdminPrices({ searchParams }: { searchParams: Prom
   const pricing = await getPricing();
   const { data: paying } = await db()
     .from('businesses')
-    .select('turnover_band, plan')
+    .select('turnover_band, plan, billing_interval')
     .eq('status', 'approved')
     .eq('founding_member', false)
     .in('subscription_status', PAID_STATUSES);
@@ -19,6 +19,9 @@ export default async function AdminPrices({ searchParams }: { searchParams: Prom
   const byBand = (k: string) => rows.filter((r) => r.turnover_band === k).length;
   const byPlan = (k: PlanKey) => rows.filter((r) => r.plan === k).length;
   const legacy = rows.filter((r) => !r.plan).length;
+  const byInterval = (k: string) => rows.filter((r) => r.billing_interval === k).length;
+  const { count: freeCount } = await db().from('businesses').select('id', { count: 'exact', head: true }).eq('status', 'approved').eq('free_listing', true).not('subscription_status', 'in', `(${PAID_STATUSES.join(',')})`);
+  const save = yearlySaving(pricing);
 
   return (
     <div>
@@ -42,6 +45,10 @@ export default async function AdminPrices({ searchParams }: { searchParams: Prom
           <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 8 }}>
             <input type="radio" name="mode" value="plans" defaultChecked={pricing.mode === 'plans'} style={{ width: 'auto', marginTop: 4 }} />
             <span><strong>Verified and Pro plans.</strong> Members choose a plan. The full leads feed and supply chain finder are Pro only. Members on Verified can upgrade any time.</span>
+          </label>
+          <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 8 }}>
+            <input type="radio" name="mode" value="membership" defaultChecked={pricing.mode === 'membership'} style={{ width: 'auto', marginTop: 4 }} />
+            <span><strong>Free, monthly or yearly.</strong> Once approved, members choose a free listing (shown as unverified) or verified membership paid monthly or yearly, with a free trial. Every verified member gets every tool.</span>
           </label>
         </div>
 
@@ -75,6 +82,36 @@ export default async function AdminPrices({ searchParams }: { searchParams: Prom
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="panel">
+          <h2 style={{ marginTop: 0 }}>Free, monthly or yearly {pricing.mode === 'membership' && <span className="status approved">charging now</span>}</h2>
+          <table className="table">
+            <thead><tr><th>Option</th><th>Price (£)</th><th>Members</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Free listing</strong><br /><span className="muted small">Shown as unverified, no member tools</span></td><td>0</td><td>{freeCount ?? 0}</td></tr>
+              <tr>
+                <td><strong>Verified, paid monthly</strong><br /><span className="muted small">Price a month</span></td>
+                <td><input name="mem_monthly" type="number" min="1" step="1" required defaultValue={pricing.membership.monthly} style={{ maxWidth: 120 }} /></td>
+                <td>{byInterval('month')}</td>
+              </tr>
+              <tr>
+                <td><strong>Verified, paid yearly</strong><br /><span className="muted small">Price a year. Must be less than 12 monthly payments.</span></td>
+                <td><input name="mem_yearly" type="number" min="1" step="1" required defaultValue={pricing.membership.yearly} style={{ maxWidth: 120 }} /></td>
+                <td>{byInterval('year')}</td>
+              </tr>
+              <tr>
+                <td><strong>Free trial</strong><br /><span className="muted small">Days before the first payment, on both. 0 for none.</span></td>
+                <td><input name="mem_trial" type="number" min="0" max="90" step="1" required defaultValue={pricing.membership.trial_days} style={{ maxWidth: 120 }} /></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+          <p className="muted small" style={{ marginBottom: 0 }}>
+            At these prices, paying yearly saves &pound;{save.pounds}
+            {save.months > 0 && <> ({save.months === 1 ? '1 month' : `${save.months} months`} free)</>}, about &pound;{save.perMonth.toFixed(2).replace(/\.00$/, '')} a month.
+            The plan screen members see works this out for itself.
+          </p>
         </div>
 
         <p className="muted small">

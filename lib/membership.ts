@@ -52,19 +52,20 @@ export type Pending = {
 };
 
 type VerifyFields = Pick<MemberRow, 'status' | 'founding_member' | 'subscription_status'> & {
-  pl_expiry: string | null; el_expiry: string | null; el_cover_amount: number | null;
+  pl_expiry: string | null; el_expiry: string | null; el_cover_amount: number | null; free_listing?: boolean;
 };
 
 /** Why a listing is not verified, or null if it is. Uses confirmed dates only. */
-export function unverifiedReason(b: VerifyFields): 'membership' | 'insurance' | null {
-  if (!(b.founding_member || PAID_STATUSES.includes(b.subscription_status))) return 'membership';
+export function unverifiedReason(b: VerifyFields): 'membership' | 'insurance' | 'free' | null {
+  if (!(b.founding_member || PAID_STATUSES.includes(b.subscription_status))) return b.free_listing ? 'free' : 'membership';
   const today = new Date().toISOString().slice(0, 10);
   if (!b.pl_expiry || b.pl_expiry < today) return 'insurance';
   if (b.el_cover_amount != null && (!b.el_expiry || b.el_expiry < today)) return 'insurance';
   return null;
 }
 
-export const UNVERIFIED_TEXT: Record<'membership' | 'insurance', string> = {
+export const UNVERIFIED_TEXT: Record<'membership' | 'insurance' | 'free', string> = {
+  free: 'Free listing. Their insurance and accreditations have not been checked by us.',
   membership: 'Membership lapsed, so their documents are no longer being checked.',
   insurance: 'Insurance has expired and a current certificate has not been checked yet.',
 };

@@ -1,0 +1,23 @@
+.plans-page h1 { margin-bottom: 4px; }
+.plans { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1fr) minmax(0, 1.15fr); gap: 16px; align-items: end; margin: 20px 0 12px; }
+.plan { background: #fff; border: 1px solid #ddd8cc; border-radius: 12px; padding: 18px 18px 20px; }
+.plan h2 { font-size: 1.05rem; margin: 0; }
+.plan-mid { border: 1.5px solid #2f6b2a; padding: 20px; }
+.plan-best { border: 3px solid #2f6b2a; padding: 24px 22px; }
+.plan-best h2 { font-size: 1.25rem; }
+.plan-price { font-size: 1.6rem; font-weight: 700; margin: 4px 0 0; }
+.plan-price span { font-size: .85rem; font-weight: 400; color: #6b6b6b; }
+.plan-price-big { font-size: 2.2rem; }
+.plan-save { color: #2f6b2a; font-weight: 600; margin: 2px 0 0; }
+.plan-badge { display: inline-block; background: #e6f0e3; color: #1f4d1b; font-size: .8rem; font-weight: 600; padding: 3px 10px; border-radius: 6px; margin: 0 6px 10px 0; }
+.plan ul { list-style: none; padding: 0; margin: 14px 0 18px; line-height: 1.9; font-size: .92rem; }
+.plan-best ul { font-size: 1rem; }
+.plan li::before { display: inline-block; width: 1.3em; font-weight: 700; }
+.plan li.yes::before { content: '\2713'; color: #2f6b2a; }
+.plan li.no { color: #9a9a9a; }
+.plan li.no::before { content: '\2715'; }
+.plan form button { width: 100%; }
+.plan-go { background: #2f6b2a; color: #fff; border: none; height: 44px; font-weight: 600; }
+.plan-go:hover { background: #12361f; }
+.plan-go-big { height: 50px; font-size: 1.05rem; }
+@media (max-width: 760px) { .plans { grid-template-columns: 1fr; } .plan-best { order: -1; } }

@@ -9,7 +9,7 @@ import { TRADES, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
 type CompanyInfo = { name: string; status: string; incorporatedOn: string | null; registeredAddress: string; companyNumber: string };
 type FileField = 'letterhead' | 'pl_certificate' | 'el_certificate' | 'accreditation_docs' | 'photos';
 
-type PriceInfo = { mode: 'bands' | 'plans'; bands: { key: string; label: string; price: number }[]; plans: { verified: number; pro: number } };
+type PriceInfo = { mode: 'bands' | 'plans' | 'membership'; bands: { key: string; label: string; price: number }[]; plans: { verified: number; pro: number }; membership: { monthly: number; yearly: number; trial_days: number } };
 
 export default function JoinForm({ prices }: { prices: PriceInfo }) {
   const router = useRouter();
@@ -183,7 +183,9 @@ export default function JoinForm({ prices }: { prices: PriceInfo }) {
               {prices.bands.map((b) => <option key={b.key} value={b.key}>{b.label}</option>)}
             </select>
             <span className="hint">
-              {prices.mode === 'plans'
+              {prices.mode === 'membership'
+                ? `Once approved, choose a free listing or verified membership from £${prices.membership.monthly} a month${prices.membership.trial_days ? `, with ${prices.membership.trial_days} days free` : ''}.`
+                : prices.mode === 'plans'
                 ? `Membership is Verified (£${prices.plans.verified} a year) or Pro (£${prices.plans.pro} a year). You choose once your listing is approved.`
                 : price ? `Your listing: £${price} a year.` : 'Listing prices are banded by turnover, so smaller firms pay less.'}
             </span>

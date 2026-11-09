@@ -16,13 +16,13 @@ export default async function BusinessPage({ params, searchParams }: { params: P
 
   const { data: b } = await db()
     .from('businesses')
-    .select('id, trading_name, business_type, company_number, trades, accreditations, accreditation_expiries, pl_cover_amount, pl_expiry, el_cover_amount, el_expiry, contact_name, email, phone, website, description, base_postcode, radius_miles, status, founding_member, subscription_status')
+    .select('id, trading_name, business_type, company_number, trades, accreditations, accreditation_expiries, pl_cover_amount, pl_expiry, el_cover_amount, el_expiry, contact_name, email, phone, website, description, base_postcode, radius_miles, status, founding_member, subscription_status, free_listing')
     .eq('id', id)
     .maybeSingle();
 
   // Lapsed members and paid members with lapsed insurance keep a public page, marked
-  // unverified; listings that never paid have none
-  if (!b || b.status !== 'approved' || !(b.founding_member || ['active', 'trialing', 'past_due', 'cancelled'].includes(b.subscription_status))) notFound();
+  // unverified, as do free listings; listings that never paid or chose free have none
+  if (!b || b.status !== 'approved' || !(b.founding_member || b.free_listing || ['active', 'trialing', 'past_due', 'cancelled'].includes(b.subscription_status))) notFound();
   const reason = unverifiedReason(b);
   const verified = !reason;
 
@@ -61,6 +61,8 @@ export default async function BusinessPage({ params, searchParams }: { params: P
       ) : (
         <p className="warn"><strong>Unverified.</strong> {reason === 'insurance'
           ? 'This business\u2019s insurance has expired and we have not yet checked a current certificate.'
+          : reason === 'free'
+          ? 'This is a free listing. We have not checked this business\u2019s insurance or accreditations.'
           : 'This business\u2019s membership has lapsed, so we are no longer checking its insurance and accreditations.'} Ask to see current certificates before you hire.</p>
       )}
 

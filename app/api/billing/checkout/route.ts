@@ -5,7 +5,7 @@ import { ownedBusiness } from '@/lib/account';
 import { isPaid } from '@/lib/membership';
 import { stripe, stripeEnabled } from '@/lib/stripe';
 import { siteUrl } from '@/lib/config';
-import { getPricing, bandPrice, planKey, PLAN_INFO } from '@/lib/pricing';
+import { getPricing, bandPrice, planKey, PLAN_INFO, type Interval } from '@/lib/pricing';
 import { findCode, usable } from '@/lib/discounts';
 
 export const runtime = 'nodejs';
@@ -25,14 +25,24 @@ export async function POST(req: NextRequest) {
   if (b.status !== 'approved') return back(req, id, 'billing=' + encodeURIComponent('You can pay once your listing has been approved.'));
   if (isPaid(b)) return back(req, id, 'billing=' + encodeURIComponent('Your membership is already active.'));
   const pricing = await getPricing();
-  let item: { price: number; name: string; plan: string | null };
-  if (pricing.mode === 'plans') {
+  let item: { price: number; name: string; plan: string | null; interval: Interval; trialDays: number | null };
+  if (pricing.mode === 'membership') {
+    const interval: Interval = fd?.get('interval') === 'month' ? 'month' : 'year';
+    item = {
+      price: interval === 'month' ? pricing.membership.monthly : pricing.membership.yearly,
+      name: `The Little Green Book verified membership (paid ${interval === 'month' ? 'monthly' : 'yearly'})`,
+      plan: null,
+      interval,
+      // One free trial per business: not again for anyone who has paid before
+      trialDays: pricing.membership.trial_days > 0 && !b.stripe_subscription_id ? pricing.membership.trial_days : null,
+    };
+  } else if (pricing.mode === 'plans') {
     const plan = planKey(fd?.get('plan'));
-    item = { price: pricing.plans[plan], name: `The Little Green Book ${PLAN_INFO[plan].label} membership`, plan };
+    item = { price: pricing.plans[plan], name: `The Little Green Book ${PLAN_INFO[plan].label} membership`, plan, interval: 'year', trialDays: null };
   } else {
     const band = bandPrice(pricing, b.turnover_band);
     if (!band) return back(req, id, 'billing=' + encodeURIComponent('Choose your annual turnover below and save, then try again.'));
-    item = { price: band.price, name: `The Little Green Book listing (${band.label} turnover)`, plan: null };
+    item = { price: band.price, name: `The Little Green Book listing (${band.label} turnover)`, plan: null, interval: 'year', trialDays: null };
   }
 
   try {
@@ -46,7 +56,8 @@ export async function POST(req: NextRequest) {
       customer = c.id as string;
       await db().from('businesses').update({ stripe_customer_id: customer }).eq('id', b.id);
     }
-    const trial = Number(process.env.STRIPE_TRIAL_DAYS || 0);
+    const trial = item.trialDays ?? Number(process.env.STRIPE_TRIAL_DAYS || 0);
+    const meta = { business_id: b.id, interval: item.interval, ...(item.plan ? { plan: item.plan } : {}) };
     const tax = process.env.STRIPE_AUTOMATIC_TAX === '1';
     // A code from a shared link is applied for them. Otherwise they can type one on Stripe's page.
     // Stripe does not allow both at once.
@@ -61,22 +72,22 @@ export async function POST(req: NextRequest) {
         price_data: {
           currency: 'gbp',
           unit_amount: item.price * 100,
-          recurring: { interval: 'year' },
+          recurring: { interval: item.interval },
           product_data: { name: item.name },
           ...(tax ? { tax_behavior: 'exclusive' } : {}),
         },
       }],
       subscription_data: {
-        metadata: { business_id: b.id, ...(item.plan ? { plan: item.plan } : {}) },
+        metadata: meta,
         ...(trial > 0 ? { trial_period_days: trial } : {}),
       },
-      metadata: { business_id: b.id, ...(item.plan ? { plan: item.plan } : {}) },
+      metadata: meta,
       ...(promo ? { discounts: [{ promotion_code: promo }] } : { allow_promotion_codes: 'true' }),
       billing_address_collection: 'auto',
       customer_update: { address: 'auto', name: 'auto' },
       ...(tax ? { automatic_tax: { enabled: 'true' }, tax_id_collection: { enabled: 'true' } } : {}),
       success_url: `${siteUrl()}/account/${b.id}?paid=1`,
-      cancel_url: `${siteUrl()}/account/${b.id}`,
+      cancel_url: `${siteUrl()}/account/${b.id}${pricing.mode === 'membership' ? '/plan' : ''}`,
     };
     let session;
     try {

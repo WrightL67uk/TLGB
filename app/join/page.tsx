@@ -24,7 +24,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
           Code <strong>{offer.code}</strong>: {describe(offer)}. It will be taken off when you pay for your listing, once you are approved.
         </p>
       )}
-      <JoinForm prices={{ mode: pricing.mode, bands: bandsWithPrices(pricing), plans: pricing.plans }} />
+      <JoinForm prices={{ mode: pricing.mode, bands: bandsWithPrices(pricing), plans: pricing.plans, membership: pricing.membership }} />
     </div>
   );
 }

@@ -26,8 +26,21 @@ export async function POST(req: NextRequest) {
   const pro = read('plan_pro');
   if (verified == null || pro == null) return back(req, 'error=' + encodeURIComponent('Enter prices in whole pounds for Verified and Pro.'));
   if (pro <= verified) return back(req, 'error=' + encodeURIComponent('Pro needs to cost more than Verified.'));
+  const monthly = read('mem_monthly');
+  const yearly = read('mem_yearly');
+  if (monthly == null || yearly == null) return back(req, 'error=' + encodeURIComponent('Enter monthly and yearly prices in whole pounds.'));
+  if (yearly >= monthly * 12) return back(req, 'error=' + encodeURIComponent(`The yearly price needs to be less than 12 monthly payments (£${monthly * 12}), or nobody will pay yearly.`));
+  const trialRaw = Number(String(fd.get('mem_trial') ?? '0'));
+  if (!Number.isFinite(trialRaw) || trialRaw < 0 || trialRaw > 90) return back(req, 'error=' + encodeURIComponent('The free trial can be 0 to 90 days.'));
+  const trial_days = Math.round(trialRaw);
 
-  const next: Pricing = { mode: fd.get('mode') === 'plans' ? 'plans' : 'bands', bands, plans: { verified, pro } };
+  const modeIn = String(fd.get('mode') ?? '');
+  const next: Pricing = {
+    mode: modeIn === 'plans' || modeIn === 'membership' ? modeIn : 'bands',
+    bands,
+    plans: { verified, pro },
+    membership: { monthly, yearly, trial_days },
+  };
   const { error } = await savePricing(next);
   if (error) {
     console.error('save pricing failed', error);
@@ -35,9 +48,13 @@ export async function POST(req: NextRequest) {
   }
 
   const changes: string[] = [];
-  if (before.mode !== next.mode) changes.push(`charging switched to ${next.mode === 'plans' ? 'Verified and Pro' : 'turnover bands'}`);
+  const modeName = { bands: 'turnover bands', plans: 'Verified and Pro', membership: 'free, monthly or yearly' };
+  if (before.mode !== next.mode) changes.push(`charging switched to ${modeName[next.mode]}`);
   for (const b of TURNOVER_BANDS) if (before.bands[b.key] !== next.bands[b.key]) changes.push(`${b.label} £${before.bands[b.key]} to £${next.bands[b.key]}`);
   if (before.plans.verified !== verified) changes.push(`Verified £${before.plans.verified} to £${verified}`);
   if (before.plans.pro !== pro) changes.push(`Pro £${before.plans.pro} to £${pro}`);
+  if (before.membership.monthly !== monthly) changes.push(`monthly £${before.membership.monthly} to £${monthly}`);
+  if (before.membership.yearly !== yearly) changes.push(`yearly £${before.membership.yearly} to £${yearly}`);
+  if (before.membership.trial_days !== trial_days) changes.push(`free trial ${before.membership.trial_days} to ${trial_days} days`);
   return back(req, 'msg=' + encodeURIComponent(changes.length ? `Saved: ${changes.join('; ')}.` : 'No changes.'));
 }

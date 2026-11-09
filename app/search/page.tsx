@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 type Result = {
   id: string; trading_name: string; business_type: string; trades: string[];
   accreditations: string[]; pl_cover_amount: number | null; base_postcode: string;
-  distance_miles: number; description: string | null; verified: boolean; unverified_reason: 'membership' | 'insurance' | null;
+  distance_miles: number; description: string | null; verified: boolean; unverified_reason: 'membership' | 'insurance' | 'free' | null;
 };
 
 type SP = Promise<Record<string, string | string[] | undefined>>;

@@ -26,6 +26,7 @@ async function applySubscription(sub: Json) {
     subscription_status: status,
     paid_until: periodEnd(sub),
     ...(sub.metadata?.plan === 'pro' || sub.metadata?.plan === 'verified' ? { plan: sub.metadata.plan } : {}),
+    ...(sub.metadata?.interval === 'month' || sub.metadata?.interval === 'year' ? { billing_interval: sub.metadata.interval } : {}),
   }).eq('id', b.id);
   if (status !== b.subscription_status) {
     await db().from('review_events').insert({ business_id: b.id, action: 'billing', actor: 'stripe', detail: `Membership ${b.subscription_status} to ${status}` });

@@ -28,6 +28,10 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
   const b = own.business;
   const pricing = await getPricing();
   const band = bandPrice(pricing, b.turnover_band);
+  // Free, monthly or yearly: approved listings that have not chosen yet go to the plan screen first
+  if (pricing.mode === 'membership' && b.status === 'approved' && !isPaid(b) && !b.free_listing && b.subscription_status !== 'cancelled' && !justPaid) {
+    redirect(`/account/${b.id}/plan`);
+  }
 
   const [{ data: docs }, { data: photos }, { count: listingCount }, { data: packDocs }, { count: packLinks }, { count: pqqCount }] = await Promise.all([
     db().from('business_documents').select('id, doc_type, file_name, created_at').eq('business_id', b.id).order('created_at', { ascending: false }),
@@ -117,6 +121,7 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
               <p>
                 <span className="status approved">{b.subscription_status === 'trialing' ? 'Free trial' : b.subscription_status === 'past_due' ? 'Payment due' : 'Active'}</span>{' '}
                 {pricing.mode === 'plans' && b.plan && <strong>{PLAN_INFO[b.plan === 'pro' ? 'pro' : 'verified'].label} plan. </strong>}
+                {b.billing_interval && pricing.mode !== 'plans' && <strong>Verified, paid {b.billing_interval === 'month' ? 'monthly' : 'yearly'}. </strong>}
                 {b.paid_until && <>{b.subscription_status === 'trialing' ? 'Trial ends' : 'Renews'} on {fmt(b.paid_until)}.</>}
                 {b.subscription_status === 'past_due' && <> Your last payment did not go through. Update your card to keep your listing live.</>}
               </p>
@@ -135,6 +140,18 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
                   <span className="muted small"> You pay the difference for the rest of this membership year now, then &pound;{pricing.plans.pro} at renewal.</span>
                 </form>
               )}
+            </>
+          ) : pricing.mode === 'membership' ? (
+            <>
+              <p>
+                {b.free_listing && b.subscription_status !== 'cancelled'
+                  ? <><span className="status pending">Free listing</span> You appear in search as <strong>Unverified</strong>. Go verified to get the badge, every lead and contractor job, and the member tools.</>
+                  : b.subscription_status === 'cancelled'
+                  ? 'Your membership has ended, so your listing shows as Unverified. Renew to become verified again.'
+                  : 'Your listing is approved. Choose how you want to be listed.'}
+              </p>
+              <Link href={`/account/${b.id}/plan`} className="primary" style={{ display: "inline-block", textDecoration: "none" }}>{b.free_listing || b.subscription_status === 'cancelled' ? 'See verified options' : 'Choose how you are listed'}</Link>
+              {pricing.membership.trial_days > 0 && !b.stripe_subscription_id && <span className="muted small"> {pricing.membership.trial_days} days free, from &pound;{pricing.membership.monthly} a month.</span>}
             </>
           ) : (
             <>
