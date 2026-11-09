@@ -4,14 +4,15 @@ import { sameOrigin } from '@/lib/session';
 import { ownedBusiness } from '@/lib/account';
 import { isPaid } from '@/lib/membership';
 import { stripe, stripeEnabled } from '@/lib/stripe';
-import { siteUrl, turnoverBand } from '@/lib/config';
+import { siteUrl } from '@/lib/config';
+import { getPricing, bandPrice, planKey, PLAN_INFO } from '@/lib/pricing';
 import { findCode, usable } from '@/lib/discounts';
 
 export const runtime = 'nodejs';
 
 const back = (req: NextRequest, id: string, q: string) => NextResponse.redirect(new URL(`/account/${id}?${q}`, req.url), 303);
 
-/** Sends an approved trade to Stripe's payment page for a yearly listing at their turnover band price. */
+/** Sends an approved trade to Stripe's payment page for a yearly membership, at their turnover band price or their chosen plan's price (set on the admin Prices page). */
 export async function POST(req: NextRequest) {
   const fd = await req.formData().catch(() => null);
   const id = String(fd?.get('business_id') ?? '');
@@ -23,8 +24,16 @@ export async function POST(req: NextRequest) {
   if (!stripeEnabled()) return back(req, id, 'billing=' + encodeURIComponent('Online payment is not switched on yet. We will be in touch.'));
   if (b.status !== 'approved') return back(req, id, 'billing=' + encodeURIComponent('You can pay once your listing has been approved.'));
   if (isPaid(b)) return back(req, id, 'billing=' + encodeURIComponent('Your membership is already active.'));
-  const band = turnoverBand(b.turnover_band);
-  if (!band) return back(req, id, 'billing=' + encodeURIComponent('Choose your annual turnover below and save, then try again.'));
+  const pricing = await getPricing();
+  let item: { price: number; name: string; plan: string | null };
+  if (pricing.mode === 'plans') {
+    const plan = planKey(fd?.get('plan'));
+    item = { price: pricing.plans[plan], name: `The Little Green Book ${PLAN_INFO[plan].label} membership`, plan };
+  } else {
+    const band = bandPrice(pricing, b.turnover_band);
+    if (!band) return back(req, id, 'billing=' + encodeURIComponent('Choose your annual turnover below and save, then try again.'));
+    item = { price: band.price, name: `The Little Green Book listing (${band.label} turnover)`, plan: null };
+  }
 
   try {
     let customer = b.stripe_customer_id;
@@ -51,17 +60,17 @@ export async function POST(req: NextRequest) {
         quantity: 1,
         price_data: {
           currency: 'gbp',
-          unit_amount: band.price * 100,
+          unit_amount: item.price * 100,
           recurring: { interval: 'year' },
-          product_data: { name: `The Little Green Book listing (${band.label} turnover)` },
+          product_data: { name: item.name },
           ...(tax ? { tax_behavior: 'exclusive' } : {}),
         },
       }],
       subscription_data: {
-        metadata: { business_id: b.id },
+        metadata: { business_id: b.id, ...(item.plan ? { plan: item.plan } : {}) },
         ...(trial > 0 ? { trial_period_days: trial } : {}),
       },
-      metadata: { business_id: b.id },
+      metadata: { business_id: b.id, ...(item.plan ? { plan: item.plan } : {}) },
       ...(promo ? { discounts: [{ promotion_code: promo }] } : { allow_promotion_codes: 'true' }),
       billing_address_collection: 'auto',
       customer_update: { address: 'auto', name: 'auto' },

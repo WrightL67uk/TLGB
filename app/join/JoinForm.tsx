@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadToSignedUrl } from '@/lib/supabaseBrowser';
 import AccreditationPicker, { readAccreditationExpiries } from '@/app/AccreditationPicker';
-import { TRADES, TURNOVER_BANDS, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
+import { TRADES, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
 
 type CompanyInfo = { name: string; status: string; incorporatedOn: string | null; registeredAddress: string; companyNumber: string };
 type FileField = 'letterhead' | 'pl_certificate' | 'el_certificate' | 'accreditation_docs' | 'photos';
 
-export default function JoinForm() {
+type PriceInfo = { mode: 'bands' | 'plans'; bands: { key: string; label: string; price: number }[]; plans: { verified: number; pro: number } };
+
+export default function JoinForm({ prices }: { prices: PriceInfo }) {
   const router = useRouter();
   const [type, setType] = useState<'ltd' | 'sole_trader' | null>(null);
   const [companyNumber, setCompanyNumber] = useState('');
@@ -20,7 +22,7 @@ export default function JoinForm() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
   const [band, setBand] = useState('');
-  const price = TURNOVER_BANDS.find((b) => b.key === band)?.price;
+  const price = prices.mode === 'bands' ? prices.bands.find((b) => b.key === band)?.price : undefined;
 
   async function lookupCompany() {
     setChecking(true);
@@ -178,10 +180,12 @@ export default function JoinForm() {
           <label>Annual turnover
             <select value={band} onChange={(e) => setBand(e.target.value)} required>
               <option value="" disabled>Choose</option>
-              {TURNOVER_BANDS.map((b) => <option key={b.key} value={b.key}>{b.label}</option>)}
+              {prices.bands.map((b) => <option key={b.key} value={b.key}>{b.label}</option>)}
             </select>
             <span className="hint">
-              {price ? `Your listing: £${price} a year.` : 'Listing prices are banded by turnover, so smaller firms pay less.'}
+              {prices.mode === 'plans'
+                ? `Membership is Verified (£${prices.plans.verified} a year) or Pro (£${prices.plans.pro} a year). You choose once your listing is approved.`
+                : price ? `Your listing: £${price} a year.` : 'Listing prices are banded by turnover, so smaller firms pay less.'}
             </span>
           </label>
         )}

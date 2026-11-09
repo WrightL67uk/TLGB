@@ -22,7 +22,7 @@ const FEATURES = [
   },
   {
     tone: 'teal', icon: Icon.list, title: 'list your business', href: '/join', cta: 'apply',
-    body: 'Get found by the contractors pricing work near you. Fees are banded by turnover, so smaller firms pay less.',
+    body: 'Get found by the contractors pricing work near you, with your insurance and accreditations checked by hand.',
   },
   {
     tone: 'green', icon: Icon.shield, title: 'checked by hand', href: '/#checks', cta: 'what we check',

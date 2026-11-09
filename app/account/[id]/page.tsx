@@ -7,7 +7,7 @@ import { expiryItems, daysUntil, fmtDate } from '@/lib/expiries';
 import { isPaid, unverifiedReason, type Pending } from '@/lib/membership';
 import { accreditationLabel } from '@/lib/config';
 import { stripeEnabled } from '@/lib/stripe';
-import { turnoverBand } from '@/lib/config';
+import { getPricing, bandPrice, bandsWithPrices, PLAN_INFO, type PlanKey } from '@/lib/pricing';
 import { CORE_COUNT, DOC_TYPES } from '@/lib/complianceTypes';
 import { PQQ_COUNTABLE } from '@/lib/pqq';
 import '../../compliance.css';
@@ -26,6 +26,8 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
     notFound();
   }
   const b = own.business;
+  const pricing = await getPricing();
+  const band = bandPrice(pricing, b.turnover_band);
 
   const [{ data: docs }, { data: photos }, { count: listingCount }, { data: packDocs }, { count: packLinks }, { count: pqqCount }] = await Promise.all([
     db().from('business_documents').select('id, doc_type, file_name, created_at').eq('business_id', b.id).order('created_at', { ascending: false }),
@@ -104,7 +106,7 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
       </section>
 
       {b.status === 'approved' && (
-        <section className="panel membership-panel">
+        <section className="panel membership-panel" id="membership">
           <h2>Membership</h2>
           {justPaid && <p className="ok-box">Thank you. Your payment has gone through and your membership will show as active in a moment.</p>}
           {billingMsg && <p className="warn">{billingMsg}</p>}
@@ -114,6 +116,7 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
             <>
               <p>
                 <span className="status approved">{b.subscription_status === 'trialing' ? 'Free trial' : b.subscription_status === 'past_due' ? 'Payment due' : 'Active'}</span>{' '}
+                {pricing.mode === 'plans' && <strong>{PLAN_INFO[b.plan === 'pro' ? 'pro' : 'verified'].label} plan. </strong>}
                 {b.paid_until && <>{b.subscription_status === 'trialing' ? 'Trial ends' : 'Renews'} on {fmt(b.paid_until)}.</>}
                 {b.subscription_status === 'past_due' && <> Your last payment did not go through. Update your card to keep your listing live.</>}
               </p>
@@ -124,14 +127,36 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
                   <span className="muted small"> Change your card, download invoices or cancel.</span>
                 </form>
               )}
+              {pricing.mode === 'plans' && b.plan !== 'pro' && b.stripe_subscription_id && stripeEnabled() && (
+                <form method="post" action="/api/billing/upgrade" style={{ marginTop: 12 }}>
+                  <input type="hidden" name="business_id" value={b.id} />
+                  <p className="small">{PLAN_INFO.pro.blurb} <strong>&pound;{pricing.plans.pro} a year.</strong></p>
+                  <button type="submit" className="primary">Upgrade to Pro</button>
+                  <span className="muted small"> You pay the difference for the rest of this membership year now, then &pound;{pricing.plans.pro} at renewal.</span>
+                </form>
+              )}
             </>
           ) : (
             <>
               <p>
-                {b.subscription_status === 'cancelled' ? 'Renew your membership to show as verified again' : 'Your listing is approved. Start your membership to appear in search'} and get the full leads feed, the supply chain finder and the help board.
-                {turnoverBand(b.turnover_band) && <> Your price is <strong>&pound;{turnoverBand(b.turnover_band)!.price} a year</strong> for the {turnoverBand(b.turnover_band)!.label} turnover band.</>}
+                {b.subscription_status === 'cancelled' ? 'Renew your membership to show as verified again' : 'Your listing is approved. Start your membership to appear in search'}
+                {pricing.mode === 'plans' ? '. Choose your plan:' : <> and get the full leads feed, the supply chain finder and the help board.</>}
+                {pricing.mode === 'bands' && band && <> Your price is <strong>&pound;{band.price} a year</strong> for the {band.label} turnover band.</>}
               </p>
-              {stripeEnabled() ? (
+              {stripeEnabled() && pricing.mode === 'plans' ? (
+                <div className="plan-choice" style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', margin: '8px 0' }}>
+                  {(['verified', 'pro'] as PlanKey[]).map((k) => (
+                    <form key={k} method="post" action="/api/billing/checkout" className="panel" style={{ margin: 0 }}>
+                      <input type="hidden" name="business_id" value={b.id} />
+                      <input type="hidden" name="plan" value={k} />
+                      <h3 style={{ marginTop: 0 }}>{PLAN_INFO[k].label} <span className="muted">&pound;{pricing.plans[k]} a year</span></h3>
+                      <p className="small">{PLAN_INFO[k].blurb}</p>
+                      <button type="submit" className={k === 'pro' ? 'primary' : undefined}>Choose {PLAN_INFO[k].label}</button>
+                    </form>
+                  ))}
+                  <p className="muted small" style={{ gridColumn: '1 / -1', margin: 0 }}>Secure card payment through Stripe. Renews yearly; cancel any time. You can move from Verified to Pro later.</p>
+                </div>
+              ) : stripeEnabled() ? (
                 <form method="post" action="/api/billing/checkout">
                   <input type="hidden" name="business_id" value={b.id} />
                   <button type="submit" className="primary">{b.subscription_status === 'cancelled' ? 'Renew membership' : 'Start membership'}</button>
@@ -276,6 +301,7 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
         }}
         docs={(docs ?? []).map((d) => ({ id: d.id, label: DOC_TYPE_LABEL[d.doc_type] ?? d.doc_type, fileName: d.file_name, date: fmt(d.created_at) }))}
         photos={(photos ?? []).map((p) => ({ id: p.id, url: photoUrl(p.storage_path) }))}
+        bands={bandsWithPrices(pricing).map((x) => ({ ...x, price: pricing.mode === 'bands' ? x.price : null }))}
       />
     </div>
   );

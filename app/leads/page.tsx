@@ -47,8 +47,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
   const sp = await searchParams;
   const m = await getMembership();
   const email = m.email;
-  // Only paying (or founding) members get the full feed; everyone else sees a sample
-  const loggedIn = m.paid;
+  // Only paying (or founding) members get the full feed (Pro only, when Verified and Pro pricing is on)
+  const loggedIn = m.pro;
 
   // A logged-in trade sees leads matched to their listing by default
   const { data: mine } = loggedIn
@@ -216,11 +216,13 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
               <h2>{leads.length - 1} more {leads.length - 1 === 1 ? 'lead' : 'leads'} {trade || region || type ? 'match this search' : 'live now'}</h2>
               {m.loggedIn ? (
                 <>
-                  <p>{m.approved
+                  <p>{m.paidNotPro
+                    ? 'The full leads feed is part of Pro. Upgrade to see every lead, matched to your trades and the area you cover.'
+                    : m.approved
                     ? 'Start your membership to get the full leads feed, matched to your trades and the area you cover.'
                     : 'Your listing is waiting for approval. Once it is approved you can start your membership and see every lead.'}</p>
                   <div className="gate-btns">
-                    <Link href={m.unpaidId ? `/account/${m.unpaidId}` : '/account'} className="sq sq-rust">{m.approved ? 'start membership' : 'check my listing'}</Link>
+                    <Link href={m.paidNotPro ? `/account/${m.paidNotPro}#membership` : m.unpaidId ? `/account/${m.unpaidId}` : '/account'} className="sq sq-rust">{m.paidNotPro ? 'upgrade to pro' : m.approved ? 'start membership' : 'check my listing'}</Link>
                   </div>
                 </>
               ) : (

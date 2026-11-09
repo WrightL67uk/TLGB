@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadToSignedUrl } from '@/lib/supabaseBrowser';
 import AccreditationPicker, { readAccreditationExpiries } from '@/app/AccreditationPicker';
-import { TRADES, TURNOVER_BANDS, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
+import { TRADES, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
 
 type FileField = 'letterhead' | 'pl_certificate' | 'el_certificate' | 'accreditation_docs' | 'photos';
 type Msg = { kind: 'ok' | 'err'; text: string } | null;
@@ -18,12 +18,13 @@ type Props = {
   };
   docs: { id: string; label: string; fileName: string; date: string }[];
   photos: { id: string; url: string }[];
+  bands: { key: string; label: string; price: number | null }[]; // price only shown when charging by turnover
 };
 
 const DOC_ACCEPT = '.pdf,image/jpeg,image/png';
 const PHOTO_ACCEPT = 'image/jpeg,image/png,image/webp';
 
-export default function AccountEditor({ b, docs, photos }: Props) {
+export default function AccountEditor({ b, docs, photos, bands }: Props) {
   const router = useRouter();
   const [msg, setMsg] = useState<Msg>(null);
   const [saving, setSaving] = useState(false);
@@ -136,7 +137,7 @@ export default function AccountEditor({ b, docs, photos }: Props) {
           <label htmlFor="turnover_band">Annual turnover
             <select id="turnover_band" name="turnover_band" defaultValue={b.turnover_band} required>
               <option value="" disabled>Choose</option>
-              {TURNOVER_BANDS.map((t) => <option key={t.key} value={t.key}>{t.label} (£{t.price} a year)</option>)}
+              {bands.map((t) => <option key={t.key} value={t.key}>{t.label}{t.price != null ? ` (£${t.price} a year)` : ''}</option>)}
             </select>
           </label>
           <label htmlFor="description">About your business

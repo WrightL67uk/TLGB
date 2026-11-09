@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import JoinForm from './JoinForm';
 import { CODE_COOKIE, describe, findCode, usable } from '@/lib/discounts';
+import { getPricing, bandsWithPrices } from '@/lib/pricing';
 
 export const metadata = { title: 'List your business | TLGB' };
 export const dynamic = 'force-dynamic';
@@ -10,6 +11,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
   const raw = sp.code || (await cookies()).get(CODE_COOKIE)?.value;
   const found = raw ? await findCode(raw).catch(() => null) : null;
   const offer = found && usable(found.code, found.uses) ? found.code : null;
+  const pricing = await getPricing();
 
   return (
     <div className="narrow">
@@ -22,7 +24,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
           Code <strong>{offer.code}</strong>: {describe(offer)}. It will be taken off when you pay for your listing, once you are approved.
         </p>
       )}
-      <JoinForm />
+      <JoinForm prices={{ mode: pricing.mode, bands: bandsWithPrices(pricing), plans: pricing.plans }} />
     </div>
   );
 }

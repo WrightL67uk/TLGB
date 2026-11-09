@@ -25,6 +25,7 @@ async function applySubscription(sub: Json) {
     stripe_customer_id: typeof sub.customer === 'string' ? sub.customer : sub.customer?.id,
     subscription_status: status,
     paid_until: periodEnd(sub),
+    ...(sub.metadata?.plan === 'pro' || sub.metadata?.plan === 'verified' ? { plan: sub.metadata.plan } : {}),
   }).eq('id', b.id);
   if (status !== b.subscription_status) {
     await db().from('review_events').insert({ business_id: b.id, action: 'billing', actor: 'stripe', detail: `Membership ${b.subscription_status} to ${status}` });

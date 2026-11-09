@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db, photoUrl } from '@/lib/supabase';
 import { gbp, tradeLabel, turnoverBand, accreditationLabel } from '@/lib/config';
+import { getPricing, bandPrice } from '@/lib/pricing';
 import { daysUntil, fmtDate } from '@/lib/expiries';
 import { unverifiedReason, type Pending } from '@/lib/membership';
 import { docType, shownStatus, ukDate } from '@/lib/complianceTypes';
@@ -32,6 +33,7 @@ export default async function AdminDetail({
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 
   const { data: b } = await db().from('businesses').select('*').eq('id', id).maybeSingle();
+  const pricing = await getPricing();
   if (!b) notFound();
 
   const [{ data: docs }, { data: photos }, { data: events }, { data: packDocs }, { count: packLinks }] = await Promise.all([
@@ -130,7 +132,8 @@ export default async function AdminDetail({
           <p>Base {b.base_postcode}, travels {b.radius_miles} miles</p>
           <p>{b.trades.map(tradeLabel).join(', ')}</p>
           <p>Turnover: {turnoverBand(b.turnover_band)?.label ?? 'not given'}
-            {turnoverBand(b.turnover_band) && <span className="muted"> (listing £{turnoverBand(b.turnover_band)!.price}/yr)</span>}</p>
+            {pricing.mode === 'bands' && bandPrice(pricing, b.turnover_band) && <span className="muted"> (listing £{bandPrice(pricing, b.turnover_band)!.price}/yr)</span>}
+            {pricing.mode === 'plans' && <span className="muted"> (plan: {b.plan === 'pro' ? 'Pro' : b.plan === 'verified' ? 'Verified' : 'not chosen yet'})</span>}</p>
         </section>
 
         <section className="panel">
