@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getMembership } from '@/lib/membership';
 import '../resources.css';
 import { db } from '@/lib/supabase';
 import { lookupPostcode } from '@/lib/postcodes';
@@ -20,6 +21,7 @@ type SP = Promise<{ q?: string; category?: string; postcode?: string }>;
 
 export default async function SuppliersPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
+  const me = await getMembership();
   const q = (sp.q ?? '').trim().slice(0, 80);
   const category = SUPPLIER_CATEGORIES.some((c) => c.key === sp.category) ? sp.category! : '';
   const pcIn = (sp.postcode ?? '').trim().slice(0, 10);
@@ -61,7 +63,9 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
         Topsoil, turf, trees and hedging, fencing, paving and everything else a landscaping job needs. Free for everyone to search.
       </p>
       <p className="ok-box" style={{ marginTop: -8 }}>
-        <strong>Members:</strong> send one plant or materials list to several of these suppliers and compare their prices side by side. <Link href="/login?next=/account">Log in</Link> and open <strong>Price requests</strong> on your listing.
+        <strong>Members:</strong> send one plant or materials list to several of these suppliers and compare their prices side by side. {me.loggedIn
+          ? <>Open <Link href="/account"><strong>Price requests</strong></Link> on your listing.</>
+          : <><Link href="/login?next=/account">Log in</Link> and open <strong>Price requests</strong> on your listing.</>}
       </p>
 
       <form className="res-filters" method="get" action="/suppliers">

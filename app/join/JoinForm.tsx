@@ -139,7 +139,7 @@ export default function JoinForm({ prices }: { prices: PriceInfo }) {
             <input type="radio" name="business_type" value="sole_trader" required
               onChange={() => setType('sole_trader')} checked={type === 'sole_trader'} />
             <strong>Sole trader</strong>
-            <span>Upload your letterhead instead</span>
+            <span>Upload proof of your business instead</span>
           </label>
         </div>
 
@@ -169,9 +169,9 @@ export default function JoinForm({ prices }: { prices: PriceInfo }) {
           <div className="sub">
             <label>Your full name<input name="owner_full_name" required /></label>
             <label>Business address<textarea name="business_address" rows={2} required /></label>
-            <label>Letterhead (PDF, JPG or PNG)
+            <label>Proof of your business (PDF, JPG or PNG)
               <input type="file" name="letterhead" accept=".pdf,image/jpeg,image/png" required />
-              <span className="hint">Must show your trading name and address. We check it by hand.</span>
+              <span className="hint">Any one of: your letterhead, an invoice or quote you have sent a customer, a business bank statement, or a recent utility bill. It must show your trading name and address. We check it by hand.</span>
             </label>
           </div>
         )}

@@ -60,6 +60,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
   const trade = typeof sp.trade === 'string' && TRADES.some((t) => t.slug === sp.trade) ? sp.trade : '';
   const region = typeof sp.region === 'string' && REGIONS.includes(sp.region) ? sp.region : '';
   const type = typeof sp.type === 'string' && (KINDS as string[]).includes(sp.type) ? (sp.type as LeadKind) : '';
+  const sort = sp.sort === 'closing' ? 'closing' : '';
   // Tree works applications are many and only matter to tree surgeons, so they only show
   // when asked for or when the trade is an arborist.
   const wantsTrees = type === 'trees' || trade === 'arborist' || (view === 'mine' && !trade && myTrades.includes('arborist'));
@@ -69,7 +70,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
     .from('leads')
     .select('id, source, kind, title, description, buyer, contractor, status, meta, region, postcode, lat, lng, value_amount, currency, published_at, deadline, url, trades')
     .or(openNow)
-    .order('published_at', { ascending: false, nullsFirst: false })
+    .order(sort === 'closing' ? 'deadline' : 'published_at', { ascending: sort === 'closing', nullsFirst: false })
     .limit(400);
   if (trade) q = q.contains('trades', [trade]);
   else if (view === 'mine' && myTrades.length) q = q.overlaps('trades', myTrades);
@@ -99,7 +100,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
 
   const link = (over: Record<string, string>) => {
     const p = new URLSearchParams();
-    const next = { view, trade, region, type, ...over };
+    const next = { view, trade, region, type, sort, ...over };
     for (const [k, v] of Object.entries(next)) if (v) p.set(k, v);
     return `/leads?${p.toString()}`;
   };
@@ -157,6 +158,12 @@ export default async function LeadsPage({ searchParams }: { searchParams: SP }) 
           <select name="region" defaultValue={region}>
             <option value="">Anywhere</option>
             {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </label>
+        <label>Sort
+          <select name="sort" defaultValue={sort}>
+            <option value="">Newest first</option>
+            <option value="closing">Closing soonest</option>
           </select>
         </label>
         <button type="submit" className="sq sq-rust">show leads</button>

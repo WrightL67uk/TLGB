@@ -142,11 +142,11 @@ export async function emailApplicantApproved(to: string, name: string, tradingNa
       ? `<p>Hi ${esc(name)},</p>
 <p>Good news. <strong>${esc(tradingName)}</strong> has been approved and is now listed on The Little Green Book as a founding member, free of charge.</p>
 <p>Contractors searching your area can now find you, and you have the full leads feed, the supply chain finder and the help board. Keep your insurance documents up to date so your listing stays live.</p>
-<p>Log in with this email address at ${login}.</p>`
+<p><strong>There is no password to set up.</strong> Go to ${login}, enter this email address, and we will email you a link that logs you straight in.</p>`
       : `<p>Hi ${esc(name)},</p>
 <p>Good news. <strong>${esc(tradingName)}</strong> has been approved.</p>
-<p>To go live, log in and press <strong>Start membership</strong> on your listing. Once you have paid, contractors searching your area can find you, and you get the full leads feed, the supply chain finder and the help board.</p>
-<p>Log in with this email address at ${login}.</p>`,
+<p>To go live, log in and press <strong>Start membership</strong> on your listing page. Once you have paid, contractors searching your area can find you, and you get the full leads feed, the supply chain finder and the help board.</p>
+<p><strong>There is no password to set up.</strong> Go to ${login}, enter this email address, and we will email you a link that logs you straight in.</p>`,
     'application-approved'
   );
 }

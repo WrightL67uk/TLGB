@@ -24,7 +24,7 @@ export const ACCREDITATION_LIST: Accreditation[] = [
 
   // Landscaping and grounds care
   { key: 'BALI', label: 'BALI accredited member', trades: ['landscaper', 'landscape-designer', 'grounds-maintenance', 'hard-landscaping', 'irrigation', 'supplier', 'nursery'], expires: true },
-  { key: 'APL', label: 'Association of Professional Landscapers (APL)', trades: ['landscaper', 'landscape-designer'], expires: true },
+  { key: 'APL', label: 'Association of Professional Landscapers (APL)', trades: ['landscaper', 'landscape-designer', 'grounds-maintenance', 'hard-landscaping', 'irrigation'], expires: true },
   { key: 'NHSS 18', label: 'NHSS 18 (highways landscape and maintenance)', trades: ['landscaper', 'grounds-maintenance', 'arborist'], expires: true },
   { key: 'NPTC PA1/PA6', label: 'NPTC PA1 / PA6 pesticide application', trades: ['landscaper', 'grounds-maintenance'], expires: false },
   { key: 'Amenity Assured', label: 'Amenity Assured', trades: ['grounds-maintenance'], expires: true },
