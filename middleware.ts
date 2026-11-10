@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // 1. Member websites: <slug>.tlgb.co.uk is served from /site/<slug>.
-// 2. Admin protection on /admin and /api/admin: an admin login cookie (checked against the
-//    database), or the old HTTP Basic Auth master login.
+// 2. Admin protection on /admin and /api/admin: an admin login cookie, checked against the database.
+//    The Vercel ADMIN_USERNAME / ADMIN_PASSWORD master login is typed into /admin/login.
 
 const ROOT = '.tlgb.co.uk';
 const SITE_PAGES = new Set(['/', '/services', '/contact']);
@@ -74,13 +74,7 @@ export async function middleware(req: NextRequest) {
 
   if ((pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) && !OPEN_ADMIN.has(pathname)) {
     if (await adminSessionOk(req.cookies.get('tlgb_admin')?.value)) return NextResponse.next();
-    const user = process.env.ADMIN_USERNAME;
-    const pass = process.env.ADMIN_PASSWORD;
-    const header = req.headers.get('authorization') ?? '';
-    if (user && pass && header.startsWith('Basic ')) {
-      const [u, ...rest] = atob(header.slice(6)).split(':');
-      if (safeEqual(u, user) && safeEqual(rest.join(':'), pass)) return NextResponse.next();
-    }
+    // The old browser pop-up login is no longer accepted: everyone uses /admin/login, which has a log out.
     if (pathname.startsWith('/api/')) return NextResponse.json({ error: 'Please log in to admin.' }, { status: 401 });
     const login = new URL('/admin/login', req.url);
     login.searchParams.set('next', pathname + req.nextUrl.search);
