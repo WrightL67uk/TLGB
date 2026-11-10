@@ -36,9 +36,9 @@ export default async function MenuPage() {
     {
       title: 'Find work',
       items: [
-        { label: 'Tenders', href: '/tenders', note: 'Leads and jobs in one place, and the difference between them.', k: 'tenders work opportunities leads jobs' },
-        { label: 'Leads', href: '/leads', note: 'Public contracts and planning leads for landscaping and external works.', k: 'tenders work opportunities contracts finder planning', tag: memberTag ? 'Full feed for members' : undefined },
-        { label: 'Jobs from main contractors', href: '/jobs', note: 'Packages posted direct by main contractors and housebuilders. Matching jobs are emailed to members.', k: 'contractor packages tenders price invite', tag: memberTag },
+        { label: 'Tenders', href: '/tenders', note: 'Public Tenders and TLGB Tenders in one place, and the difference between them.', k: 'tenders work opportunities leads jobs' },
+        { label: 'Public Tenders', href: '/leads', note: 'Public contracts and planning leads for landscaping and external works.', k: 'tenders work opportunities contracts finder planning', tag: memberTag ? 'Full feed for members' : undefined },
+        { label: 'TLGB Tenders', href: '/jobs', note: 'Packages posted direct by main contractors and housebuilders. Matching jobs are emailed to members.', k: 'contractor packages tenders price invite', tag: memberTag },
         { label: 'Supply chain finder', href: '/supply-chains', note: 'Where to register with main contractors, housebuilders, portals and frameworks.' },
         { label: 'Help board', href: '/help-board', note: 'Need a hand on a job, or have spare capacity? Ask other trades.' },
         { label: 'Post on the help board', href: '/help-board/new', note: 'Ask for labour, a subcontractor, a machine or cover.', tag: memberTag },

@@ -10,7 +10,7 @@ import '../contractor.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
-  title: 'Jobs from main contractors | The Little Green Book',
+  title: 'TLGB Tenders | The Little Green Book',
   description: 'Landscaping, groundworks, fencing and external works packages posted directly by main contractors and housebuilders. Members see the full details and reply.',
 };
 
@@ -35,7 +35,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
 
   return (
     <div className="ct-page">
-      <h1>Jobs from main contractors</h1>
+      <h1>TLGB Tenders</h1>
       <p className="lead">Packages posted directly by main contractors, housebuilders and developers. {member ? 'Jobs that match your trade, area and paperwork are emailed to you the day they are posted.' : 'Members see the contractor, full details and drawings, and reply with their compliance pack attached.'}</p>
 
       <form method="get" className="ct-inline" style={{ marginBottom: 16 }}>
