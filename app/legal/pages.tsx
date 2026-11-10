@@ -89,18 +89,20 @@ export const LEGAL_PAGES: LegalPage[] = [
 
         <h2>4. Fees, renewal and payment</h2>
         <ul>
-          <li>Membership is a yearly subscription. The price depends on your turnover band or on the plan you choose, and is shown before you pay. Prices include VAT only where stated.</li>
-          <li>If you move to a higher plan during your membership year, you pay the difference for the rest of that year straight away, and the higher price applies from your renewal.</li>
+          <li>Paid membership is a subscription, paid monthly or yearly as you choose. The price depends on the option you choose and is shown before you pay. You can also have a free listing, which shows as &ldquo;Unverified&rdquo; and does not include member tools.</li>
+          <li>Where we offer a free trial, you are not charged until it ends. If you cancel before the end of the trial, you pay nothing.</li>
+          <li>If you move to a higher plan part way through, you pay the difference for the rest of that period straight away, and the higher price applies from your renewal.</li>
           <li>You pay by card through our payment provider, Stripe. We never see or store your full card details.</li>
-          <li>Your membership renews automatically each year on the same date unless you cancel. We will remind you before renewal.</li>
-          <li>We may change prices for future years. We will tell you at least 30 days before your renewal, and you can cancel before the new price applies.</li>
+          <li>Your membership renews automatically at the end of each month or year, as you chose, unless you cancel. Yearly members get a reminder before renewal.</li>
+          <li>We may change prices. We will tell you at least 30 days before a new price applies, and you can cancel before it does.</li>
+          <li><strong>VAT.</strong> All our prices exclude VAT. We are not registered for VAT at the moment, so no VAT is charged today. If we register for VAT in future, whether because the law requires it or because we choose to, VAT will be added to your payments at the rate in force at the time. We will email you at least 30 days before VAT is first added, and you can cancel before then. Once we are registered, we will give you VAT invoices so that, if your business is VAT registered, you can usually reclaim it.</li>
           <li>If a payment fails, we will try again and email you. If it is still unpaid, your listing shows as &ldquo;Unverified&rdquo; and member tools stop until it is paid.</li>
           <li>Where prices are set by turnover band: if you correctly told us you are in a lower turnover band, you pay that band&rsquo;s price. If your turnover moves into a higher band, please update it before your next renewal.</li>
         </ul>
         <p>Founding members who were offered free membership keep the features they had at the time free for as long as that offer says.</p>
 
         <h2>5. Cancelling</h2>
-        <p>You can cancel at any time from &ldquo;Manage billing&rdquo; on your listing page, or by emailing <Mail d={d} />. Your membership then runs until the end of the year you have paid for and does not renew. Because this is a business service, there is no statutory cooling-off period, and we do not refund part years unless these terms say otherwise or the law requires it.</p>
+        <p>You can cancel at any time from &ldquo;Manage billing&rdquo; on your listing page, or by emailing <Mail d={d} />. Your membership then runs until the end of the month or year you have paid for and does not renew. Because this is a business service, there is no statutory cooling-off period, and we do not refund part periods unless these terms say otherwise or the law requires it.</p>
         <p>When your membership ends, your listing shows as &ldquo;Unverified&rdquo; and is hidden from searches for verified members. Your compliance pack documents are deleted 90 days after your membership ends, so download anything you need before then. You can ask us to remove your listing entirely at any time.</p>
 
         <h2>6. Your compliance pack, team records, PQQ answers and share links</h2>

@@ -106,6 +106,7 @@ export default async function PlanPage({ params, searchParams }: { params: Promi
 
       <p className="muted small">
         Secure card payment through Stripe.{trial ? ` We email you before your free trial ends, and you can cancel before then and pay nothing.` : ''}
+        {' '}Prices exclude VAT. We are not VAT registered, so no VAT is charged at present.
         {!live && ' Online payment is not switched on yet; email admin@tlgb.co.uk to join.'}
       </p>
       {!started && <p className="small"><Link href={`/account/${b.id}`}>Back to my listing</Link></p>}
