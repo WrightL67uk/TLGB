@@ -17,13 +17,13 @@ export function passwordProblem(pw: unknown): string | null {
   return null;
 }
 
-async function hashPassword(pw: string) {
+export async function hashPassword(pw: string) {
   const salt = randomBytes(16);
   const key = await scrypt(pw, salt, 32, PARAMS);
   return `scrypt$${salt.toString('base64')}$${key.toString('base64')}`;
 }
 
-async function matches(pw: string, stored: string) {
+export async function matches(pw: string, stored: string) {
   const [alg, saltB64, keyB64] = stored.split('$');
   if (alg !== 'scrypt' || !saltB64 || !keyB64) return false;
   const want = Buffer.from(keyB64, 'base64');

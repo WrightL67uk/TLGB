@@ -856,3 +856,29 @@ export async function emailAdminWaitlist(w: { name: string; business: string; em
     'waitlist-admin'
   );
 }
+
+/** A new admin was added. The link lets them choose a password. */
+export async function emailAdminInvite(to: string, name: string, invitedBy: string, link: string, hours: number) {
+  await send(
+    to,
+    'You have been added as a TLGB admin',
+    `<p>Hi ${esc(name.split(' ')[0] || name)},</p>
+<p>${esc(invitedBy)} has added you as an admin on The Little Green Book.</p>
+<p><a href="${esc(link)}">Choose your password</a></p>
+<p>This link works once and runs out in ${hours} hours. After that, log in at <a href="${siteUrl()}/admin/login">${esc(siteUrl().replace(/^https?:\/\//, ''))}/admin/login</a> with this email address and your password.</p>
+<p>If you were not expecting this, ignore this email.</p>`,
+    'admin-invite'
+  );
+}
+
+export async function emailAdminReset(to: string, name: string, link: string, minutes: number) {
+  await send(
+    to,
+    'Reset your TLGB admin password',
+    `<p>Hi ${esc(name.split(' ')[0] || name)},</p>
+<p>Someone asked to reset the password for your TLGB admin login. If that was you, use this link to choose a new one:</p>
+<p><a href="${esc(link)}">Choose a new password</a></p>
+<p>The link works once and runs out in ${minutes} minutes. If you did not ask for this, ignore this email and your password stays the same.</p>`,
+    'admin-reset'
+  );
+}

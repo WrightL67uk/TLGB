@@ -327,3 +327,5 @@ body:has(.coming-soon) .util, body:has(.coming-soon) .mainnav, body:has(.coming-
   .cs-grid { grid-template-columns: 1fr; }
   .hero-band .cs-in h1 { font-size: 2.3rem; }
 }
+.stack { display: grid; gap: 12px; } .stack label { display: grid; gap: 4px; font-weight: 600; } .stack button { justify-self: start; }
+.admin-bar { display: flex; gap: 16px; align-items: center; justify-content: flex-end; font-size: .9rem; margin: -8px 0 12px; } .admin-bar form { margin: 0; }
