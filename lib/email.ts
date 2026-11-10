@@ -634,7 +634,7 @@ export async function emailAdminNewSeeker(s: { id: string; name: string; headlin
     `New job seeker profile: ${s.name}`,
     `<p><strong>${esc(s.name)}</strong>${s.area ? ` (${esc(s.area)})` : ''} published a job seeker profile.</p>
 ${s.headline ? `<p>${esc(s.headline)}</p>` : ''}
-<p><a href="${siteUrl()}/workers/${s.id}">View the profile</a> or <a href="${siteUrl()}/admin/workers">manage profiles in admin</a>.</p>`,
+<p><a href="${siteUrl()}/recruitment/${s.id}">View the profile</a> or <a href="${siteUrl()}/admin/workers">manage profiles in admin</a>.</p>`,
     'seeker-admin'
   );
 }
@@ -659,7 +659,7 @@ export async function emailAdminSeekerReport(s: { id: string; name: string }, by
     `Job seeker profile reported: ${s.name}`,
     `<p><strong>${esc(by)}</strong> reported the profile for <strong>${esc(s.name)}</strong>.</p>
 <p>${esc(reason).replace(/\n/g, '<br>')}</p>
-<p><a href="${siteUrl()}/workers/${s.id}">View the profile</a> or <a href="${siteUrl()}/admin/workers">remove it in admin</a>.</p>`,
+<p><a href="${siteUrl()}/recruitment/${s.id}">View the profile</a> or <a href="${siteUrl()}/admin/workers">remove it in admin</a>.</p>`,
     'seeker-report'
   );
 }
