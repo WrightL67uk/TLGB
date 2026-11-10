@@ -309,14 +309,14 @@ export const HOW_TOS: HowTo[] = [
   {
     slug: 'help-board-and-workers',
     group: 'trades',
-    title: 'Help board and finding workers',
+    title: 'Help Hub and finding workers',
     summary: 'Ask other trades for labour, machines or cover, offer spare capacity, and find people looking for work.',
     intro: 'Two ways to find help when a job needs more hands.',
     sections: [
       {
-        h: 'Help board',
+        h: 'Help Hub',
         steps: [
-          'Go to the [help board](/help-board). Paying members can post and see who posted each request.',
+          'Go to the [Help Hub](/help-board). Paying members can post and see who posted each request.',
           'Post what you need: extra hands or a gang, a package to subcontract, help finishing a job, a machine or operator, or holiday cover. Or post spare capacity.',
           'Add where and when. Other members get in touch with you directly.',
         ],
@@ -331,7 +331,7 @@ export const HOW_TOS: HowTo[] = [
         tip: 'We do not check what job seekers write, and we are not an employment agency. Make your own checks, including right to work, before taking anyone on.',
       },
     ],
-    cta: [{ label: 'help board', href: '/help-board' }, { label: 'workers board', href: '/workers' }],
+    cta: [{ label: 'Help Hub', href: '/help-board' }, { label: 'workers board', href: '/workers' }],
   },
 
   {

@@ -92,7 +92,7 @@ function MembersOnly({ loggedIn, approved, unpaidId, upgradeId, pricing }: { log
           {upgradeId
             ? 'The supply chain finder is part of Pro. Upgrade to use it.'
             : !loggedIn
-            ? 'List your business to get the supply chain finder, the full leads feed and the help board.'
+            ? 'List your business to get the supply chain finder, the full leads feed and the Help Hub.'
             : approved
               ? 'Start your membership to use the supply chain finder.'
               : 'Your listing needs to be approved before you can start your membership.'}

@@ -9,7 +9,7 @@ import { HELP_KINDS, helpKindLabel, miles } from '@/lib/resources';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
-  title: 'Help board | The Little Green Book',
+  title: 'Help Hub | The Little Green Book',
   description: 'Landscaping and external works trades asking each other for a hand: extra labour, subcontract packages, machines and cover.',
 };
 
@@ -49,7 +49,7 @@ export default async function HelpBoardPage({ searchParams }: { searchParams: SP
 
   return (
     <div>
-      <h1>Help board</h1>
+      <h1>Help Hub</h1>
       <p className="lead">
         Short of hands, need a package subcontracted, a machine with an operator or someone to finish a job? Ask the other
         trades on The Little Green Book. Got spare capacity? This is where to find it.
@@ -105,7 +105,7 @@ export default async function HelpBoardPage({ searchParams }: { searchParams: SP
             {email ? (
               <p className="res-meta">
                 <span>{r.business_name ?? 'A listed trade'}</span>
-                <a href={`mailto:${r.email}?subject=${encodeURIComponent(`Re: ${r.title} (The Little Green Book help board)`)}`}>{r.email}</a>
+                <a href={`mailto:${r.email}?subject=${encodeURIComponent(`Re: ${r.title} (The Little Green Book Help Hub)`)}`}>{r.email}</a>
                 {r.email === email && (
                   <form method="post" action="/api/help-board/close" className="inline">
                     <input type="hidden" name="id" value={r.id} />

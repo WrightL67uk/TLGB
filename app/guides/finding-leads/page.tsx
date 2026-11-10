@@ -109,7 +109,7 @@ export default function FindingLeadsGuide() {
         Contractors can also invite trades from their shortlist. See <Link href="/guides/jobs-from-contractors">jobs from main contractors</Link>.
       </p>
       <p>
-        Short of labour or kit to take a job on? Ask other trades on the <Link href="/help-board">help board</Link>, or find people on the{' '}
+        Short of labour or kit to take a job on? Ask other trades on the <Link href="/help-board">Help Hub</Link>, or find people on the{' '}
         <Link href="/workers">workers board</Link>.
       </p>
 

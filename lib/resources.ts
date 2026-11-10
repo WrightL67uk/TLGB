@@ -1,4 +1,4 @@
-// Shared lists for the supplier directory and help board.
+// Shared lists for the supplier directory and Help Hub.
 
 export const SUPPLIER_CATEGORIES: { key: string; label: string }[] = [
   { key: 'soil-aggregates', label: 'Soil, mulch and aggregates' },

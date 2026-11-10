@@ -40,7 +40,7 @@ export default function PlanCards({ monthly, yearly, trial, save, live, target }
           <p className="muted small">Shown as unverified</p>
           <ul>
             <li className="yes">Basic listing in search</li>
-            <li className="yes">Read the help board</li>
+            <li className="yes">Read the Help Hub</li>
             <li className="no">Verified badge</li>
             <li className="no">Leads and contractor jobs</li>
             <li className="no">Member tools</li>

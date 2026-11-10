@@ -5,7 +5,7 @@ import { emailSupplierApproved } from '@/lib/email';
 export const runtime = 'nodejs';
 
 // Behind the admin password (middleware). One endpoint for the small admin actions on
-// suppliers, enquiries and help board requests.
+// suppliers, enquiries and Help Hub requests.
 const ACTIONS: Record<string, Record<string, Record<string, unknown>>> = {
   suppliers: { approve: { status: 'approved' }, reject: { status: 'rejected' } },
   service_enquiries: { handled: { handled: true } },

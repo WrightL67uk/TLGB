@@ -20,7 +20,7 @@ export type Pricing = {
 export const PLAN_INFO: Record<PlanKey, { label: string; blurb: string }> = {
   verified: {
     label: 'Verified',
-    blurb: 'Verified listing in search, compliance pack, PQQ answer bank, help board, price requests and templates.',
+    blurb: 'Verified listing in search, compliance pack, PQQ answer bank, Help Hub, price requests and templates.',
   },
   pro: {
     label: 'Pro',

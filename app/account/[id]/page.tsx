@@ -184,7 +184,7 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
             <>
               <p>
                 {b.subscription_status === 'cancelled' ? 'Renew your membership to show as verified again' : 'Your listing is approved. Start your membership to appear in search'}
-                {pricing.mode === 'plans' ? '. Choose your plan:' : <> and get the full leads feed, the supply chain finder and the help board.</>}
+                {pricing.mode === 'plans' ? '. Choose your plan:' : <> and get the full leads feed, the supply chain finder and the Help Hub.</>}
                 {pricing.mode === 'bands' && band && <> Your price is <strong>&pound;{band.price} a year</strong> for the {band.label} turnover band.</>}
               </p>
               {stripeEnabled() && pricing.mode === 'plans' ? (

@@ -144,7 +144,7 @@ export async function emailApplicantApproved(to: string, name: string, tradingNa
   let body: string;
   if (founding) {
     body = `${hi}<p>Good news. <strong>${esc(tradingName)}</strong> has been approved and is now listed on The Little Green Book as a founding member, free of charge.</p>
-<p>Contractors searching your area can now find you, and you have the full leads feed, the supply chain finder and the help board. Keep your insurance documents up to date so your listing stays live.</p>${loginLine}`;
+<p>Contractors searching your area can now find you, and you have the full leads feed, the supply chain finder and the Help Hub. Keep your insurance documents up to date so your listing stays live.</p>${loginLine}`;
   } else if (chosen === 'paid') {
     body = `${hi}<p>Good news. <strong>${esc(tradingName)}</strong> has been approved and is now live with the <strong>Verified</strong> badge.</p>
 <p>Contractors searching your area can find you, and you have every lead and contractor job, the compliance pack, PQQ answer bank, price requests and your own website. Log in and make the most of them.</p>${loginLine}`;
@@ -155,7 +155,7 @@ export async function emailApplicantApproved(to: string, name: string, tradingNa
     body = `${hi}<p>Good news. <strong>${esc(tradingName)}</strong> has been approved.</p>
 ${membershipMode
   ? `<p>Log in to choose how you are listed: a free listing, or verified membership paid monthly or yearly${trialDays ? `, starting with ${trialDays} days free` : ''}. Verified members get the badge, every lead and contractor job, and all the member tools.</p>`
-  : `<p>To go live, log in and press <strong>Start membership</strong> on your listing page. Once you have paid, contractors searching your area can find you, and you get the full leads feed, the supply chain finder and the help board.</p>`}${loginLine}`;
+  : `<p>To go live, log in and press <strong>Start membership</strong> on your listing page. Once you have paid, contractors searching your area can find you, and you get the full leads feed, the supply chain finder and the Help Hub.</p>`}${loginLine}`;
   }
   await send(to, `${tradingName} is approved`, body, 'application-approved');
 }
@@ -300,14 +300,14 @@ export async function emailAdminSupplierSubmission(name: string, website: string
   );
 }
 
-/** A trade posted on the help board. */
+/** A trade posted on the Help Hub. */
 export async function emailAdminHelpRequest(business: string | null, email: string, title: string, details: string) {
   await send(
     adminList(),
-    `New help board post: ${title}`,
-    `<p><strong>${esc(business ?? email)}</strong> posted on the help board.</p>
+    `New Help Hub post: ${title}`,
+    `<p><strong>${esc(business ?? email)}</strong> posted on the Help Hub.</p>
 <p><strong>${esc(title)}</strong><br>${esc(details).replace(/\n/g, '<br>')}</p>
-<p><a href="${siteUrl()}/help-board">See the help board</a> or <a href="${siteUrl()}/admin/resources">remove it in admin</a> if it should not be there.</p>`,
+<p><a href="${siteUrl()}/help-board">See the Help Hub</a> or <a href="${siteUrl()}/admin/resources">remove it in admin</a> if it should not be there.</p>`,
     'help-admin'
   );
 }

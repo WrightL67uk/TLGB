@@ -16,7 +16,7 @@ export default async function NewHelpRequest({ searchParams }: { searchParams: P
   return (
     <article className="guide">
       <h1>Ask for help</h1>
-      <p className="lead">Your request shows on the help board for 60 days, or until you close it. Logged-in trades see your business name and email so they can contact you.</p>
+      <p className="lead">Your request shows on the Help Hub for 60 days, or until you close it. Logged-in trades see your business name and email so they can contact you.</p>
       <form className="res-form" method="post" action="/api/help-board">
         {error && <p className="err big">{error}</p>}
         <label>What kind of help?
@@ -42,7 +42,7 @@ export default async function NewHelpRequest({ searchParams }: { searchParams: P
           <label>Needed until<input name="needed_until" type="date" /></label>
         </div>
         <button type="submit" className="primary">post request</button>
-        <p className="muted small" style={{ margin: 0 }}>The exact postcode is only used to work out distances. <Link href="/help-board">Back to the help board</Link></p>
+        <p className="muted small" style={{ margin: 0 }}>The exact postcode is only used to work out distances. <Link href="/help-board">Back to the Help Hub</Link></p>
       </form>
     </article>
   );

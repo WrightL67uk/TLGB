@@ -50,7 +50,7 @@ export const LEGAL_PAGES: LegalPage[] = [
         <p>Members can send a list of plants or materials to suppliers who have asked to receive price requests. We pass the request on; we are not a party to any quote, order or sale. Prices, stock, delivery, payment and returns are agreed between the buyer and the supplier, and we are not responsible for them. Suppliers&rsquo; prices are their own and are shown to the member who asked. Members who accept a quote can rate the supplier; ratings must be honest, based on that order, and must follow the acceptable use policy. We may hide ratings that do not.</p>
 
         <h2>7. Content you add</h2>
-        <p>You are responsible for what you put on the website, including listings, documents, PQQ answers, help board posts, job posts, job seeker profiles and replies. You must have the right to share it, it must be accurate, and it must not break the <Link href="/legal/acceptable-use">acceptable use policy</Link>. You let us host, copy, display and send it as needed to run the service. You keep any ownership you have in it.</p>
+        <p>You are responsible for what you put on the website, including listings, documents, PQQ answers, Help Hub posts, job posts, job seeker profiles and replies. You must have the right to share it, it must be accurate, and it must not break the <Link href="/legal/acceptable-use">acceptable use policy</Link>. You let us host, copy, display and send it as needed to run the service. You keep any ownership you have in it.</p>
         <p>We may edit, hide or remove anything that we reasonably think breaks these terms or the law, and suspend accounts that do.</p>
 
         <h2>8. Our content</h2>
@@ -85,7 +85,7 @@ export const LEGAL_PAGES: LegalPage[] = [
         <p>You must keep your details up to date, and tell us promptly if your insurance or an accreditation ends, lapses or is suspended. When you change certain details, we check them again; your listing stays live meanwhile unless there is a problem.</p>
 
         <h2>3. What membership includes</h2>
-        <p>Membership gives you a verified listing in search, the full leads feed, jobs posted by main contractors, the supply chain finder, the help board, the compliance pack, the PQQ answer bank, the payment tracker and our document templates, as described on the website at the time. Where we offer more than one plan, some tools are only included in the higher plan, and the website shows which before you pay. Features may change over time; if we remove a major feature, you may cancel and we will refund the unused part of your fee.</p>
+        <p>Membership gives you a verified listing in search, the full leads feed, jobs posted by main contractors, the supply chain finder, the Help Hub, the compliance pack, the PQQ answer bank, the payment tracker and our document templates, as described on the website at the time. Where we offer more than one plan, some tools are only included in the higher plan, and the website shows which before you pay. Features may change over time; if we remove a major feature, you may cancel and we will refund the unused part of your fee.</p>
 
         <h2>4. Fees, renewal and payment</h2>
         <ul>
@@ -226,14 +226,14 @@ export const LEGAL_PAGES: LegalPage[] = [
         <h3>Everyone</h3>
         <ul>
           <li><strong>Login records:</strong> your email address and secure, one-way scrambled copies of login links and session tokens. <em>Why:</em> to let you log in securely (contract and legitimate interests).</li>
-          <li><strong>Things you send us:</strong> enquiries, accreditation help requests, interest in our retention bond and defects cover scheme, supplier suggestions, help board posts and job reports. <em>Why:</em> to deal with them (legitimate interests).</li>
+          <li><strong>Things you send us:</strong> enquiries, accreditation help requests, interest in our retention bond and defects cover scheme, supplier suggestions, Help Hub posts and job reports. <em>Why:</em> to deal with them (legitimate interests).</li>
           <li><strong>Share link activity:</strong> when a compliance pack link is opened or a document downloaded, we record the time so the member can see it. <em>Why:</em> legitimate interests of the member and of us in keeping shared documents secure.</li>
           <li><strong>Technical logs:</strong> our hosting provider keeps short-term server logs, which include IP addresses, for security and fault finding (legitimate interests).</li>
         </ul>
         <p>Where we rely on legitimate interests, we have weighed them against your rights. You can ask us for details, and you can object (see section 8).</p>
 
         <h2>3. What is public</h2>
-        <p>A member&rsquo;s listing is public: business name, trades, contact name, phone, email, website, base postcode and area covered, photos, and a summary of checked insurance and accreditations. Jobs posted by contractors are visible in summary to the public and in full to members and invited trades. Help board posts are visible to logged-in members. Job seeker profiles are visible to anyone without the person&rsquo;s name or contact details, and only the first half of their postcode is shown; paying members and approved main contractors also see their name and the contact details they chose to show. Compliance packs are private and only seen through share links the member creates or attaches to a reply.</p>
+        <p>A member&rsquo;s listing is public: business name, trades, contact name, phone, email, website, base postcode and area covered, photos, and a summary of checked insurance and accreditations. Jobs posted by contractors are visible in summary to the public and in full to members and invited trades. Help Hub posts are visible to logged-in members. Job seeker profiles are visible to anyone without the person&rsquo;s name or contact details, and only the first half of their postcode is shown; paying members and approved main contractors also see their name and the contact details they chose to show. Compliance packs are private and only seen through share links the member creates or attaches to a reply.</p>
 
         <h2>4. Emails we send</h2>
         <p>We send emails needed to run your account: login links, application decisions, renewal and expiry reminders (including for your team&rsquo;s cards), document check results, paperwork alerts about trades on a contractor&rsquo;s shortlist, reminders to job seekers before their profile comes off the board, replies to your jobs, price requests and the quotes that come back, and, for members, jobs from main contractors that match your listing. Members can turn job emails off on their listing page.</p>

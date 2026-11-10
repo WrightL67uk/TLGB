@@ -18,7 +18,7 @@ const CHAPTERS = [
   'Payment tracker and letters',
   'Price requests to suppliers',
   'Your free website',
-  'Leads, the help board and more',
+  'Leads, the Help Hub and more',
 ];
 
 export default function TourPage() {

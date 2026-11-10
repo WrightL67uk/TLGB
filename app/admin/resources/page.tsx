@@ -33,7 +33,7 @@ export default async function AdminResources({ searchParams }: { searchParams: P
   return (
     <div>
       <p><Link href="/admin">&larr; Back to listings</Link></p>
-      <h1>Suppliers, enquiries and help board</h1>
+      <h1>Suppliers, enquiries and Help Hub</h1>
       {sp.deleted && <p className="ok-box">Deleted {sp.deleted}.</p>}
       {sp.delete_error && <p className="err big">{sp.delete_error}</p>}
 
@@ -112,7 +112,7 @@ export default async function AdminResources({ searchParams }: { searchParams: P
         </table>
       )}
 
-      <h2>Open help board requests</h2>
+      <h2>Open Help Hub requests</h2>
       {!help?.length && <p className="muted">None open.</p>}
       {!!help?.length && (
         <table className="table">

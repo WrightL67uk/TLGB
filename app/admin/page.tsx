@@ -129,7 +129,7 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
         <Link href="/admin/codes">Discount codes</Link>
         <Link href="/admin/prices">Prices</Link>
         <Link href="/admin/resources">
-          Suppliers, enquiries and help board
+          Suppliers, enquiries and Help Hub
           {waiting > 0 && <span className="count"> {waiting} waiting</span>}
         </Link>
       </div>
