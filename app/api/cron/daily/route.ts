@@ -11,31 +11,48 @@ import { runSeekerHousekeeping } from '@/lib/seekerJob';
 import { runRecruitAlerts } from '@/lib/recruitJob';
 import { runQuoteJob } from '@/lib/quoteJob';
 import { db } from '@/lib/supabase';
+import { runSignupNudges } from '@/lib/nudgeJob';
+import { emailAdminJobFailures } from '@/lib/email';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
 
-/** The one daily job (see vercel.json): fetch new leads, then send expiry reminders. */
+/** The one daily job (see vercel.json): fetch new leads, send reminders and alerts, tidy up. */
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
   if (secret && req.headers.get('authorization') !== `Bearer ${secret}`) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
   const out: Record<string, unknown> = {};
-  try { out.leads = await importLeads({ days: Math.min(30, Math.max(1, Number(req.nextUrl.searchParams.get('days')) || 3)) }); } catch (err) { console.error('daily: leads failed', err); out.leads = 'failed'; }
-  try { out.expiryFlags = await runExpiryJob(); } catch (err) { console.error('daily: expiries failed', err); out.expiryFlags = 'failed'; }
-  try { out.suppliersPlaced = await geocodeSuppliers(); } catch (err) { console.error('daily: supplier geocode failed', err); }
-  try { out.membershipsSynced = await syncOverdueMemberships(); } catch (err) { console.error('daily: billing sync failed', err); }
-  try { out.packReminders = await runComplianceReminders(); } catch (err) { console.error('daily: pack reminders failed', err); }
-  try { out.pqqReminders = await runPqqReminders(); } catch (err) { console.error('daily: pqq reminders failed', err); }
-  try { out.paymentAlerts = await runPaymentReminders(); } catch (err) { console.error('daily: payment alerts failed', err); }
-  try { out.teamReminders = await runTeamReminders(); } catch (err) { console.error('daily: team reminders failed', err); }
-  try { out.shortlistAlerts = await runShortlistAlerts(); } catch (err) { console.error('daily: shortlist alerts failed', err); }
-  try { out.seekers = await runSeekerHousekeeping(); } catch (err) { console.error('daily: seeker housekeeping failed', err); }
-  try { out.recruit = await runRecruitAlerts(); } catch (err) { console.error('daily: recruitment alerts failed', err); out.recruit = 'failed'; }
-  try { const { count } = await db().from('site_enquiries').delete({ count: 'exact' }).lt('created_at', new Date(Date.now() - 730 * 86_400_000).toISOString()); out.siteEnquiriesDeleted = count ?? 0; } catch (err) { console.error('daily: site enquiry clean-up failed', err); }
-  try { out.quotes = await runQuoteJob(); } catch (err) { console.error('daily: price requests failed', err); out.quotes = 'failed'; }
-  try { out.cleanup = await runDataCleanup(); } catch (err) { console.error('daily: cleanup failed', err); }
-  return NextResponse.json({ ok: true, ...out });
+  const failures: { job: string; error: string }[] = [];
+  // Each part runs on its own: one failing does not stop the rest, and failures are emailed to admin.
+  const run = async (key: string, job: string, fn: () => Promise<unknown>) => {
+    try { out[key] = await fn(); } catch (err) {
+      console.error(`daily: ${job} failed`, err);
+      out[key] = 'failed';
+      failures.push({ job, error: err instanceof Error ? err.message : String(err) });
+    }
+  };
+  await run('leads', 'Fetching tenders (leads)', () => importLeads({ days: Math.min(30, Math.max(1, Number(req.nextUrl.searchParams.get('days')) || 3)) }));
+  await run('expiryFlags', 'Insurance and accreditation expiry reminders', runExpiryJob);
+  await run('suppliersPlaced', 'Placing suppliers on the map', geocodeSuppliers);
+  await run('membershipsSynced', 'Checking memberships with Stripe', syncOverdueMemberships);
+  await run('packReminders', 'Compliance pack reminders', runComplianceReminders);
+  await run('pqqReminders', 'PQQ reminders', runPqqReminders);
+  await run('paymentAlerts', 'Payment tracker alerts', runPaymentReminders);
+  await run('teamReminders', 'Team card reminders', runTeamReminders);
+  await run('shortlistAlerts', 'Contractor shortlist alerts', runShortlistAlerts);
+  await run('seekers', 'Job seeker housekeeping', runSeekerHousekeeping);
+  await run('recruit', 'Recruitment match emails', runRecruitAlerts);
+  await run('signupNudges', 'Unfinished sign-up reminders', runSignupNudges);
+  await run('siteEnquiriesDeleted', 'Clearing old enquiries', async () => {
+    const { count, error } = await db().from('site_enquiries').delete({ count: 'exact' }).lt('created_at', new Date(Date.now() - 730 * 86_400_000).toISOString());
+    if (error) throw new Error(error.message);
+    return count ?? 0;
+  });
+  await run('quotes', 'Price requests', runQuoteJob);
+  await run('cleanup', 'Data clean-up', runDataCleanup);
+  if (failures.length) await emailAdminJobFailures(failures).catch((e) => console.error('daily: failure email failed', e));
+  return NextResponse.json({ ok: failures.length === 0, ...out });
 }

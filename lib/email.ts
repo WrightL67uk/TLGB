@@ -921,3 +921,34 @@ export async function emailAdminVacancy(business: string, title: string, id: str
     'vacancy-admin'
   );
 }
+
+/** Someone started signing up yesterday and has not finished. Sent once. */
+export async function emailSignupNudge(to: string, name: string, business: string, stage: 'plan' | 'details', link: string) {
+  const first = name.split(' ')[0];
+  await send(
+    to,
+    `${business}: you are one step away`,
+    `<p>Hi${first ? ` ${esc(first)}` : ''},</p>
+<p>You started listing <strong>${esc(business)}</strong> on The Little Green Book but did not quite finish.</p>
+<p>${stage === 'plan'
+      ? 'The next step is choosing your plan: a free listing, or verified membership with a free trial.'
+      : 'The next step is adding your details (insurance, accreditations and the work you do) and sending them to us to check. Your answers save as you go, so you can pick up where you left off.'}</p>
+<p><a href="${esc(link)}">Carry on where you left off</a></p>
+<p>Log in with your email and the password you chose. If you have forgotten it, choose "Email me a login link" on the login page.</p>
+<p>If you have changed your mind, you can ignore this email. We will not send another.</p>
+<p>The Little Green Book</p>`,
+    'signup-nudge'
+  );
+}
+
+/** One or more parts of the daily job failed. */
+export async function emailAdminJobFailures(failures: { job: string; error: string }[]) {
+  await send(
+    adminList(),
+    `Daily job: ${failures.length} part${failures.length === 1 ? '' : 's'} failed`,
+    `<p>This morning's automatic job ran, but these parts failed:</p>
+<ul>${failures.map((f) => `<li><strong>${esc(f.job)}</strong>: ${esc(f.error.slice(0, 300))}</li>`).join('')}</ul>
+<p>Everything else ran as normal. Each part tries again tomorrow. If the same part fails two days running, it needs looking at.</p>`,
+    'job-failure'
+  );
+}

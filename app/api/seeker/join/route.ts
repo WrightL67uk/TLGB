@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { db } from '@/lib/supabase';
 import { createLoginToken, recentLoginRequests, sameOrigin } from '@/lib/session';
 import { emailSeekerWelcome } from '@/lib/email';
+import { tooMany, visitor, TOO_MANY } from '@/lib/rateLimit';
 import { siteUrl } from '@/lib/config';
 
 export const runtime = 'nodejs';
@@ -19,6 +20,7 @@ const back = (req: NextRequest, q: string) => NextResponse.redirect(new URL(`/lo
 /** Start a free job seeker profile: save the name, then email a link to finish it. */
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return back(req, 'error=' + encodeURIComponent('Please use the form on our website.'));
+  if (await tooMany('seeker-join', visitor(req), 10, 60)) return back(req, 'error=' + encodeURIComponent(TOO_MANY));
   const fd = await req.formData().catch(() => null);
   if (!fd) return back(req, 'error=' + encodeURIComponent('Something went wrong. Please try again.'));
   if (String(fd.get('company_url') ?? '')) return back(req, 'sent=1');

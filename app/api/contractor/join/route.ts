@@ -5,6 +5,7 @@ import { sameOrigin } from '@/lib/session';
 import { checkCompany } from '@/lib/companiesHouse';
 import { cleanUrl } from '@/lib/resources';
 import { FREE_MAIL, domainOf } from '@/lib/contractorPlans';
+import { tooMany, visitor, TOO_MANY } from '@/lib/rateLimit';
 import { emailAdminNewContractor, emailContractorReceived } from '@/lib/email';
 
 export const runtime = 'nodejs';
@@ -25,6 +26,7 @@ const err = (req: NextRequest, m: string) => back(req, `/contractors/join?error=
 
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return err(req, 'Please send the form from our website.');
+  if (await tooMany('contractor-join', visitor(req), 10, 60)) return err(req, TOO_MANY);
   const fd = await req.formData().catch(() => null);
   if (!fd) return err(req, 'Something went wrong. Please try again.');
   if (fd.get('tlgb_hp_zq')) return back(req, '/contractors/join/thanks'); // bot

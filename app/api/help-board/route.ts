@@ -6,6 +6,7 @@ import { getMembership } from '@/lib/membership';
 import { lookupPostcode } from '@/lib/postcodes';
 import { TRADES } from '@/lib/config';
 import { HELP_KINDS } from '@/lib/resources';
+import { tooMany } from '@/lib/rateLimit';
 import { emailAdminHelpRequest } from '@/lib/email';
 
 export const runtime = 'nodejs';
@@ -32,6 +33,7 @@ export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return err(req, 'Please send the form from our website.');
   const m = await getMembership();
   if (!m.loggedIn || !m.email) return back(req, '/login?next=/help-hub/new');
+  if (await tooMany('help-post', m.email, 10, 60)) return err(req, 'You have posted a lot in the last hour. Please wait a little and try again.');
   if (!m.paid) return back(req, '/help-hub');
   const email = m.email;
   const fd = await req.formData().catch(() => null);

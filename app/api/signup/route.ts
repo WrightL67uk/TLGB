@@ -10,6 +10,7 @@ import { getPricing } from '@/lib/pricing';
 import { emailAdminBilling } from '@/lib/email';
 import { stripeEnabled } from '@/lib/stripe';
 import { openCheckout } from '@/lib/checkout';
+import { tooMany, visitor, TOO_MANY } from '@/lib/rateLimit';
 import type { Business } from '@/lib/account';
 
 export const runtime = 'nodejs';
@@ -34,6 +35,7 @@ const fail = (error: string, status = 400) => NextResponse.json({ ok: false, err
 
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return fail('Request blocked.', 403);
+  if (await tooMany('signup', visitor(req), 10, 60)) return fail(TOO_MANY, 429);
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return fail(parsed.error.issues[0].message);
   const d = parsed.data;
