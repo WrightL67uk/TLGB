@@ -43,7 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <nav className="mainnav">
               <Link href="/search">find a trade</Link>
               <Link href="/tenders">tenders</Link>
-              <Link href="/workers">workers</Link>
+              <Link href="/workers">recruitment</Link>
               <Link href="/suppliers">suppliers</Link>
               <Link href="/help-board">help board</Link>
               <Link href="/guides">guides</Link>
