@@ -1,8 +1,41 @@
 import Link from 'next/link';
 import { db } from '@/lib/supabase';
 import { expiryItems, daysUntil, fmtDate, type Expiries } from '@/lib/expiries';
+import { getTakings, VAT_THRESHOLD, VAT_REVIEW_AT, VAT_WARN_AT, type Takings } from '@/lib/takings';
 
 export const dynamic = 'force-dynamic';
+
+const gbp0 = (n: number) => `£${Math.round(n).toLocaleString('en-GB')}`;
+
+/** Takings over the last 12 months against the VAT registration threshold. */
+function VatWatch({ t }: { t: Takings | 'error' }) {
+  if (t === null) return null;
+  if (t === 'error') return <p className="muted small">VAT watch: could not read takings from Stripe just now.</p>;
+  const pct = Math.min(100, (t.year / VAT_THRESHOLD) * 100);
+  const level = t.year >= VAT_WARN_AT || t.month >= VAT_THRESHOLD ? 'red' : t.year >= VAT_REVIEW_AT ? 'amber' : 'green';
+  const colour = level === 'red' ? 'var(--danger)' : level === 'amber' ? 'var(--warn, #b54708)' : 'var(--accent, #2f6b2a)';
+  return (
+    <div className="panel vat-watch" style={{ borderColor: colour }}>
+      <div className="vat-row">
+        <strong>VAT watch</strong>
+        <span>
+          Takings in the last 12 months: <b>{gbp0(t.year)}</b> of {gbp0(VAT_THRESHOLD)} ({Math.round(pct)}%)
+          <span className="muted small"> · last 30 days {gbp0(t.month)}</span>
+        </span>
+      </div>
+      <div className="vat-bar"><span style={{ width: `${pct}%`, background: colour }} /></div>
+      {level === 'amber' && <p className="small" style={{ color: colour, margin: '6px 0 0' }}>Halfway to the VAT threshold. Time to review registering with your accountant.</p>}
+      {level === 'red' && (
+        <p className="small" style={{ color: colour, margin: '6px 0 0' }}>
+          {t.year >= VAT_THRESHOLD
+            ? 'Over the VAT threshold. You must register with HMRC within 30 days of the end of the month you went over, and give members 30 days’ notice.'
+            : 'Close to the VAT threshold. Register now so members get their 30 days’ notice in time.'}
+        </p>
+      )}
+      <p className="muted small" style={{ margin: '4px 0 0' }}>Card payments through Stripe, less refunds. Updated hourly. Amber at {gbp0(VAT_REVIEW_AT)}, red at {gbp0(VAT_WARN_AT)}.</p>
+    </div>
+  );
+}
 
 const TABS = [
   { key: 'pending_review', label: 'Awaiting approval' },
@@ -73,8 +106,11 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
     ? await db().from('businesses').select('id, trading_name').in('id', packIds)
     : { data: [] as { id: string; trading_name: string }[] };
 
+  const takings = await getTakings();
+
   return (
     <div>
+      <VatWatch t={takings} />
       <div className="admin-head">
         <h1>Admin</h1>
         {sp.deleted && <p className="ok-box">Deleted {sp.deleted}.</p>}
