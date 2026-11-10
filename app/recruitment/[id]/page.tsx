@@ -97,7 +97,7 @@ export default async function WorkerProfile({ params, searchParams }: { params: 
               <p className="small" style={{ marginBottom: 0 }}>
                 {access.who === 'unpaid'
                   ? <>Names and contact details are included with membership. <Link href="/account">Start your membership</Link>.</>
-                  : <>Shown to paying members and checked main contractors. <Link href={`/login?next=/workers/${s.id}`}>Log in</Link>, <Link href="/join">list your business</Link> or <Link href="/contractors/join">create a free contractor account</Link>.</>}
+                  : <>Shown to paying members and checked main contractors. <Link href={`/login?next=/recruitment/${s.id}`}>Log in</Link>, <Link href="/join">list your business</Link> or <Link href="/contractors/join">create a free contractor account</Link>.</>}
               </p>
             </section>
           )}

@@ -56,7 +56,7 @@ export default async function WorkersBoard({ searchParams }: { searchParams: SP 
       {!access.ok && (
         <p className="panel small">
           {access.who === 'unpaid' ? <>Start your membership to see names and contact details. <Link href="/account">Go to my listing</Link>.</>
-            : <>Hiring? <Link href="/login?next=/workers">Log in</Link> as a member or contractor, <Link href="/join">list your business</Link> or <Link href="/contractors/join">create a free contractor account</Link>.</>}
+            : <>Hiring? <Link href="/login?next=/recruitment">Log in</Link> as a member or contractor, <Link href="/join">list your business</Link> or <Link href="/contractors/join">create a free contractor account</Link>.</>}
           {' '}Looking for work yourself? <Link href="/looking-for-work">Post a free profile</Link>.
         </p>
       )}
