@@ -47,6 +47,7 @@ const Schema = z.object({
   phone: z.preprocess(blank, z.string().trim().regex(/^[0-9+()\s-]{7,20}$/, 'Enter a valid phone number').optional()),
   show_phone: z.boolean(),
   show_email: z.boolean(),
+  vacancy_alerts: z.boolean(),
 });
 
 export async function POST(req: NextRequest) {
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
     vehicle: fd.get('vehicle'), tools: fd.get('tools'), work_types: all('work_types'), team_size: fd.get('team_size'),
     available_from: fd.get('available_from'), available_until: fd.get('available_until'),
     pay_min: fd.get('pay_min'), pay_max: fd.get('pay_max'), pay_period: fd.get('pay_period'),
-    past_employers: fd.get('past_employers'), phone: fd.get('phone'), show_phone: on('show_phone'), show_email: on('show_email'),
+    past_employers: fd.get('past_employers'), phone: fd.get('phone'), show_phone: on('show_phone'), show_email: on('show_email'), vacancy_alerts: on('vacancy_alerts'),
   });
   if (!p.success) return go('error=' + encodeURIComponent(p.error.issues[0].message));
   const d = p.data;

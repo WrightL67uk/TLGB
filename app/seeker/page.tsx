@@ -170,6 +170,12 @@ export default async function SeekerPage({ searchParams }: { searchParams: SP })
           <label style={{ marginTop: 8, maxWidth: 320 }}>Phone<input type="tel" name="phone" maxLength={20} defaultValue={s.phone ?? ''} autoComplete="tel" /></label>
         </div>
 
+        <div className="wk-section">
+          <h2>Vacancy emails</h2>
+          <label className="chk"><input type="checkbox" name="vacancy_alerts" value="yes" defaultChecked={s.vacancy_alerts !== false} /> Email me vacancies that match my profile</label>
+          <p className="muted small" style={{ margin: '6px 0 0' }}>We match on your role, skills, cards, type of work and how far you travel.</p>
+        </div>
+
         <div className="wk-actions">
           <button type="submit" name="publish" value="yes" className="wk-btn go">{live ? 'Save' : 'Save and publish'}</button>
           {!live && <button type="submit" className="wk-btn">Save without publishing</button>}

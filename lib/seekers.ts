@@ -15,7 +15,7 @@ export type Seeker = {
   vehicle: string | null; tools: string | null; work_types: string[]; team_size: number;
   available_from: string | null; available_until: string | null;
   pay_min: number | null; pay_max: number | null; pay_period: string | null;
-  past_employers: string | null; phone: string | null; show_phone: boolean; show_email: boolean; view_count: number;
+  past_employers: string | null; phone: string | null; show_phone: boolean; show_email: boolean; view_count: number; vacancy_alerts?: boolean;
 };
 
 export async function seekerByEmail(email: string): Promise<Seeker | null> {

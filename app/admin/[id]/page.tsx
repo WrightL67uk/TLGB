@@ -1,3 +1,4 @@
+import { vacanciesUsed } from '@/lib/vacancies';
 import DeleteForm from '@/app/admin/DeleteForm';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -33,6 +34,7 @@ export default async function AdminDetail({
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 
   const { data: b } = await db().from('businesses').select('*').eq('id', id).maybeSingle();
+  const vacUsed = b ? await vacanciesUsed(b.id) : 0;
   const pricing = await getPricing();
   if (!b) notFound();
 
@@ -153,6 +155,14 @@ export default async function AdminDetail({
               <button type="submit">{b.founding_member ? 'Remove free membership' : 'Make free (founding) member'}</button>
             </form>
           )}
+          <h3 style={{ marginBottom: 4 }}>Vacancy posts</h3>
+          <p style={{ marginTop: 0 }}>Used <strong>{vacUsed}</strong> of <strong>{b.vacancy_limit ?? 5}</strong>.</p>
+          <form action="/api/admin/vacancies" method="post" className="inline">
+            <input type="hidden" name="action" value="limit" />
+            <input type="hidden" name="business_id" value={b.id} />
+            <label className="small">Allow <input type="number" name="limit" min={0} max={500} defaultValue={b.vacancy_limit ?? 5} style={{ width: 80 }} /> posts</label>
+            <button type="submit">Save</button>
+          </form>
         </section>
 
         <section className="panel">

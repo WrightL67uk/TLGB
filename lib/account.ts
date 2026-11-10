@@ -20,6 +20,7 @@ export type Business = {
   business_address: string | null;
   description: string | null;
   base_postcode: string;
+  vacancy_limit?: number;
   lat: number;
   lng: number;
   radius_miles: number;

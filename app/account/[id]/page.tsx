@@ -284,6 +284,18 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
 
       {b.status === 'approved' && isPaid(b) && (
         <section className="panel">
+          <h2>Vacancies</h2>
+          <div className="cp-summary">
+            <p>
+              Post jobs on the public Recruitment page. Job seekers whose profile matches get an email the day you post. {b.vacancy_limit ?? 5} posts included.
+            </p>
+            <Link href={`/account/${b.id}/vacancies`} className="sq sq-rust">Open my vacancies</Link>
+          </div>
+        </section>
+      )}
+
+      {b.status === 'approved' && isPaid(b) && (
+        <section className="panel">
           <h2>Payment tracker</h2>
           <div className="cp-summary">
             <p>

@@ -882,3 +882,42 @@ export async function emailAdminReset(to: string, name: string, link: string, mi
     'admin-reset'
   );
 }
+
+/** A new vacancy suits this job seeker's profile. */
+export async function emailSeekerVacancy(to: string, first: string, v: { title: string; business: string; area: string; pay: string | null; url: string }) {
+  await send(
+    to,
+    `New vacancy: ${v.title}${v.area ? ` (${v.area})` : ''}`,
+    `<p>Hi ${esc(first)},</p>
+<p>A vacancy has just been posted that matches your profile:</p>
+<p><strong>${esc(v.title)}</strong><br>${esc(v.business)}${v.area ? `, ${esc(v.area)}` : ''}${v.pay ? `<br>${esc(v.pay)}` : ''}</p>
+<p><a href="${esc(v.url)}">See the vacancy and how to apply</a></p>
+<p class="muted">You get these emails because your job seeker profile is live. To stop them, untick "Email me vacancies that match my profile" on <a href="${siteUrl()}/seeker">your profile</a>.</p>`,
+    'vacancy-match'
+  );
+}
+
+/** New job seekers match an employer's saved search. */
+export async function emailEmployerNewPeople(to: string, search: string, people: { headline: string; area: string; role: string; url: string }[], offUrl: string) {
+  const list = people.slice(0, 25).map((p) => `<li><a href="${esc(p.url)}">${esc(p.headline)}</a>${p.role ? `, ${esc(p.role)}` : ''}${p.area ? `, ${esc(p.area)}` : ''}</li>`).join('');
+  await send(
+    to,
+    `${people.length} new ${people.length === 1 ? 'person' : 'people'} looking for work: ${search}`,
+    `<p>${people.length === 1 ? 'Someone new matches' : `${people.length} new people match`} your saved search on The Little Green Book (${esc(search)}):</p>
+<ul>${list}</ul>
+${people.length > 25 ? `<p>And ${people.length - 25} more on the <a href="${siteUrl()}/recruitment?tab=people">Recruitment page</a>.</p>` : ''}
+<p>Log in to see their names and contact details.</p>
+<p class="muted">To stop these emails for this search, <a href="${esc(offUrl)}">turn this alert off</a>.</p>`,
+    'people-match'
+  );
+}
+
+export async function emailAdminVacancy(business: string, title: string, id: string) {
+  await send(
+    adminList(),
+    `New vacancy: ${title}`,
+    `<p><strong>${esc(business)}</strong> posted a vacancy: ${esc(title)}.</p>
+<p><a href="${siteUrl()}/recruitment/vacancies/${id}">See it</a> or <a href="${siteUrl()}/admin/vacancies">manage vacancies in admin</a>.</p>`,
+    'vacancy-admin'
+  );
+}
