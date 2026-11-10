@@ -26,8 +26,12 @@ function same(a: string, b: string) {
 
 /** The master login from Vercel, if these match it. */
 export function isMaster(username: string, password: string) {
-  const u = process.env.ADMIN_USERNAME, p = process.env.ADMIN_PASSWORD;
-  return !!u && !!p && same(username.trim(), u) && same(password, p);
+  // Forgiving about stray spaces or line breaks pasted into Vercel, and about capitals in the username.
+  const u = (process.env.ADMIN_USERNAME ?? '').trim().toLowerCase(), p = process.env.ADMIN_PASSWORD ?? '';
+  if (!u || !p) return false;
+  const userOk = same(username.trim().toLowerCase(), u);
+  const passOk = same(password, p) || same(password.trim(), p.trim());
+  return userOk && passOk;
 }
 
 export async function checkAdminPassword(email: string, pw: string): Promise<AdminUser | null> {
