@@ -32,7 +32,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <div className="narrow">
       <h1>{next === '/leads' ? 'Log in to see all leads' : 'Log in'}</h1>
-      <p className="lead">No password needed. Enter your email and we will send you a link to log in.</p>
+      <p className="lead">Log in with your email and password.</p>
       {error === 'expired' && (
         <p className="err big">That login link has expired or has already been used. Ask for a new one below.</p>
       )}

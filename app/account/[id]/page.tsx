@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { hasPassword } from '@/lib/passwords';
 import { notFound, redirect } from 'next/navigation';
 import { db, photoUrl } from '@/lib/supabase';
 import { ownedBusiness, DOC_TYPE_LABEL } from '@/lib/account';
@@ -27,6 +28,7 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
   }
   const b = own.business;
   const pricing = await getPricing();
+  const passwordSet = await hasPassword(b.email);
   const band = bandPrice(pricing, b.turnover_band);
   // Free, monthly or yearly: approved listings that have not chosen yet go to the plan screen first
   if (pricing.mode === 'membership' && b.status === 'approved' && !isPaid(b) && !b.free_listing && b.subscription_status !== 'cancelled' && !justPaid) {
@@ -61,8 +63,14 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
           {(listingCount ?? 0) > 1 && <p className="small"><Link href="/account">All my listings</Link></p>}
           <h1>{b.trading_name}</h1>
         </div>
-        <form action="/api/auth/logout" method="post"><button type="submit">Log out</button></form>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <Link href={`/account/password?back=/account/${b.id}`} className="small">{passwordSet ? 'Change password' : 'Set a password'}</Link>
+          <form action="/api/auth/logout" method="post"><button type="submit">Log out</button></form>
+        </div>
       </div>
+      {!passwordSet && (
+        <p className="ok-box small">Log in faster next time: <Link href={`/account/password?back=/account/${b.id}`}>set a password</Link> and use it with your email.</p>
+      )}
 
       {pricing.mode === 'membership' && b.status === 'approved' && b.free_listing && !isPaid(b) && (
         <div className="panel upgrade-panel">

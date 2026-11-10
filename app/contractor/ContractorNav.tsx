@@ -27,6 +27,7 @@ export default function ContractorNav({ me, on }: { me: Me; on: string }) {
       <nav className="ct-nav">
         {TABS.map((t) => <Link key={t.key} href={t.href} className={t.key === on ? 'on' : ''}>{t.label}</Link>)}
         <Link href="/search">Find trades</Link>
+        <Link href="/account/password?back=/contractor">Password</Link>
       </nav>
     </>
   );

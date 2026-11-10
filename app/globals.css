@@ -279,3 +279,4 @@ section > .verified-warning, main > div > .verified-warning { margin: 0 0 16px; 
 .upgrade-panel { border-left: 4px solid var(--green); border-radius: 0; }
 .upgrade-list { margin: 8px 0 14px; padding-left: 0; list-style: none; line-height: 1.8; }
 .upgrade-list li::before { content: '\2713'; color: var(--green); font-weight: 700; margin-right: 8px; }
+.linkish { background: none; border: none; padding: 0; color: var(--green); text-decoration: underline; cursor: pointer; font: inherit; height: auto; }

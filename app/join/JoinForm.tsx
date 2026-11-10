@@ -62,6 +62,11 @@ export default function JoinForm({ prices }: { prices: PriceInfo }) {
       return;
     }
 
+    if (String(fd.get('password') ?? '') !== String(fd.get('password_confirm') ?? '')) {
+      setError('The two passwords do not match.');
+      return;
+    }
+
     const payload: Record<string, unknown> = {
       business_type: type,
       company_number: type === 'ltd' ? company?.companyNumber : undefined,
@@ -69,6 +74,7 @@ export default function JoinForm({ prices }: { prices: PriceInfo }) {
       trading_name: tradingName,
       contact_name: fd.get('contact_name'),
       email: fd.get('email'),
+      password: fd.get('password'),
       phone: fd.get('phone'),
       website: fd.get('website'),
       business_address: fd.get('business_address'),
@@ -204,7 +210,10 @@ export default function JoinForm({ prices }: { prices: PriceInfo }) {
           <fieldset>
             <legend>2. Contact details</legend>
             <label>Contact name<input name="contact_name" required /></label>
-            <label>Email<input name="email" type="email" required /></label>
+            <label>Email<input name="email" type="email" required autoComplete="email" /></label>
+            <label>Choose a password<input name="password" type="password" required minLength={8} autoComplete="new-password" />
+              <span className="hint">At least 8 characters. You will use this with your email to log in.</span></label>
+            <label>Type the password again<input name="password_confirm" type="password" required minLength={8} autoComplete="new-password" /></label>
             <label>Phone<input name="phone" type="tel" required /></label>
             <label>Website (optional)<input name="website" type="url" placeholder="https://" /></label>
           </fieldset>

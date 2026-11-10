@@ -4,6 +4,7 @@ import { createHash, randomBytes } from 'crypto';
 import { z } from 'zod';
 import { db } from '@/lib/supabase';
 import { cleanCode, CODE_COOKIE } from '@/lib/discounts';
+import { canLogIn, hasPassword, passwordProblem, setPassword } from '@/lib/passwords';
 import { checkCompany } from '@/lib/companiesHouse';
 import { lookupPostcode } from '@/lib/postcodes';
 import {
@@ -31,6 +32,7 @@ const Base = z.object({
   trading_name: z.string().trim().min(2).max(120),
   contact_name: z.string().trim().min(2).max(120),
   email: z.string().trim().toLowerCase().email(),
+  password: z.string().min(8, 'use at least 8 characters').max(200).optional(),
   phone: z.string().trim().min(7).max(30),
   website: z.preprocess(blankToUndef, z.string().trim().max(200).optional()),
   business_address: z.preprocess(blankToUndef, z.string().trim().max(300).optional()),
@@ -64,7 +66,7 @@ const DOC_TYPE: Record<string, string> = {
 
 const LABEL: Record<string, string> = {
   business_type: 'Business type', company_number: 'Company number', owner_full_name: 'Owner name',
-  trading_name: 'Trading name', contact_name: 'Contact name', email: 'Email', phone: 'Phone',
+  trading_name: 'Trading name', contact_name: 'Contact name', email: 'Email', password: 'Password', phone: 'Phone',
   base_postcode: 'Base postcode', radius_miles: 'Coverage radius', trades: 'Trades',
   turnover_band: 'Turnover',
   pl_cover_amount: 'Public liability cover', pl_expiry: 'Public liability expiry',
@@ -131,6 +133,7 @@ export async function POST(req: NextRequest) {
 
   // ---- Save draft
   const uploadToken = randomBytes(24).toString('hex');
+  const existingLogin = await canLogIn(d.email);
   const { data: biz, error } = await db()
     .from('businesses')
     .insert({
@@ -173,6 +176,12 @@ export async function POST(req: NextRequest) {
     return fail('Something went wrong saving your application. Please try again.', 500);
   }
   const id = biz.id as string;
+
+  // Password from the sign-up form. Only for a brand new login: an existing account's password
+  // is changed from inside that account, never by someone filling in this form with its email.
+  if (d.password && !passwordProblem(d.password) && !existingLogin && !(await hasPassword(d.email))) {
+    await setPassword(d.email, d.password).then(({ error: e }) => e && console.error('set password failed', e));
+  }
 
   // ---- Signed upload URLs + expected file rows
   const uploads: { index: number; bucket: string; path: string; signedUrl: string }[] = [];
