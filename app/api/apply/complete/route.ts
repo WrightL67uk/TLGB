@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     .eq('id', id)
     .maybeSingle();
 
-  if (!biz || biz.status !== 'draft' || !biz.upload_token) return fail('Application not found or already submitted.', 404);
+  if (!biz || !['draft', 'started'].includes(biz.status) || !biz.upload_token) return fail('Application not found or already submitted.', 404);
 
   const given = Buffer.from(createHash('sha256').update(token).digest('hex'));
   const stored = Buffer.from(biz.upload_token);
@@ -49,9 +49,9 @@ export async function POST(req: NextRequest) {
 
   const { error } = await db()
     .from('businesses')
-    .update({ status: 'pending_review', upload_token: null })
+    .update({ status: 'pending_review', upload_token: null, draft_data: null })
     .eq('id', id)
-    .eq('status', 'draft');
+    .in('status', ['draft', 'started']);
   if (error) return fail('Could not submit your application. Please try again.', 500);
 
   await db().from('review_events').insert({ business_id: id, action: 'submitted', actor: biz.email });

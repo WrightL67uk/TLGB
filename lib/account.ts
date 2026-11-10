@@ -5,8 +5,11 @@ import { emailAdminChanges } from './email';
 
 export type Business = {
   id: string;
-  status: 'draft' | 'pending_review' | 'approved' | 'rejected' | 'suspended';
+  status: 'draft' | 'started' | 'pending_review' | 'approved' | 'rejected' | 'suspended';
   business_type: 'ltd' | 'sole_trader';
+  ch_company_name?: string | null;
+  ch_registered_address?: string | null;
+  draft_data?: unknown;
   company_number: string | null;
   owner_full_name: string | null;
   trading_name: string;

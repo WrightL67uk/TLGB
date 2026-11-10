@@ -280,3 +280,12 @@ section > .verified-warning, main > div > .verified-warning { margin: 0 0 16px; 
 .upgrade-list { margin: 8px 0 14px; padding-left: 0; list-style: none; line-height: 1.8; }
 .upgrade-list li::before { content: '\2713'; color: var(--green); font-weight: 700; margin-right: 8px; }
 .linkish { background: none; border: none; padding: 0; color: var(--green); text-decoration: underline; cursor: pointer; font: inherit; height: auto; }
+.ch-hits { list-style: none; padding: 0; margin: 6px 0 0; border: 1px solid var(--line, #ddd8cc); border-radius: 8px; max-height: 320px; overflow-y: auto; }
+.ch-hits li + li { border-top: 1px solid var(--line, #ddd8cc); }
+.ch-hits button { width: 100%; text-align: left; background: none; border: none; padding: 10px 12px; height: auto; cursor: pointer; font: inherit; }
+.ch-hits button:hover:not(:disabled) { background: #f4f3ec; }
+.ch-hits button:disabled { opacity: .55; cursor: not-allowed; }
+.join-steps { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 18px; padding: 0; list-style: none; font-size: .9rem; }
+.join-steps li { padding: 4px 10px; border-radius: 999px; background: #f4f3ec; color: #6b6b6b; }
+.join-steps li.on { background: var(--green); color: #fff; font-weight: 600; }
+.save-state { position: sticky; top: 0; z-index: 2; background: #f4f3ec; padding: 6px 10px; border-radius: 6px; color: #3d3d3a; }

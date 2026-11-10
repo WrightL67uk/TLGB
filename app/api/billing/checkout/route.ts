@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
 import { sameOrigin } from '@/lib/session';
 import { ownedBusiness } from '@/lib/account';
-import { isPaid } from '@/lib/membership';
+import { isPaid, PAID_STATUSES } from '@/lib/membership';
 import { stripe, stripeEnabled } from '@/lib/stripe';
 import { siteUrl } from '@/lib/config';
 import { getPricing, bandPrice, planKey, PLAN_INFO, type Interval } from '@/lib/pricing';
@@ -22,9 +22,11 @@ export async function POST(req: NextRequest) {
   const b = own.business;
 
   if (!stripeEnabled()) return back(req, id, 'billing=' + encodeURIComponent('Online payment is not switched on yet. We will be in touch.'));
-  if (b.status !== 'approved') return back(req, id, 'billing=' + encodeURIComponent('You can pay once your listing has been approved.'));
-  if (isPaid(b)) return back(req, id, 'billing=' + encodeURIComponent('Your membership is already active.'));
   const pricing = await getPricing();
+  // Quick sign-ups choose and pay before sending their details; everyone else pays once approved
+  const startedOk = b.status === 'started' && pricing.mode === 'membership';
+  if (b.status !== 'approved' && !startedOk) return back(req, id, 'billing=' + encodeURIComponent('You can pay once your listing has been approved.'));
+  if (isPaid(b) || (startedOk && PAID_STATUSES.includes(b.subscription_status))) return back(req, id, 'billing=' + encodeURIComponent('Your membership is already active.'));
   let item: { price: number; name: string; plan: string | null; interval: Interval; trialDays: number | null };
   if (pricing.mode === 'membership') {
     const interval: Interval = fd?.get('interval') === 'month' ? 'month' : 'year';
@@ -86,7 +88,7 @@ export async function POST(req: NextRequest) {
       billing_address_collection: 'auto',
       customer_update: { address: 'auto', name: 'auto' },
       ...(tax ? { automatic_tax: { enabled: 'true' }, tax_id_collection: { enabled: 'true' } } : {}),
-      success_url: `${siteUrl()}/account/${b.id}?paid=1`,
+      success_url: `${siteUrl()}/account/${b.id}${b.status === 'started' ? '/details' : ''}?paid=1`,
       cancel_url: `${siteUrl()}/account/${b.id}${pricing.mode === 'membership' ? '/plan' : ''}`,
     };
     let session;

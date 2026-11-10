@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic';
 
 const TABS = [
   { key: 'pending_review', label: 'Awaiting approval' },
+  { key: 'started', label: 'Signed up, details not sent' },
   { key: 'recheck', label: 'Changes to check' },
   { key: 'expiring', label: 'Expiring or expired' },
   { key: 'approved', label: 'Approved' },

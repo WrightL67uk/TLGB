@@ -6,6 +6,7 @@ import { db } from '@/lib/supabase';
 import { cleanCode, CODE_COOKIE } from '@/lib/discounts';
 import { canLogIn, hasPassword, passwordProblem, setPassword } from '@/lib/passwords';
 import { checkCompany } from '@/lib/companiesHouse';
+import { ownedBusiness } from '@/lib/account';
 import { lookupPostcode } from '@/lib/postcodes';
 import {
   ACCREDITATIONS, TRADES, TURNOVER_BANDS, DOC_MIME, PHOTO_MIME, MAX_FILE_BYTES, MAX_PHOTOS,
@@ -50,6 +51,7 @@ const Base = z.object({
   declaration: z.literal(true, { message: 'You must confirm the declaration' }),
   files: z.array(FileMeta).max(20),
   hp_check: z.string().optional(), // honeypot
+  business_id: z.string().uuid().optional(), // quick sign-up: send the details of a 'started' listing
 });
 
 const Schema = z.discriminatedUnion('business_type', [
@@ -83,6 +85,21 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body) return fail('Could not read the form. Please try again.');
   if (body.hp_check) { console.warn('honeypot hit', { email: body.email, name: body.trading_name }); return NextResponse.json({ ok: true, id: null, uploads: [] }); } // bot
+
+  // Quick sign-up: the listing already exists (status 'started'), owned by whoever is logged in.
+  // Email and turnover were given at the first step, so take them from the listing.
+  let startedId: string | null = null;
+  if (body.business_id) {
+    const own = await ownedBusiness(String(body.business_id));
+    if (!own.ok) return fail(own.status === 401 ? 'Your login has expired. Log in again and press Send.' : 'Listing not found.', own.status);
+    if (own.business.status !== 'started') return fail('These details have already been sent.');
+    startedId = own.business.id;
+    body.email = own.business.email;
+    body.turnover_band = own.business.turnover_band;
+    body.business_type = own.business.business_type;
+    if (own.business.business_type === 'ltd') body.company_number = own.business.company_number;
+    delete body.password;
+  }
 
   const parsed = Schema.safeParse(body);
   if (!parsed.success) {
@@ -127,17 +144,15 @@ export async function POST(req: NextRequest) {
       .from('businesses')
       .select('id', { count: 'exact', head: true })
       .eq('company_number', ch.companyNumber)
-      .not('status', 'in', '(rejected,draft)');
+      .not('status', 'in', '(rejected,draft)')
+      .neq('id', startedId ?? '00000000-0000-0000-0000-000000000000');
     if (count && count > 0) return fail('This company is already listed or has an application in progress.');
   }
 
   // ---- Save draft
   const uploadToken = randomBytes(24).toString('hex');
-  const existingLogin = await canLogIn(d.email);
-  const { data: biz, error } = await db()
-    .from('businesses')
-    .insert({
-      status: 'draft',
+  const existingLogin = startedId ? true : await canLogIn(d.email);
+  const fields = {
       upload_token: createHash('sha256').update(uploadToken).digest('hex'),
       business_type: d.business_type,
       company_number: ch?.companyNumber ?? null,
@@ -166,10 +181,15 @@ export async function POST(req: NextRequest) {
       pl_expiry: d.pl_expiry,
       el_cover_amount: d.el_cover_amount ?? null,
       el_expiry: d.el_expiry ?? null,
-      signup_code: cleanCode(req.cookies.get(CODE_COOKIE)?.value) || null,
-    })
-    .select('id')
-    .single();
+  };
+  if (startedId) {
+    // Sending again after a failed upload: start the file list afresh
+    await db().from('business_documents').delete().eq('business_id', startedId);
+    await db().from('business_photos').delete().eq('business_id', startedId);
+  }
+  const { data: biz, error } = startedId
+    ? await db().from('businesses').update(fields).eq('id', startedId).eq('status', 'started').select('id').single()
+    : await db().from('businesses').insert({ ...fields, status: 'draft', signup_code: cleanCode(req.cookies.get(CODE_COOKIE)?.value) || null }).select('id').single();
 
   if (error || !biz) {
     console.error('insert business failed', error);
@@ -208,7 +228,7 @@ export async function POST(req: NextRequest) {
     }
   } catch (err) {
     console.error('prepare uploads failed', err);
-    await db().from('businesses').delete().eq('id', id);
+    if (!startedId) await db().from('businesses').delete().eq('id', id);
     return fail('Could not prepare your uploads. Please try again.', 500);
   }
 

@@ -134,27 +134,30 @@ export async function emailApplicantReceived(a: ApplicationSummary) {
   );
 }
 
-export async function emailApplicantApproved(to: string, name: string, tradingName: string, founding = false) {
+export async function emailApplicantApproved(to: string, name: string, tradingName: string, founding = false, chosen: 'paid' | 'free' | null = null) {
   const pricing = await getPricing();
   const membershipMode = pricing.mode === 'membership';
   const trialDays = pricing.membership.trial_days;
   const login = `<a href="${siteUrl()}/login?next=/account">${esc(siteUrl().replace(/^https?:\/\//, ''))}/login</a>`;
-  await send(
-    to,
-    `${tradingName} is approved`,
-    founding
-      ? `<p>Hi ${esc(name)},</p>
-<p>Good news. <strong>${esc(tradingName)}</strong> has been approved and is now listed on The Little Green Book as a founding member, free of charge.</p>
-<p>Contractors searching your area can now find you, and you have the full leads feed, the supply chain finder and the help board. Keep your insurance documents up to date so your listing stays live.</p>
-<p><strong>There is no password to set up.</strong> Go to ${login}, enter this email address, and we will email you a link that logs you straight in.</p>`
-      : `<p>Hi ${esc(name)},</p>
-<p>Good news. <strong>${esc(tradingName)}</strong> has been approved.</p>
+  const loginLine = `<p>Log in at ${login} with your email and password. Forgotten your password, or not set one? Press <strong>Email me a login link</strong> on that page.</p>`;
+  const hi = `<p>Hi ${esc(name || 'there')},</p>`;
+  let body: string;
+  if (founding) {
+    body = `${hi}<p>Good news. <strong>${esc(tradingName)}</strong> has been approved and is now listed on The Little Green Book as a founding member, free of charge.</p>
+<p>Contractors searching your area can now find you, and you have the full leads feed, the supply chain finder and the help board. Keep your insurance documents up to date so your listing stays live.</p>${loginLine}`;
+  } else if (chosen === 'paid') {
+    body = `${hi}<p>Good news. <strong>${esc(tradingName)}</strong> has been approved and is now live with the <strong>Verified</strong> badge.</p>
+<p>Contractors searching your area can find you, and you have every lead and contractor job, the compliance pack, PQQ answer bank, price requests and your own website. Log in and make the most of them.</p>${loginLine}`;
+  } else if (chosen === 'free') {
+    body = `${hi}<p>Good news. <strong>${esc(tradingName)}</strong> has been approved and is now live as a free listing, shown to contractors as Unverified.</p>
+<p>Go verified at any time${trialDays ? `, starting with ${trialDays} days free` : ''}, to get the badge, be shown first, and see every lead and contractor job.</p>${loginLine}`;
+  } else {
+    body = `${hi}<p>Good news. <strong>${esc(tradingName)}</strong> has been approved.</p>
 ${membershipMode
   ? `<p>Log in to choose how you are listed: a free listing, or verified membership paid monthly or yearly${trialDays ? `, starting with ${trialDays} days free` : ''}. Verified members get the badge, every lead and contractor job, and all the member tools.</p>`
-  : `<p>To go live, log in and press <strong>Start membership</strong> on your listing page. Once you have paid, contractors searching your area can find you, and you get the full leads feed, the supply chain finder and the help board.</p>`}
-<p><strong>There is no password to set up.</strong> Go to ${login}, enter this email address, and we will email you a link that logs you straight in.</p>`,
-    'application-approved'
-  );
+  : `<p>To go live, log in and press <strong>Start membership</strong> on your listing page. Once you have paid, contractors searching your area can find you, and you get the full leads feed, the supply chain finder and the help board.</p>`}${loginLine}`;
+  }
+  await send(to, `${tradingName} is approved`, body, 'application-approved');
 }
 
 export async function emailApplicantRejected(to: string, name: string, tradingName: string, reason: string) {

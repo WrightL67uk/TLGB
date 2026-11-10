@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { ownedBusiness } from '@/lib/account';
-import { isPaid } from '@/lib/membership';
+import { isPaid, planChosen } from '@/lib/membership';
+import JoinSteps from '@/app/join/JoinSteps';
 import { stripeEnabled } from '@/lib/stripe';
 import { getPricing, yearlySaving } from '@/lib/pricing';
 import '../../../plans.css';
@@ -22,7 +23,9 @@ export default async function PlanPage({ params, searchParams }: { params: Promi
   }
   const b = own.business;
   const pricing = await getPricing();
-  if (pricing.mode !== 'membership' || b.status !== 'approved' || isPaid(b)) redirect(`/account/${b.id}`);
+  const started = b.status === 'started';
+  if (started && planChosen(b)) redirect(`/account/${b.id}/details`);
+  if (pricing.mode !== 'membership' || !(b.status === 'approved' || started) || isPaid(b)) redirect(`/account/${b.id}`);
 
   const m = pricing.membership;
   const save = yearlySaving(pricing);
@@ -32,10 +35,12 @@ export default async function PlanPage({ params, searchParams }: { params: Promi
 
   return (
     <div className="plans-page">
+      {started && <JoinSteps on={2} />}
       <h1>{first ? `Welcome, ${first}. ` : ''}How do you want {b.trading_name} to be listed?</h1>
       <p className="muted">
         {trial ? <>Both verified options start with <strong>{trial} days free</strong>. Nothing to pay today. </> : null}
         You can change this at any time.
+        {started && ' Next, add your details in your own time.'}
       </p>
       {sp.billing && <p className="err big">{sp.billing}</p>}
 
@@ -103,7 +108,7 @@ export default async function PlanPage({ params, searchParams }: { params: Promi
         Secure card payment through Stripe.{trial ? ` We email you before your free trial ends, and you can cancel before then and pay nothing.` : ''}
         {!live && ' Online payment is not switched on yet; email admin@tlgb.co.uk to join.'}
       </p>
-      <p className="small"><Link href={`/account/${b.id}`}>Back to my listing</Link></p>
+      {!started && <p className="small"><Link href={`/account/${b.id}`}>Back to my listing</Link></p>}
     </div>
   );
 }

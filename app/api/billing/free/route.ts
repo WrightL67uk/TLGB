@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
 import { sameOrigin } from '@/lib/session';
 import { ownedBusiness } from '@/lib/account';
-import { isPaid } from '@/lib/membership';
+import { isPaid, PAID_STATUSES } from '@/lib/membership';
 
 export const runtime = 'nodejs';
 
@@ -14,9 +14,9 @@ export async function POST(req: NextRequest) {
   const own = await ownedBusiness(id);
   if (!own.ok) return NextResponse.redirect(new URL(own.status === 401 ? '/login?next=/account' : '/account', req.url), 303);
   const b = own.business;
-  if (b.status === 'approved' && !isPaid(b) && !b.free_listing) {
+  if ((b.status === 'approved' || b.status === 'started') && !isPaid(b) && !b.free_listing && !PAID_STATUSES.includes(b.subscription_status)) {
     await db().from('businesses').update({ free_listing: true }).eq('id', b.id);
     await db().from('review_events').insert({ business_id: b.id, action: 'billing', actor: 'member', detail: 'Chose the free listing' });
   }
-  return NextResponse.redirect(new URL(`/account/${b.id}?free=1`, req.url), 303);
+  return NextResponse.redirect(new URL(b.status === 'started' ? `/account/${b.id}/details` : `/account/${b.id}?free=1`, req.url), 303);
 }

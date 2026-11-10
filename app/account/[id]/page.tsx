@@ -5,7 +5,7 @@ import { db, photoUrl } from '@/lib/supabase';
 import { ownedBusiness, DOC_TYPE_LABEL } from '@/lib/account';
 import AccountEditor from './AccountEditor';
 import { expiryItems, daysUntil, fmtDate } from '@/lib/expiries';
-import { isPaid, unverifiedReason, type Pending } from '@/lib/membership';
+import { isPaid, unverifiedReason, type Pending, planChosen } from '@/lib/membership';
 import { accreditationLabel } from '@/lib/config';
 import { stripeEnabled } from '@/lib/stripe';
 import { getPricing, bandPrice, bandsWithPrices, PLAN_INFO, type PlanKey } from '@/lib/pricing';
@@ -18,9 +18,9 @@ export const metadata = { title: 'My listing | TLGB' };
 
 const fmt = (d: string) => new Date(d).toLocaleDateString('en-GB');
 
-export default async function ListingPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ paid?: string; billing?: string }> }) {
+export default async function ListingPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ paid?: string; billing?: string; sent?: string }> }) {
   const { id } = await params;
-  const { paid: justPaid, billing: billingMsg } = await searchParams;
+  const { paid: justPaid, billing: billingMsg, sent: justSent } = await searchParams;
   const own = await ownedBusiness(id);
   if (!own.ok) {
     if (own.status === 401) redirect('/login');
@@ -30,8 +30,12 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
   const pricing = await getPricing();
   const passwordSet = await hasPassword(b.email);
   const band = bandPrice(pricing, b.turnover_band);
+  // Quick sign-ups that haven't sent their details yet carry on where they left off
+  if (b.status === 'started') {
+    redirect(pricing.mode === 'membership' && !planChosen(b) ? `/account/${b.id}/plan` : `/account/${b.id}/details`);
+  }
   // Free, monthly or yearly: approved listings that have not chosen yet go to the plan screen first
-  if (pricing.mode === 'membership' && b.status === 'approved' && !isPaid(b) && !b.free_listing && b.subscription_status !== 'cancelled' && !justPaid) {
+  if (pricing.mode === 'membership' && b.status === 'approved' && !planChosen(b) && b.subscription_status !== 'cancelled' && !justPaid) {
     redirect(`/account/${b.id}/plan`);
   }
 
@@ -93,7 +97,7 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
             <Link href={`/b/${b.id}`}>View your public page</Link></p>
         )}
         {b.status === 'pending_review' && (
-          <p><span className="status pending_review">Waiting for approval</span> We check every business by hand, usually within two working days.</p>
+          <p><span className="status pending_review">Waiting for approval</span> {justSent ? 'Thank you, your details are with us. ' : ''}We check every business by hand, usually within one working day, and email you as soon as you are live.</p>
         )}
         {b.status === 'rejected' && (
           <>

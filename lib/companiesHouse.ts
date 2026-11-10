@@ -61,3 +61,24 @@ export async function checkCompany(rawNumber: string): Promise<CompanyCheck> {
     raw: c,
   };
 }
+
+export type CompanyHit = { companyNumber: string; name: string; status: string; address: string };
+
+/** Search Companies House by name (or number) for the sign-up picker. Active companies first. */
+export async function searchCompanies(q: string): Promise<CompanyHit[]> {
+  const term = q.trim().slice(0, 100);
+  if (term.length < 2) return [];
+  const res = await fetch(`${BASE}/search/companies?q=${encodeURIComponent(term)}&items_per_page=10`, {
+    headers: { Authorization: authHeader() },
+    cache: 'no-store',
+  });
+  if (!res.ok) return [];
+  const j = await res.json();
+  const hits: CompanyHit[] = (j.items ?? []).map((i: { company_number: string; title: string; company_status: string; address_snippet?: string }) => ({
+    companyNumber: i.company_number,
+    name: i.title,
+    status: i.company_status,
+    address: i.address_snippet ?? '',
+  }));
+  return hits.sort((a, b) => Number(b.status === 'active') - Number(a.status === 'active'));
+}

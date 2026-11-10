@@ -11,6 +11,10 @@ export type MemberRow = { id: string; status: string; founding_member: boolean; 
 export const isPaid = (b: Pick<MemberRow, 'status' | 'founding_member' | 'subscription_status'>) =>
   b.status === 'approved' && (b.founding_member || PAID_STATUSES.includes(b.subscription_status));
 
+/** Has chosen how to be listed: paying (or on a trial), free, or a founding member. Status not considered. */
+export const planChosen = (b: { founding_member: boolean; subscription_status: string; free_listing?: boolean }) =>
+  b.founding_member || !!b.free_listing || PAID_STATUSES.includes(b.subscription_status);
+
 export type Membership = {
   email: string | null;
   loggedIn: boolean;

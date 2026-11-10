@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
+import { stripe, stripeEnabled } from '@/lib/stripe';
 import { emailApplicantApproved, emailApplicantRejected } from '@/lib/email';
 import { createLoginToken } from '@/lib/session';
 import { siteUrl } from '@/lib/config';
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   if (!/^[0-9a-f-]{36}$/i.test(id)) return new NextResponse('Bad id', { status: 400 });
 
-  const { data: b } = await db().from('businesses').select('id, status, email, contact_name, trading_name').eq('id', id).maybeSingle();
+  const { data: b } = await db().from('businesses').select('id, status, email, contact_name, trading_name, free_listing, subscription_status, stripe_subscription_id').eq('id', id).maybeSingle();
   if (!b) return new NextResponse('Not found', { status: 404 });
 
   const now = new Date().toISOString();
@@ -36,12 +37,23 @@ export async function POST(req: NextRequest) {
       admin_notes: notes || null,
     }).eq('id', id);
     await db().from('review_events').insert({ business_id: id, action: 'approved', actor, detail: notes || null });
-    await emailApplicantApproved(b.email, b.contact_name, b.trading_name, fd.get('founding_member') === 'on');
+    const chosen = ['active', 'trialing', 'past_due'].includes(b.subscription_status) ? 'paid' : b.free_listing ? 'free' : null;
+    await emailApplicantApproved(b.email, b.contact_name, b.trading_name, fd.get('founding_member') === 'on', chosen);
   } else if (action === 'reject') {
     if (b.status !== 'pending_review') return new NextResponse('Only pending applications can be rejected', { status: 409 });
     if (!reason) return new NextResponse('A reason is required', { status: 400 });
     await db().from('businesses').update({ status: 'rejected', reviewed_at: now, reviewed_by: actor, rejection_reason: reason }).eq('id', id);
     await db().from('review_events').insert({ business_id: id, action: 'rejected', actor, detail: reason });
+    // Quick sign-ups may already be on a trial or paying: stop it so they are not charged
+    if (b.stripe_subscription_id && ['active', 'trialing', 'past_due'].includes(b.subscription_status) && stripeEnabled()) {
+      try {
+        await stripe('DELETE', `subscriptions/${b.stripe_subscription_id}`);
+        await db().from('review_events').insert({ business_id: id, action: 'billing', actor, detail: 'Subscription cancelled because the application was rejected' });
+      } catch (e) {
+        console.error('cancel on reject failed', e);
+        await db().from('review_events').insert({ business_id: id, action: 'note', actor, detail: 'Could not cancel their Stripe subscription automatically. Cancel it in Stripe.' });
+      }
+    }
     await emailApplicantRejected(b.email, b.contact_name, b.trading_name, reason);
   } else if (action === 'suspend') {
     if (b.status !== 'approved') return new NextResponse('Only approved listings can be suspended', { status: 409 });
