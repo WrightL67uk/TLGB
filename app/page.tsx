@@ -6,8 +6,8 @@ import ComingSoon from './ComingSoon';
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata() {
-  return (await comingSoon())
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ preview?: string }> }) {
+  return !(await searchParams).preview && (await comingSoon())
     ? {
         title: 'The Little Green Book | Coming soon',
         description: 'A new home for landscaping and external works trades, coming soon. Join the waiting list for a launch discount and early membership.',
