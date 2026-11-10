@@ -72,7 +72,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next({ request: { headers: bare(req, pathname.split('/')[2] ?? '') } });
   }
 
-  if ((pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) && !OPEN_ADMIN.has(pathname)) {
+  if ((pathname === '/admin' || pathname.startsWith('/admin/') || pathname === '/api/admin' || pathname.startsWith('/api/admin/')) && !OPEN_ADMIN.has(pathname)) {
     if (await adminSessionOk(req.cookies.get('tlgb_admin')?.value)) return NextResponse.next();
     // The old browser pop-up login is no longer accepted: everyone uses /admin/login, which has a log out.
     if (pathname.startsWith('/api/')) return NextResponse.json({ error: 'Please log in to admin.' }, { status: 401 });
