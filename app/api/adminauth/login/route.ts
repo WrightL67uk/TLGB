@@ -16,11 +16,12 @@ export async function POST(req: NextRequest) {
   if (!login || !pw) return fail('Enter your email and password.');
   const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
   const key = `admin:${login.toLowerCase()}`;
+  if (await lockedOut(key, ip)) return fail('Too many wrong attempts. Wait 15 minutes and try again.');
+
   let session;
   if (isMaster(login, pw)) {
     session = await createAdminSession(null, 'Master login');
   } else {
-    if (await lockedOut(key, ip)) return fail('Too many wrong attempts. Wait 15 minutes and try again.');
     const admin = await checkAdminPassword(login.toLowerCase(), pw);
     await db().from('login_attempts').insert({ email: key, ip, ok: !!admin });
     if (!admin) return fail('That email and password do not match.');
