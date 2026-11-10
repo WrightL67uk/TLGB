@@ -141,6 +141,8 @@ export default async function AdminDetail({
           <p>
             {b.founding_member ? <strong>Founding member (free)</strong> : <>Status: <strong>{({ none: 'not started', trialing: 'free trial', active: 'paying', past_due: 'payment failed, Stripe retrying', cancelled: 'cancelled' } as Record<string, string>)[b.subscription_status] ?? b.subscription_status}</strong></>}
             {b.paid_until && !b.founding_member && <> until {new Date(b.paid_until).toLocaleDateString('en-GB')}</>}
+            {!b.founding_member && b.billing_interval && <>, paid {b.billing_interval === 'month' ? 'monthly' : 'yearly'}</>}
+            {!b.founding_member && b.free_listing && b.subscription_status === 'none' && <>. Chose the <strong>free listing</strong> (shown as Unverified)</>}
           </p>
           {b.stripe_customer_id && <p><a href={`https://dashboard.stripe.com/customers/${b.stripe_customer_id}`} target="_blank" rel="noopener">Open in Stripe</a></p>}
           {b.status === 'approved' && (
