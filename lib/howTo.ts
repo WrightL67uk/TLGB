@@ -307,31 +307,31 @@ export const HOW_TOS: HowTo[] = [
   },
 
   {
-    slug: 'help-board-and-workers',
+    slug: 'help-hub-and-recruitment',
     group: 'trades',
-    title: 'Help Hub and finding workers',
+    title: 'Help Hub and recruitment',
     summary: 'Ask other trades for labour, machines or cover, offer spare capacity, and find people looking for work.',
     intro: 'Two ways to find help when a job needs more hands.',
     sections: [
       {
         h: 'Help Hub',
         steps: [
-          'Go to the [Help Hub](/help-board). Paying members can post and see who posted each request.',
+          'Go to the [Help Hub](/help-hub). Paying members can post and see who posted each request.',
           'Post what you need: extra hands or a gang, a package to subcontract, help finishing a job, a machine or operator, or holiday cover. Or post spare capacity.',
           'Add where and when. Other members get in touch with you directly.',
         ],
       },
       {
-        h: 'Workers board',
+        h: 'Recruitment',
         list: [
-          'The [workers board](/workers) lists people looking for work in landscaping and external works: their role, skills, cards and licences, vehicle and tools, availability and pay expectations.',
+          'The [Recruitment](/recruitment) page lists people looking for work in landscaping and external works: their role, skills, cards and licences, vehicle and tools, availability and pay expectations.',
           'Filter by skill, card, distance and "available now".',
           'Anyone can browse. Paying members see names and contact details.',
         ],
         tip: 'We do not check what job seekers write, and we are not an employment agency. Make your own checks, including right to work, before taking anyone on.',
       },
     ],
-    cta: [{ label: 'Help Hub', href: '/help-board' }, { label: 'workers board', href: '/workers' }],
+    cta: [{ label: 'Help Hub', href: '/help-hub' }, { label: 'recruitment', href: '/recruitment' }],
   },
 
   {
@@ -371,7 +371,7 @@ export const HOW_TOS: HowTo[] = [
       },
       {
         h: 'Labour',
-        p: ['Approved contractors can see names and contact details on the [workers board](/workers).'],
+        p: ['Approved contractors can see names and contact details on the [Recruitment](/recruitment) page.'],
       },
     ],
     cta: [{ label: 'open a free account', href: '/contractors' }, { label: 'find a trade', href: '/search' }],

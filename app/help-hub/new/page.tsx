@@ -10,8 +10,8 @@ export const metadata = { title: 'Ask for help | The Little Green Book' };
 
 export default async function NewHelpRequest({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const m = await getMembership();
-  if (!m.loggedIn) redirect('/login?next=/help-board/new');
-  if (!m.paid) redirect(m.unpaidId ? `/account/${m.unpaidId}` : '/help-board');
+  if (!m.loggedIn) redirect('/login?next=/help-hub/new');
+  if (!m.paid) redirect(m.unpaidId ? `/account/${m.unpaidId}` : '/help-hub');
   const { error } = await searchParams;
   return (
     <article className="guide">
@@ -42,7 +42,7 @@ export default async function NewHelpRequest({ searchParams }: { searchParams: P
           <label>Needed until<input name="needed_until" type="date" /></label>
         </div>
         <button type="submit" className="primary">post request</button>
-        <p className="muted small" style={{ margin: 0 }}>The exact postcode is only used to work out distances. <Link href="/help-board">Back to the Help Hub</Link></p>
+        <p className="muted small" style={{ margin: 0 }}>The exact postcode is only used to work out distances. <Link href="/help-hub">Back to the Help Hub</Link></p>
       </form>
     </article>
   );

@@ -59,13 +59,13 @@ export default async function HelpBoardPage({ searchParams }: { searchParams: SP
 
       <div style={{ margin: '0 0 16px' }}>
         {email
-          ? <Link href="/help-board/new" className="sq sq-rust">ask for help</Link>
+          ? <Link href="/help-hub/new" className="sq sq-rust">ask for help</Link>
           : m.loggedIn
             ? <span className="muted">Posting and contact details are for paying members. <Link href={m.unpaidId ? upgradeHref(pricing, m.unpaidId) : '/account'}>{m.unpaidId ? upgradeLabel(pricing).replace(/^s/, 'S') : 'Start your membership'}</Link>.</span>
-            : <span className="muted">To post a request, <Link href="/login?next=/help-board">log in</Link> or <Link href="/join">list your business</Link>.</span>}
+            : <span className="muted">To post a request, <Link href="/login?next=/help-hub">log in</Link> or <Link href="/join">list your business</Link>.</span>}
       </div>
 
-      <form className="res-filters" method="get" action="/help-board">
+      <form className="res-filters" method="get" action="/help-hub">
         <label>Type of help
           <select name="kind" defaultValue={kind}>
             <option value="">Any</option>
@@ -80,7 +80,7 @@ export default async function HelpBoardPage({ searchParams }: { searchParams: SP
         </label>
         <label>Near postcode<input name="postcode" defaultValue={pcIn} placeholder="e.g. SG1 2AB" /></label>
         <button type="submit" className="sq sq-rust">search</button>
-        {(kind || trade || pcIn) && <Link href="/help-board">clear</Link>}
+        {(kind || trade || pcIn) && <Link href="/help-hub">clear</Link>}
       </form>
       {where && !where.ok && <p className="err">{where.reason}</p>}
 
@@ -114,7 +114,7 @@ export default async function HelpBoardPage({ searchParams }: { searchParams: SP
                 )}
               </p>
             ) : (
-              <p className="res-meta"><span>{m.loggedIn ? 'Members can see who posted this and get in touch.' : <><Link href="/login?next=/help-board">Log in</Link> as a member to see who posted this and get in touch.</>}</span></p>
+              <p className="res-meta"><span>{m.loggedIn ? 'Members can see who posted this and get in touch.' : <><Link href="/login?next=/help-hub">Log in</Link> as a member to see who posted this and get in touch.</>}</span></p>
             )}
           </div>
         ))}

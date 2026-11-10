@@ -10,8 +10,8 @@ export const runtime = 'nodejs';
 export async function POST(req: NextRequest) {
   const fd = await req.formData().catch(() => null);
   const id = String(fd?.get('id') ?? '');
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return NextResponse.redirect(new URL('/workers', req.url), 303);
-  const back = (q: string) => NextResponse.redirect(new URL(`/workers/${id}?${q}`, req.url), 303);
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return NextResponse.redirect(new URL('/recruitment', req.url), 303);
+  const back = (q: string) => NextResponse.redirect(new URL(`/recruitment/${id}?${q}`, req.url), 303);
   if (!fd || !sameOrigin(req)) return back('error=' + encodeURIComponent('Please use the form on our website.'));
   const email = await getSessionEmail();
   if (!email) return NextResponse.redirect(new URL(`/login?next=/workers/${id}`, req.url), 303);

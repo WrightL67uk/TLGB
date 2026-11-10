@@ -307,7 +307,7 @@ export async function emailAdminHelpRequest(business: string | null, email: stri
     `New Help Hub post: ${title}`,
     `<p><strong>${esc(business ?? email)}</strong> posted on the Help Hub.</p>
 <p><strong>${esc(title)}</strong><br>${esc(details).replace(/\n/g, '<br>')}</p>
-<p><a href="${siteUrl()}/help-board">See the Help Hub</a> or <a href="${siteUrl()}/admin/resources">remove it in admin</a> if it should not be there.</p>`,
+<p><a href="${siteUrl()}/help-hub">See the Help Hub</a> or <a href="${siteUrl()}/admin/resources">remove it in admin</a> if it should not be there.</p>`,
     'help-admin'
   );
 }

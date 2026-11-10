@@ -26,7 +26,7 @@ export default async function WorkerProfile({ params, searchParams }: { params: 
       <div className="narrow">
         <h1>This profile is not available</h1>
         <p className="lead">The person may have found work, paused their profile or taken it down.</p>
-        <p><Link href="/workers">See everyone looking for work</Link></p>
+        <p><Link href="/recruitment">See everyone looking for work</Link></p>
       </div>
     );
   }
@@ -42,7 +42,7 @@ export default async function WorkerProfile({ params, searchParams }: { params: 
 
   return (
     <div>
-      <p className="small"><Link href="/workers">All people looking for work</Link></p>
+      <p className="small"><Link href="/recruitment">All people looking for work</Link></p>
       {own && !seekerLive(s) && <p className="ok-box">This is a preview. Your profile is not on the board at the moment. <Link href="/seeker">Go to my profile</Link></p>}
       {own && seekerLive(s) && <p className="ok-box">This is how employers see your profile. <Link href="/seeker">Edit it</Link></p>}
       <h1>{canSee ? seekerName(s) : (label(LEVELS, s.level) ?? 'Job seeker')}</h1>

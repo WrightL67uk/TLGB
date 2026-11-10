@@ -40,15 +40,15 @@ export default async function MenuPage() {
         { label: 'Public Tenders', href: '/leads', note: 'Public contracts and planning leads for landscaping and external works.', k: 'tenders work opportunities contracts finder planning', tag: memberTag ? 'Full feed for members' : undefined },
         { label: 'TLGB Tenders', href: '/jobs', note: 'Packages posted direct by main contractors and housebuilders. Matching jobs are emailed to members.', k: 'contractor packages tenders price invite', tag: memberTag },
         { label: 'Supply chain finder', href: '/supply-chains', note: 'Where to register with main contractors, housebuilders, portals and frameworks.' },
-        { label: 'Help Hub', href: '/help-board', note: 'Need a hand on a job, or have spare capacity? Ask other trades.' },
-        { label: 'Post on the Help Hub', href: '/help-board/new', note: 'Ask for labour, a subcontractor, a machine or cover.', tag: memberTag },
+        { label: 'Help Hub', href: '/help-hub', note: 'Need a hand on a job, or have spare capacity? Ask other trades.' },
+        { label: 'Post on the Help Hub', href: '/help-hub/new', note: 'Ask for labour, a subcontractor, a machine or cover.', tag: memberTag },
       ],
     },
     {
       title: 'Staff and job seekers',
       intro: 'Free profiles for people looking for landscaping and external works jobs.',
       items: [
-        { label: 'People looking for work', href: '/workers', note: 'Search job seekers by skill, role, cards and distance. Members and checked contractors see names and contact details.', k: 'staff labour recruit hire workers operatives employees job seekers cv candidates', tag: memberTag ? 'Contact details for members' : undefined },
+        { label: 'Recruitment', href: '/recruitment', note: 'Search job seekers by skill, role, cards and distance. Members and checked contractors see names and contact details.', k: 'staff labour recruit hire workers operatives employees job seekers cv candidates', tag: memberTag ? 'Contact details for members' : undefined },
         { label: 'Post a job seeker profile', href: '/looking-for-work', note: 'Free for anyone looking for landscaping, grounds maintenance or groundworks jobs.', k: 'job seeker cv looking for work employment jobs free profile' },
         { label: 'My job seeker profile', href: '/seeker', note: 'Edit, pause, renew or delete your profile.', k: 'job seeker profile edit' },
       ],

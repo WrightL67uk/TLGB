@@ -34,7 +34,7 @@ export default function MenuList({ sections, loggedIn }: { sections: MenuSection
       )}
 
       {shown.length === 0 && (
-        <p className="menu-none">Nothing matches &ldquo;{q}&rdquo;. Try another word, or ask on the <Link href="/help-board">Help Hub</Link>.</p>
+        <p className="menu-none">Nothing matches &ldquo;{q}&rdquo;. Try another word, or ask on the <Link href="/help-hub">Help Hub</Link>.</p>
       )}
 
       {shown.map((s) => (

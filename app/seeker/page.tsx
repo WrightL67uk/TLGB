@@ -52,7 +52,7 @@ export default async function SeekerPage({ searchParams }: { searchParams: SP })
       <p className="muted">Logged in as {email}</p>
 
       {sp.error && <p className="err big">{sp.error}</p>}
-      {sp.published && <p className="ok-box">Your profile is live. Employers can now find you on the <Link href="/workers">workers board</Link>.</p>}
+      {sp.published && <p className="ok-box">Your profile is live. Employers can now find you on our <Link href="/recruitment">Recruitment</Link> page.</p>}
       {sp.saved && <p className="ok-box">Saved.</p>}
       {sp.paused && <p className="ok-box">Your profile is paused and hidden from employers.</p>}
 
@@ -64,7 +64,7 @@ export default async function SeekerPage({ searchParams }: { searchParams: SP })
             : <><strong>Not published yet.</strong> Fill in the form below and press save and publish.</>}
         </p>
         <div className="wk-actions">
-          {live && <Link href={`/workers/${s.id}`} className="wk-btn">View my profile</Link>}
+          {live && <Link href={`/recruitment/${s.id}`} className="wk-btn">View my profile</Link>}
           {complete && !live && (
             <form method="post" action="/api/seeker/action"><input type="hidden" name="action" value="renew" /><button type="submit" className="wk-btn go">{expired ? 'Keep it live' : 'Publish'}</button></form>
           )}

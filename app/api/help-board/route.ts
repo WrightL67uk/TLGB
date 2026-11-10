@@ -26,13 +26,13 @@ const Schema = z.object({
 });
 
 const back = (req: NextRequest, path: string) => NextResponse.redirect(new URL(path, req.url), 303);
-const err = (req: NextRequest, m: string) => back(req, `/help-board/new?error=${encodeURIComponent(m)}`);
+const err = (req: NextRequest, m: string) => back(req, `/help-hub/new?error=${encodeURIComponent(m)}`);
 
 export async function POST(req: NextRequest) {
   if (!sameOrigin(req)) return err(req, 'Please send the form from our website.');
   const m = await getMembership();
-  if (!m.loggedIn || !m.email) return back(req, '/login?next=/help-board/new');
-  if (!m.paid) return back(req, '/help-board');
+  if (!m.loggedIn || !m.email) return back(req, '/login?next=/help-hub/new');
+  if (!m.paid) return back(req, '/help-hub');
   const email = m.email;
   const fd = await req.formData().catch(() => null);
   if (!fd) return err(req, 'Something went wrong. Please try again.');
@@ -60,5 +60,5 @@ export async function POST(req: NextRequest) {
     return err(req, 'Something went wrong. Please try again.');
   }
   await emailAdminHelpRequest(biz?.trading_name ?? null, email, r.title, r.details);
-  return back(req, '/help-board?posted=1');
+  return back(req, '/help-hub?posted=1');
 }

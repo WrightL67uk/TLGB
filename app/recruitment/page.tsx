@@ -11,7 +11,7 @@ import '../workers.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
-  title: 'People looking for landscaping work | The Little Green Book',
+  title: 'Recruitment: people looking for landscaping work | The Little Green Book',
   description: 'Landscapers, grounds maintenance staff, groundworkers, machine operators and supervisors looking for work, with their skills, cards and availability.',
 };
 
@@ -48,7 +48,7 @@ export default async function WorkersBoard({ searchParams }: { searchParams: SP 
   return (
     <div>
       <div className="leads-head">
-        <h1>People looking for work</h1>
+        <h1>Recruitment</h1>
         <p className="lead">Landscapers, grounds maintenance staff, groundworkers, machine operators and supervisors who have posted a free profile.{' '}
           {access.ok ? 'You can see their names and contact details.' : 'Paying members and checked main contractors can see their names and contact details.'}</p>
       </div>
@@ -84,7 +84,7 @@ export default async function WorkersBoard({ searchParams }: { searchParams: SP 
         <label className="chk"><input type="checkbox" name="now" value="1" defaultChecked={sp.now === '1'} /> Available now</label>
         <label className="chk"><input type="checkbox" name="van" value="1" defaultChecked={sp.van === '1'} /> Own vehicle</label>
         <button type="submit" className="wk-btn go">Search</button>
-        {(sp.skill || sp.level || sp.card || sp.postcode || sp.now || sp.van) && <Link href="/workers" className="small" style={{ paddingBottom: 10 }}>Clear</Link>}
+        {(sp.skill || sp.level || sp.card || sp.postcode || sp.now || sp.van) && <Link href="/recruitment" className="small" style={{ paddingBottom: 10 }}>Clear</Link>}
       </form>
       {pcError && <p className="err big">{pcError}</p>}
 
@@ -98,7 +98,7 @@ export default async function WorkersBoard({ searchParams }: { searchParams: SP 
         {shown.map(({ s, d }) => {
           const pay = payText(s);
           return (
-            <Link key={s.id} href={`/workers/${s.id}`} className="wk-card">
+            <Link key={s.id} href={`/recruitment/${s.id}`} className="wk-card">
               <h2>{s.headline}</h2>
               <div className="wk-meta">
                 {access.ok && <b>{seekerName(s)}</b>}

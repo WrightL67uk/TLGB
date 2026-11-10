@@ -38,7 +38,7 @@ export default async function AdminWorkers({ searchParams }: { searchParams: Pro
           <tbody>
             {rows.map((s) => (
               <tr key={s.id} style={{ borderTop: '1px solid var(--line)' }}>
-                <td><Link href={`/workers/${s.id}`}>{seekerName({ ...s, show_full_name: true })}</Link><br /><span className="small muted">{s.email}</span></td>
+                <td><Link href={`/recruitment/${s.id}`}>{seekerName({ ...s, show_full_name: true })}</Link><br /><span className="small muted">{s.email}</span></td>
                 <td>{s.headline ?? <span className="muted">Not filled in</span>}<br /><span className="small muted">{label(LEVELS, s.level) ?? ''}</span></td>
                 <td>{s.area ?? ''}</td>
                 <td>{status(s)}{s.removed_reason ? <><br /><span className="small muted">{s.removed_reason}</span></> : null}</td>

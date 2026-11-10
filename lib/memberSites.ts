@@ -12,7 +12,7 @@ export const RESERVED = new Set([
   'www', 'admin', 'api', 'app', 'mail', 'email', 'smtp', 'imap', 'pop', 'webmail', 'autodiscover', 'autoconfig', 'em5702',
   'ftp', 'cdn', 'static', 'assets', 'img', 'images', 'help', 'support', 'blog', 'news', 'shop', 'store', 'jobs', 'leads',
   'tlgb', 'littlegreenbook', 'thelittlegreenbook', 'login', 'account', 'dashboard', 'status', 'test', 'dev', 'staging',
-  'preview', 'contractors', 'suppliers', 'workers', 'guides', 'legal', 'billing', 'payments', 'docs',
+  'preview', 'contractors', 'suppliers', 'workers', 'recruitment', 'help-hub', 'guides', 'legal', 'billing', 'payments', 'docs',
 ]);
 
 export const slugOk = (s: string) => /^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$/.test(s) && !s.includes('--') && !RESERVED.has(s);
