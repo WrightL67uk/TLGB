@@ -27,7 +27,7 @@ export default async function DetailsPage({ params, searchParams }: { params: Pr
   const paid = sp.paid === '1' || ['active', 'trialing'].includes(b.subscription_status);
   return (
     <div className="narrow">
-      <JoinSteps on={3} />
+      <JoinSteps on="details" free={!!b.free_listing} />
       <h1>Your details</h1>
       {paid ? (
         <p className="ok-box">

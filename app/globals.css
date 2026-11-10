@@ -329,3 +329,12 @@ body:has(.coming-soon) .util, body:has(.coming-soon) .mainnav, body:has(.coming-
 }
 .stack { display: grid; gap: 12px; } .stack label { display: grid; gap: 4px; font-weight: 600; } .stack button { justify-self: start; }
 .admin-bar { display: flex; gap: 16px; align-items: center; justify-content: flex-end; font-size: .9rem; margin: -8px 0 12px; } .admin-bar form { margin: 0; }
+
+/* Tenders hub */
+.tenders-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+.tender-opt { display: flex; flex-direction: column; padding: 22px; border-top: 4px solid var(--leaf, #6aa84f); }
+.tender-opt h2 { margin: 0 0 8px; color: var(--forest); }
+.tender-opt ul { padding-left: 20px; margin: 4px 0 12px; line-height: 1.6; }
+.tender-opt .sq { align-self: flex-start; margin-top: auto; }
+.tender-tag { text-transform: uppercase; letter-spacing: .1em; font-size: .78rem; font-weight: 700; color: var(--teal, #1f5c6b); margin: 0 0 4px; }
+@media (max-width: 760px) { .tenders-grid { grid-template-columns: 1fr; } }

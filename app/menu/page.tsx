@@ -36,6 +36,7 @@ export default async function MenuPage() {
     {
       title: 'Find work',
       items: [
+        { label: 'Tenders', href: '/tenders', note: 'Leads and jobs in one place, and the difference between them.', k: 'tenders work opportunities leads jobs' },
         { label: 'Leads', href: '/leads', note: 'Public contracts and planning leads for landscaping and external works.', k: 'tenders work opportunities contracts finder planning', tag: memberTag ? 'Full feed for members' : undefined },
         { label: 'Jobs from main contractors', href: '/jobs', note: 'Packages posted direct by main contractors and housebuilders. Matching jobs are emailed to members.', k: 'contractor packages tenders price invite', tag: memberTag },
         { label: 'Supply chain finder', href: '/supply-chains', note: 'Where to register with main contractors, housebuilders, portals and frameworks.' },

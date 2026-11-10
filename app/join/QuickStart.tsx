@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 type Hit = { companyNumber: string; name: string; status: string; address: string };
 type Band = { key: string; label: string };
 
-/** Step 1: the two-minute start. Everything else comes after the plan is chosen. */
-export default function QuickStart({ bands, priceLine }: { bands: Band[]; priceLine: string }) {
+/** The account step: business set-up, name, turnover, email and password. Payment and the rest come after. */
+export default function QuickStart({ bands, plan, priceLine }: { bands: Band[]; plan: 'free' | 'month' | 'year' | null; priceLine: string }) {
   const [type, setType] = useState<'ltd' | 'sole_trader' | null>(null);
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[]>([]);
@@ -47,7 +47,7 @@ export default function QuickStart({ bands, priceLine }: { bands: Band[]; priceL
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           business_type: type, company_number: company?.companyNumber, trading_name: type === 'ltd' ? company?.name : name,
-          turnover_band: band, email, password: pw, terms, hp,
+          turnover_band: band, email, password: pw, terms, hp, ...(plan ? { plan } : {}),
         }),
       });
       const json = await res.json();
@@ -135,7 +135,7 @@ export default function QuickStart({ bands, priceLine }: { bands: Band[]; priceL
             <span>I agree to the <a href="/legal/terms" target="_blank">website terms</a> and <a href="/legal/member-terms" target="_blank">member terms</a>, and I have read the <a href="/legal/privacy" target="_blank">privacy notice</a>.</span>
           </label>
           {error && <p className="err big">{error}</p>}
-          <button type="submit" className="primary" disabled={busy}>{busy ? 'Setting up your account...' : 'Continue'}</button>
+          <button type="submit" className="primary" disabled={busy}>{busy ? (plan && plan !== 'free' ? 'Opening secure payment...' : 'Setting up your account...') : (plan && plan !== 'free' ? 'Continue to payment' : 'Continue')}</button>
           <p className="muted small">{priceLine}</p>
         </>
       )}
