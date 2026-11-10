@@ -124,16 +124,15 @@ export default function QuickStart({ bands, priceLine }: { bands: Band[]; priceL
           <div className="two">
             <label>Choose a password
               <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} required minLength={8} autoComplete="new-password" />
-              <span className="hint">At least 8 characters.</span>
             </label>
             <label>Type it again
               <input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} required minLength={8} autoComplete="new-password" />
             </label>
           </div>
+          <p className="hint" style={{ marginTop: -6 }}>At least 8 characters.</p>
           <label className="check">
-            <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} required /> I agree to the{' '}
-            <a href="/legal/terms" target="_blank">website terms</a> and <a href="/legal/member-terms" target="_blank">member terms</a>, and I have read the{' '}
-            <a href="/legal/privacy" target="_blank">privacy notice</a>.
+            <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} required />
+            <span>I agree to the <a href="/legal/terms" target="_blank">website terms</a> and <a href="/legal/member-terms" target="_blank">member terms</a>, and I have read the <a href="/legal/privacy" target="_blank">privacy notice</a>.</span>
           </label>
           {error && <p className="err big">{error}</p>}
           <button type="submit" className="primary" disabled={busy}>{busy ? 'Setting up your account...' : 'Continue'}</button>
