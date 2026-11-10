@@ -19,9 +19,10 @@ export async function generateMetadata() {
       };
 }
 
-export default async function Page({ searchParams }: { searchParams: Promise<{ joined?: string; already?: string; error?: string }> }) {
-  if (await comingSoon()) {
-    const sp = await searchParams;
+export default async function Page({ searchParams }: { searchParams: Promise<{ joined?: string; already?: string; error?: string; preview?: string }> }) {
+  const sp = await searchParams;
+  // ?preview=1 shows the full homepage while the coming soon page is up
+  if (!sp.preview && (await comingSoon())) {
     return <ComingSoon joined={!!sp.joined} already={!!sp.already} error={sp.error?.slice(0, 200)} />;
   }
   return <Home />;
