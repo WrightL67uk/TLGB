@@ -831,3 +831,28 @@ ${e.company ? `${esc(e.company)}<br>` : ''}${e.postcode ? `Site postcode: ${esc(
     businessName
   );
 }
+
+/** Someone joined the coming soon waiting list. */
+export async function emailWaitlistWelcome(to: string, name: string) {
+  await send(
+    to,
+    'You are on the waiting list',
+    `<p>Hi ${esc(name.split(' ')[0] || name)},</p>
+<p>Thanks for joining the waiting list for The Little Green Book.</p>
+<p>Before we open, we will send a one-time discount code to this email address, and you will be offered membership ahead of anyone else.</p>
+<p>If you did not sign up, you can ignore this email, or reply and we will remove your details.</p>
+<p>The Little Green Book</p>`,
+    'waitlist'
+  );
+}
+
+export async function emailAdminWaitlist(w: { name: string; business: string; email: string; phone: string }, total: number) {
+  await send(
+    adminList(),
+    `Waiting list: ${w.business}`,
+    `<p><strong>${esc(w.name)}</strong> from <strong>${esc(w.business)}</strong> joined the waiting list.</p>
+<p>Email: ${esc(w.email)}<br>Phone: ${esc(w.phone)}</p>
+<p>${total} on the list so far. <a href="${siteUrl()}/admin/waitlist">See the list</a></p>`,
+    'waitlist-admin'
+  );
+}

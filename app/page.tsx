@@ -1,12 +1,31 @@
 import Link from 'next/link';
 import VerifiedToggle from './VerifiedToggle';
 import { TRADES } from '@/lib/config';
+import { comingSoon } from '@/lib/launch';
+import ComingSoon from './ComingSoon';
 
-export const metadata = {
-  title: 'The Little Green Book | Vetted landscaping and external works trades',
-  description:
-    'Find landscapers, arborists, groundworkers and other external works trades near your job. Every business is checked by hand: Companies House, insurance and accreditations.',
-};
+export const dynamic = 'force-dynamic';
+
+export async function generateMetadata() {
+  return (await comingSoon())
+    ? {
+        title: 'The Little Green Book | Coming soon',
+        description: 'A new home for landscaping and external works trades, coming soon. Join the waiting list for a launch discount and early membership.',
+      }
+    : {
+        title: 'The Little Green Book | Vetted landscaping and external works trades',
+        description:
+          'Find landscapers, arborists, groundworkers and other external works trades near your job. Every business is checked by hand: Companies House, insurance and accreditations.',
+      };
+}
+
+export default async function Page({ searchParams }: { searchParams: Promise<{ joined?: string; already?: string; error?: string }> }) {
+  if (await comingSoon()) {
+    const sp = await searchParams;
+    return <ComingSoon joined={!!sp.joined} already={!!sp.already} error={sp.error?.slice(0, 200)} />;
+  }
+  return <Home />;
+}
 
 const Icon = {
   search: <svg viewBox="0 0 24 24" aria-hidden><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5 21 21" /></svg>,
@@ -41,7 +60,7 @@ const CHECKS = [
   ['Reminders', 'Trades are emailed 30 days and 7 days before anything expires, so what you see stays current.'],
 ];
 
-export default function Home() {
+function Home() {
   return (
     <div className="landing">
       <section className="band hero-band">

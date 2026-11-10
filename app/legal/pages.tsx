@@ -219,6 +219,10 @@ export const LEGAL_PAGES: LegalPage[] = [
           <li><strong>Your profile:</strong> name, email, phone (if you add it), postcode, how far you travel, role, experience, skills, cards and licences, previous employers, availability, pay expectations, vehicle and tools, and anything you write about yourself. <em>Why:</em> to show your profile to employers as you ask (contract).</li>
           <li><strong>Profile views:</strong> how many times employers have opened your profile. <em>Why:</em> so you can see it is working (legitimate interests).</li>
         </ul>
+        <h3>Waiting list</h3>
+        <ul>
+          <li><strong>Your details:</strong> name, business name, email and phone. <em>Why:</em> to tell you when we open, send you your one-time discount code and offer you membership first, as you asked (legitimate interests). We keep them for up to 12 months after we open, unless you become a member or ask us to remove them sooner.</li>
+        </ul>
         <h3>Everyone</h3>
         <ul>
           <li><strong>Login records:</strong> your email address and secure, one-way scrambled copies of login links and session tokens. <em>Why:</em> to let you log in securely (contract and legitimate interests).</li>
