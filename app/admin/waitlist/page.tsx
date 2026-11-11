@@ -9,7 +9,7 @@ const when = (s: string) => new Date(s).toLocaleString('en-GB', { day: 'numeric'
 export default async function AdminWaitlist({ searchParams }: { searchParams: Promise<{ saved?: string; removed?: string; error?: string }> }) {
   const sp = await searchParams;
   const on = await comingSoon();
-  const { data, error } = await db().from('waitlist').select('id, created_at, name, business_name, email, phone, code_sent_at').order('created_at', { ascending: false }).limit(5000);
+  const { data, error } = await db().from('waitlist').select('id, created_at, name, business_name, email, phone, code_sent_at, source').order('created_at', { ascending: false }).limit(5000);
   const rows = data ?? [];
 
   return (
@@ -41,7 +41,7 @@ export default async function AdminWaitlist({ searchParams }: { searchParams: Pr
       </div>
       {!rows.length ? <p className="muted">Nobody yet.</p> : (
         <table className="table">
-          <thead><tr><th>Joined</th><th>Name</th><th>Business</th><th>Email</th><th>Phone</th><th></th></tr></thead>
+          <thead><tr><th>Joined</th><th>Name</th><th>Business</th><th>Email</th><th>Phone</th><th>From</th><th></th></tr></thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.id}>
@@ -50,6 +50,7 @@ export default async function AdminWaitlist({ searchParams }: { searchParams: Pr
                 <td>{r.business_name}</td>
                 <td><a href={`mailto:${r.email}`}>{r.email}</a></td>
                 <td><a href={`tel:${r.phone.replace(/\s/g, '')}`}>{r.phone}</a></td>
+                <td>{r.source === 'qr' ? 'QR code' : r.source ?? ''}</td>
                 <td>
                   <form method="post" action="/api/admin/waitlist" className="inline">
                     <input type="hidden" name="action" value="remove" />

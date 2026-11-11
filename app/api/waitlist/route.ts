@@ -16,8 +16,11 @@ const Schema = z.object({
 
 /** Coming soon page: adds someone to the waiting list. */
 export async function POST(req: NextRequest) {
-  const back = (q: string) => NextResponse.redirect(new URL(`/?${q}#top`, req.url), 303);
   const fd = await req.formData().catch(() => null);
+  // Back to whichever page the form was on: the homepage or the permanent /waitlist page (used by the QR code)
+  const from = fd?.get('from') === '/waitlist' ? '/waitlist' : '/';
+  const src = String(fd?.get('src') ?? '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30) || null;
+  const back = (q: string) => NextResponse.redirect(new URL(`${from}?${q}${src ? `&src=${src}` : ''}#top`, req.url), 303);
   if (!fd) return back('error=' + encodeURIComponent('Something went wrong. Please try again.'));
   if (fd.get('website_url')) return back('joined=1'); // bot filled the hidden box
   if (!sameOrigin(req)) return back('error=' + encodeURIComponent('Please use the form on this website.'));
@@ -36,7 +39,7 @@ export async function POST(req: NextRequest) {
     if ((count ?? 0) >= 10) return back('error=' + encodeURIComponent('Too many sign-ups from here in the last hour. Please try again later.'));
   }
 
-  const { error } = await db().from('waitlist').insert({ name: d.name, business_name: d.business_name, email: d.email, phone: d.phone, ip_hash: ipHash });
+  const { error } = await db().from('waitlist').insert({ name: d.name, business_name: d.business_name, email: d.email, phone: d.phone, ip_hash: ipHash, source: src ?? (from === '/' ? 'homepage' : 'waitlist page') });
   if (error) {
     if (error.code === '23505') return back('joined=1&already=1');
     console.error('waitlist save failed', error);
@@ -44,6 +47,6 @@ export async function POST(req: NextRequest) {
   }
   const { count } = await db().from('waitlist').select('id', { count: 'exact', head: true });
   await emailWaitlistWelcome(d.email, d.name);
-  await emailAdminWaitlist({ name: d.name, business: d.business_name, email: d.email, phone: d.phone }, count ?? 0);
+  await emailAdminWaitlist({ name: d.name, business: d.business_name, email: d.email, phone: d.phone, source: src === 'qr' ? 'QR code' : src ?? undefined }, count ?? 0);
   return back('joined=1');
 }

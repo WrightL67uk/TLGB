@@ -338,3 +338,10 @@ body:has(.coming-soon) .util, body:has(.coming-soon) .mainnav, body:has(.coming-
 .tender-opt .sq { align-self: flex-start; margin-top: auto; }
 .tender-tag { text-transform: uppercase; letter-spacing: .1em; font-size: .78rem; font-weight: 700; color: var(--teal, #1f5c6b); margin: 0 0 4px; }
 @media (max-width: 760px) { .tenders-grid { grid-template-columns: 1fr; } }
+
+/* /qr: full-screen QR code for trade shows */
+body:has(.qr-only) { background: #12361f; }
+body:has(.qr-only) header, body:has(.qr-only) footer, body:has(.qr-only) .util { display: none !important; }
+body:has(.qr-only) main { padding: 0 !important; max-width: none !important; margin: 0 !important; }
+.qr-only { min-height: 100dvh; display: flex; align-items: center; justify-content: center; background: #12361f; }
+.qr-only img { width: 100%; max-width: 480px; height: auto; max-height: 100dvh; object-fit: contain; display: block; }
