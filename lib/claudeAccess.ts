@@ -28,7 +28,8 @@ export const READABLE = new Set([
   'contractor_jobs', 'contractor_job_files', 'contractor_job_invites', 'contractor_job_replies', 'contractor_job_reports',
   'pay_jobs', 'pay_apps', 'team_people', 'team_quals', 'shortlist_watch', 'job_seekers',
   'quote_requests', 'quote_lines', 'quote_invites', 'quote_prices', 'supplier_ratings', 'member_sites', 'site_enquiries',
+  'waitlist', 'site_settings', 'vacancies', 'recruit_alerts',
 ]);
 
 /** Columns never returned, whatever table they are in. */
-export const HIDDEN_COLUMNS = new Set(['token_hash', 'share_token', 'token']);
+export const HIDDEN_COLUMNS = new Set(['token_hash', 'share_token', 'token', 'ip_hash']);
