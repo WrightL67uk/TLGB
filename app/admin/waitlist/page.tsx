@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { db } from '@/lib/supabase';
 import { comingSoon } from '@/lib/launch';
-import { waitlistTypes, TYPE_LABEL, type MemberType } from '@/lib/waitlistType';
+import { TYPE_LABEL, type MemberType } from '@/lib/waitlistType';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,11 +10,10 @@ const when = (s: string) => new Date(s).toLocaleString('en-GB', { day: 'numeric'
 export default async function AdminWaitlist({ searchParams }: { searchParams: Promise<{ saved?: string; removed?: string; error?: string }> }) {
   const sp = await searchParams;
   const on = await comingSoon();
-  const { data, error } = await db().from('waitlist').select('id, created_at, name, business_name, email, phone, code_sent_at').order('created_at', { ascending: false }).limit(5000);
+  const { data, error } = await db().from('waitlist').select('id, created_at, name, business_name, email, phone, code_sent_at, member_type, source').order('created_at', { ascending: false }).limit(5000);
   const rows = data ?? [];
-  const types = await waitlistTypes().catch(() => ({} as Record<string, MemberType>));
-  const nTrade = rows.filter((r) => types[r.email.toLowerCase()] === 'trade').length;
-  const nSupplier = rows.filter((r) => types[r.email.toLowerCase()] === 'supplier').length;
+  const nTrade = rows.filter((r) => r.member_type === 'trade').length;
+  const nSupplier = rows.filter((r) => r.member_type === 'supplier').length;
 
   return (
     <div>
@@ -45,16 +44,17 @@ export default async function AdminWaitlist({ searchParams }: { searchParams: Pr
       </div>
       {!rows.length ? <p className="muted">Nobody yet.</p> : (
         <table className="table">
-          <thead><tr><th>Joined</th><th>Name</th><th>Type</th><th>Business</th><th>Email</th><th>Phone</th><th></th></tr></thead>
+          <thead><tr><th>Joined</th><th>Name</th><th>Type</th><th>Business</th><th>Email</th><th>Phone</th><th>From</th><th></th></tr></thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.id}>
                 <td>{when(r.created_at)}</td>
                 <td>{r.name}</td>
-                <td>{types[r.email.toLowerCase()] ? TYPE_LABEL[types[r.email.toLowerCase()]] : ''}</td>
+                <td>{r.member_type ? TYPE_LABEL[r.member_type as MemberType] : ''}</td>
                 <td>{r.business_name}</td>
                 <td><a href={`mailto:${r.email}`}>{r.email}</a></td>
                 <td><a href={`tel:${r.phone.replace(/\s/g, '')}`}>{r.phone}</a></td>
+                <td>{r.source === 'qr' ? 'QR code' : r.source ?? ''}</td>
                 <td>
                   <form method="post" action="/api/admin/waitlist" className="inline">
                     <input type="hidden" name="action" value="remove" />

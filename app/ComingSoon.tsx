@@ -7,7 +7,7 @@ const TEASERS = [
   ['Built by the trade', 'Made by people from the industry who know how the work really gets won.'],
 ];
 
-export default function ComingSoon({ joined, already, error }: { joined?: boolean; already?: boolean; error?: string }) {
+export default function ComingSoon({ joined, already, error, from = '/', src }: { joined?: boolean; already?: boolean; error?: string; from?: '/' | '/waitlist'; src?: string }) {
   return (
     <div className="landing coming-soon">
       <section className="band hero-band">
@@ -53,6 +53,8 @@ export default function ComingSoon({ joined, already, error }: { joined?: boolea
                 <label>Email<input name="email" type="email" required maxLength={200} autoComplete="email" /></label>
                 <label>Phone<input name="phone" type="tel" required maxLength={30} autoComplete="tel" /></label>
                 <input name="website_url" tabIndex={-1} autoComplete="off" className="hp" aria-hidden />
+                <input type="hidden" name="from" value={from} />
+                {src && <input type="hidden" name="src" value={src} />}
                 <button type="submit" className="sq sq-rust">join the waiting list</button>
                 <p className="small muted">
                   We only use these details to tell you about our launch and your discount. You can ask us to remove you at any
