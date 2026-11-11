@@ -338,3 +338,11 @@ body:has(.coming-soon) .util, body:has(.coming-soon) .mainnav, body:has(.coming-
 .tender-opt .sq { align-self: flex-start; margin-top: auto; }
 .tender-tag { text-transform: uppercase; letter-spacing: .1em; font-size: .78rem; font-weight: 700; color: var(--teal, #1f5c6b); margin: 0 0 4px; }
 @media (max-width: 760px) { .tenders-grid { grid-template-columns: 1fr; } }
+.cs-type { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cs-type legend { font-weight: 600; margin-bottom: 4px; padding: 0; }
+.cs-type label { position: relative; display: block; cursor: pointer; }
+.cs-type input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.cs-type span { display: grid; align-content: start; gap: 2px; padding: 10px 12px; border: 2px solid var(--line, #d8d4c8); border-radius: 4px; height: 100%; box-sizing: border-box; }
+.cs-type small { font-weight: 400; color: var(--muted, #666); font-size: .82rem; line-height: 1.3; }
+.cs-type input:checked + span { border-color: var(--green, #2f6b2a); background: #eef5ea; }
+.cs-type input:focus-visible + span { outline: 2px solid var(--green, #2f6b2a); outline-offset: 2px; }

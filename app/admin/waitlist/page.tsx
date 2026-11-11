@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { db } from '@/lib/supabase';
 import { comingSoon } from '@/lib/launch';
+import { waitlistTypes, TYPE_LABEL, type MemberType } from '@/lib/waitlistType';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +12,9 @@ export default async function AdminWaitlist({ searchParams }: { searchParams: Pr
   const on = await comingSoon();
   const { data, error } = await db().from('waitlist').select('id, created_at, name, business_name, email, phone, code_sent_at').order('created_at', { ascending: false }).limit(5000);
   const rows = data ?? [];
+  const types = await waitlistTypes().catch(() => ({} as Record<string, MemberType>));
+  const nTrade = rows.filter((r) => types[r.email.toLowerCase()] === 'trade').length;
+  const nSupplier = rows.filter((r) => types[r.email.toLowerCase()] === 'supplier').length;
 
   return (
     <div>
@@ -36,17 +40,18 @@ export default async function AdminWaitlist({ searchParams }: { searchParams: Pr
       </div>
 
       <div className="admin-head">
-        <h2 style={{ margin: 0 }}>{rows.length} on the list</h2>
+        <h2 style={{ margin: 0 }}>{rows.length} on the list{rows.length ? <span className="muted small" style={{ fontWeight: 400 }}> · {nTrade} trade, {nSupplier} supplier</span> : null}</h2>
         {rows.length > 0 && <a href="/api/admin/waitlist">Download as a spreadsheet (CSV)</a>}
       </div>
       {!rows.length ? <p className="muted">Nobody yet.</p> : (
         <table className="table">
-          <thead><tr><th>Joined</th><th>Name</th><th>Business</th><th>Email</th><th>Phone</th><th></th></tr></thead>
+          <thead><tr><th>Joined</th><th>Name</th><th>Type</th><th>Business</th><th>Email</th><th>Phone</th><th></th></tr></thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.id}>
                 <td>{when(r.created_at)}</td>
                 <td>{r.name}</td>
+                <td>{types[r.email.toLowerCase()] ? TYPE_LABEL[types[r.email.toLowerCase()]] : ''}</td>
                 <td>{r.business_name}</td>
                 <td><a href={`mailto:${r.email}`}>{r.email}</a></td>
                 <td><a href={`tel:${r.phone.replace(/\s/g, '')}`}>{r.phone}</a></td>

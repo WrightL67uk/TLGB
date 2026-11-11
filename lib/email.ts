@@ -846,11 +846,11 @@ export async function emailWaitlistWelcome(to: string, name: string) {
   );
 }
 
-export async function emailAdminWaitlist(w: { name: string; business: string; email: string; phone: string }, total: number) {
+export async function emailAdminWaitlist(w: { name: string; business: string; email: string; phone: string; type?: string }, total: number) {
   await send(
     adminList(),
-    `Waiting list: ${w.business}`,
-    `<p><strong>${esc(w.name)}</strong> from <strong>${esc(w.business)}</strong> joined the waiting list.</p>
+    `Waiting list${w.type ? ` (${w.type.toLowerCase()})` : ''}: ${w.business}`,
+    `<p><strong>${esc(w.name)}</strong> from <strong>${esc(w.business)}</strong> joined the waiting list${w.type ? ` as a <strong>${esc(w.type.toLowerCase())}</strong>` : ''}.</p>
 <p>Email: ${esc(w.email)}<br>Phone: ${esc(w.phone)}</p>
 <p>${total} on the list so far. <a href="${siteUrl()}/admin/waitlist">See the list</a></p>`,
     'waitlist-admin'

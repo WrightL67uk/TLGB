@@ -43,6 +43,11 @@ export default function ComingSoon({ joined, already, error }: { joined?: boolea
               <form action="/api/waitlist" method="post" className="cs-form">
                 <h2>Join the waiting list</h2>
                 {error && <p className="err">{error}</p>}
+                <fieldset className="cs-type">
+                  <legend>I am a</legend>
+                  <label><input type="radio" name="member_type" value="trade" required /><span><strong>Trade</strong><small>Landscaper, groundworker, arborist and other trades</small></span></label>
+                  <label><input type="radio" name="member_type" value="supplier" required /><span><strong>Supplier</strong><small>Nursery, materials, merchant or plant hire</small></span></label>
+                </fieldset>
                 <label>Your name<input name="name" required maxLength={100} autoComplete="name" /></label>
                 <label>Business name<input name="business_name" required maxLength={120} autoComplete="organization" /></label>
                 <label>Email<input name="email" type="email" required maxLength={200} autoComplete="email" /></label>

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { db } from '@/lib/supabase';
 import { sameOrigin } from '@/lib/session';
 import { emailWaitlistWelcome, emailAdminWaitlist } from '@/lib/email';
+import { saveWaitlistType, TYPE_LABEL } from '@/lib/waitlistType';
 
 export const runtime = 'nodejs';
 
@@ -12,6 +13,7 @@ const Schema = z.object({
   business_name: z.string().trim().min(2, 'Please add your business name').max(120),
   email: z.string().trim().toLowerCase().email('Please check your email address').max(200),
   phone: z.string().trim().regex(/^[0-9+()\s-]{7,30}$/, 'Please check your phone number'),
+  member_type: z.enum(['trade', 'supplier'], { message: 'Please choose trade or supplier' }),
 });
 
 /** Coming soon page: adds someone to the waiting list. */
@@ -21,7 +23,7 @@ export async function POST(req: NextRequest) {
   if (!fd) return back('error=' + encodeURIComponent('Something went wrong. Please try again.'));
   if (fd.get('website_url')) return back('joined=1'); // bot filled the hidden box
   if (!sameOrigin(req)) return back('error=' + encodeURIComponent('Please use the form on this website.'));
-  const p = Schema.safeParse(Object.fromEntries(['name', 'business_name', 'email', 'phone'].map((k) => [k, fd.get(k) ?? ''])));
+  const p = Schema.safeParse(Object.fromEntries(['name', 'business_name', 'email', 'phone', 'member_type'].map((k) => [k, fd.get(k) ?? ''])));
   if (!p.success) return back('error=' + encodeURIComponent(p.error.issues[0]?.message ?? 'Please check the form.'));
   const d = p.data;
 
@@ -42,8 +44,9 @@ export async function POST(req: NextRequest) {
     console.error('waitlist save failed', error);
     return back('error=' + encodeURIComponent('Something went wrong. Please try again.'));
   }
+  await saveWaitlistType(d.email, d.member_type).catch((e) => console.error('waitlist type save failed', e));
   const { count } = await db().from('waitlist').select('id', { count: 'exact', head: true });
   await emailWaitlistWelcome(d.email, d.name);
-  await emailAdminWaitlist({ name: d.name, business: d.business_name, email: d.email, phone: d.phone }, count ?? 0);
+  await emailAdminWaitlist({ name: d.name, business: d.business_name, email: d.email, phone: d.phone, type: TYPE_LABEL[d.member_type] }, count ?? 0);
   return back('joined=1');
 }

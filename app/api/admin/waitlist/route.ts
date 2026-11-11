@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
 import { setComingSoon } from '@/lib/launch';
+import { waitlistTypes, TYPE_LABEL, type MemberType } from '@/lib/waitlistType';
 
 export const runtime = 'nodejs';
 
@@ -13,8 +14,9 @@ const csv = (v: unknown) => {
 /** Download the waiting list as a spreadsheet (CSV). */
 export async function GET() {
   const { data } = await db().from('waitlist').select('created_at, name, business_name, email, phone, code_sent_at').order('created_at').limit(20000);
-  const rows = [['Joined', 'Name', 'Business', 'Email', 'Phone', 'Code sent'], ...(data ?? []).map((r) => [
-    r.created_at.slice(0, 16).replace('T', ' '), r.name, r.business_name, r.email, r.phone, r.code_sent_at?.slice(0, 10) ?? '',
+  const types = await waitlistTypes().catch(() => ({} as Record<string, MemberType>));
+  const rows = [['Joined', 'Type', 'Name', 'Business', 'Email', 'Phone', 'Code sent'], ...(data ?? []).map((r) => [
+    r.created_at.slice(0, 16).replace('T', ' '), types[r.email.toLowerCase()] ? TYPE_LABEL[types[r.email.toLowerCase()]] : '', r.name, r.business_name, r.email, r.phone, r.code_sent_at?.slice(0, 10) ?? '',
   ])];
   return new NextResponse(rows.map((r) => r.map(csv).join(',')).join('\r\n'), {
     headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="tlgb-waiting-list-${new Date().toISOString().slice(0, 10)}.csv"` },
