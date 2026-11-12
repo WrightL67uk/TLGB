@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { FOUNDING_OFFER } from '@/lib/pricing';
 
 const pounds = (n: number) => `£${Number.isInteger(n) ? n : n.toFixed(2)}`;
 
@@ -51,8 +52,10 @@ export default function PlanCards({ monthly, yearly, trial, save, live, target }
         <section className="plan plan-mid">
           {trial > 0 && <span className="plan-badge">{trial} days free</span>}
           <h2>Verified monthly</h2>
-          <p className="plan-price">{pounds(monthly)} <span>a month</span></p>
+          <p className="plan-price">{monthly < FOUNDING_OFFER.monthlyWas && <s className="plan-was">{pounds(FOUNDING_OFFER.monthlyWas)}</s>}{pounds(monthly)} <span>a month</span></p>
+          {monthly < FOUNDING_OFFER.monthlyWas && <p className="plan-founding">Founding member price</p>}
           <p className="muted small">Cancel any time</p>
+          {monthly < FOUNDING_OFFER.monthlyWas && <p className="plan-fine">Offer ends {FOUNDING_OFFER.ends}</p>}
           <ul>
             <li className="yes">Verified badge, shown first</li>
             <li className="yes">Every lead and contractor job</li>
@@ -68,7 +71,8 @@ export default function PlanCards({ monthly, yearly, trial, save, live, target }
           {save.months > 0 && <span className="plan-badge">{save.months === 1 ? '1 month' : `${save.months} months`} free</span>}
           {trial > 0 && save.months === 0 && <span className="plan-badge">{trial} days free</span>}
           <h2>Verified yearly</h2>
-          <p className="plan-price plan-price-big">{pounds(yearly)} <span>a year</span></p>
+          <p className="plan-price plan-price-big">{yearly < FOUNDING_OFFER.yearlyWas && <s className="plan-was">{pounds(FOUNDING_OFFER.yearlyWas)}</s>}{pounds(yearly)} <span>a year</span></p>
+          {yearly < FOUNDING_OFFER.yearlyWas && <p className="plan-founding">Founding member price</p>}
           {save.pounds > 0 && <p className="plan-save">Works out at {pounds(save.perMonth)} a month. Save {pounds(save.pounds)}.</p>}
           <ul>
             <li className="yes">Everything in monthly</li>
@@ -79,6 +83,7 @@ export default function PlanCards({ monthly, yearly, trial, save, live, target }
             <li className="yes">One payment, sorted for the year</li>
           </ul>
           {go('year', trial ? 'Start free trial' : 'Pay yearly', 'plan-go plan-go-big')}
+          {yearly < FOUNDING_OFFER.yearlyWas && <p className="plan-fine">Offer ends {FOUNDING_OFFER.ends}</p>}
         </section>
       </div>
 

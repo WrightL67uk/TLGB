@@ -28,6 +28,10 @@ export const PLAN_INFO: Record<PlanKey, { label: string; blurb: string }> = {
   },
 };
 
+// Founding member offer shown on the plan cards: the price people pay is the admin price above, the
+// "was" prices are only displayed crossed out. Change these here when the offer ends.
+export const FOUNDING_OFFER = { monthlyWas: 45, yearlyWas: 450, ends: '31 December 2026' };
+
 export const DEFAULT_PRICING: Pricing = {
   mode: 'bands',
   bands: Object.fromEntries(TURNOVER_BANDS.map((b) => [b.key, b.price])),

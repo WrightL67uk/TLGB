@@ -27,3 +27,8 @@
 .plan-btn.plan-go-big { height: 50px; font-size: 1.05rem; }
 .plan-btn:hover { text-decoration: none; }
 .plan-pick { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; background: #f3f1ea; border-left: 4px solid #2f6b2a; padding: 12px 16px; margin: 12px 0 18px; }
+
+.plan-was { font-size: 1.1rem; font-weight: 400; color: #8a8a8a; margin-right: 8px; text-decoration: line-through; }
+.plan-price-big .plan-was { font-size: 1.3rem; }
+.plan-founding { margin: 2px 0 0; font-size: .85rem; font-weight: 700; color: var(--rust, #b4532a); }
+.plan-fine { margin: 8px 0 0; font-size: .72rem; color: #8a8a8a; }
