@@ -4,6 +4,7 @@ import { UNVERIFIED_TEXT } from '@/lib/membership';
 import { lookupPostcode } from '@/lib/postcodes';
 import { ACCREDITATIONS, accreditationLabel, accreditationsForTrade, gbp, tradeLabel } from '@/lib/config';
 import SearchForm from './SearchForm';
+import { searchAudience } from '@/lib/homeUsers';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,7 @@ export const metadata = { title: 'Search trades | TLGB' };
 
 export default async function Search({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
+  const audience = await searchAudience();
   const postcode = typeof sp.postcode === 'string' ? sp.postcode : '';
   const trade = typeof sp.trade === 'string' ? sp.trade : '';
   const minPl = typeof sp.pl === 'string' ? sp.pl : '';
@@ -46,7 +48,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
   let thumbs = new Map<string, string>();
   let searchError: string | null = null;
 
-  if (postcode) {
+  if (postcode && audience !== 'anon') {
     const pc = await lookupPostcode(postcode);
     if (!pc.ok) searchError = pc.reason;
     else {
@@ -63,6 +65,12 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
         searchError = 'Search failed. Please try again.';
       } else {
         results = data as Result[];
+        // Homeowners only see trades who said they do domestic work
+        if (audience === 'home' && results.length) {
+          const { data: dom } = await db().from('businesses').select('id').in('id', results.map((r) => r.id)).eq('does_domestic', true);
+          const ok = new Set((dom ?? []).map((d) => d.id as string));
+          results = results.filter((r) => ok.has(r.id));
+        }
         if (results.length) {
           const { data: photos } = await db()
             .from('business_photos')
@@ -84,6 +92,13 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
         <SearchForm postcode={postcode} trade={trade} minPl={minPl} accreds={accreds} verifiedOnly={verifiedOnly} />
       </section>
 
+      {audience === 'anon' && (
+        <div className="ok-box">
+          <strong>Make a free account to search.</strong> It takes a minute, you only need an email address, and it is free for homeowners.{' '}
+          <Link href={`/homeowners?next=${encodeURIComponent(postcode ? `/search?postcode=${postcode}${trade ? `&trade=${trade}` : ''}` : '/search')}`}><strong>Create a free account</strong></Link> or <Link href="/login?next=/search">log in</Link>.
+        </div>
+      )}
+      {audience === 'home' && <p className="muted small">Showing trades that work on domestic jobs.</p>}
       {searchError && <p className="err big">{searchError}</p>}
       {results && !verifiedOnly && (
         <p className="verified-warning" role="alert">

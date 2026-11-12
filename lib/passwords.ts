@@ -62,11 +62,12 @@ export async function checkPassword(email: string, pw: string, ip: string) {
 
 /** Whether this email belongs to a trade listing, supplier, contractor user or job seeker that can log in. */
 export async function canLogIn(email: string) {
-  const [{ count: b }, { count: c }, { count: j }, { count: sp }] = await Promise.all([
+  const [{ count: b }, { count: c }, { count: j }, { count: sp }, { count: h }] = await Promise.all([
     db().from('businesses').select('id', { count: 'exact', head: true }).eq('email', email).neq('status', 'draft'),
     db().from('contractor_users').select('id', { count: 'exact', head: true }).eq('email', email).is('removed_at', null),
     db().from('job_seekers').select('id', { count: 'exact', head: true }).eq('email', email).neq('status', 'removed'),
     db().from('suppliers').select('id', { count: 'exact', head: true }).eq('email', email).neq('status', 'rejected'),
+    db().from('home_users').select('id', { count: 'exact', head: true }).eq('email', email).neq('status', 'removed'),
   ]);
-  return (b ?? 0) + (c ?? 0) + (j ?? 0) + (sp ?? 0) > 0;
+  return (b ?? 0) + (c ?? 0) + (j ?? 0) + (sp ?? 0) + (h ?? 0) > 0;
 }

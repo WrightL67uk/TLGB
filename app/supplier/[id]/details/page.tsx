@@ -41,7 +41,7 @@ export default async function SupplierDetailsPage({ params }: { params: Promise<
           email: s.email ?? '', website: s.website ?? '', address: s.address ?? '', town: s.town ?? '', postcode: s.postcode ?? '',
           delivers_nationally: s.delivers_nationally, categories: s.categories, description: s.description ?? '', about: s.about ?? '',
           year_established: s.year_established ? String(s.year_established) : '', delivery_options: s.delivery_options, min_order: s.min_order ?? '',
-          trade_accounts: s.trade_accounts, trade_only: s.trade_only, standards: s.standards, standards_other: s.standards_other ?? '',
+          trade_accounts: s.trade_accounts, trade_only: s.trade_only, does_domestic: !!s.does_domestic, standards: s.standards, standards_other: s.standards_other ?? '',
           product_liability: s.product_liability, tier: s.tier,
         }}
         logoUrl={s.logo_path ? photoUrl(s.logo_path) : null}

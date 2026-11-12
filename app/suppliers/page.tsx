@@ -6,6 +6,7 @@ import { lookupPostcode } from '@/lib/postcodes';
 import { SUPPLIER_CATEGORIES, supplierCategoryLabel, miles, shortUrl } from '@/lib/resources';
 import { takesRequests, ratingsFor } from '@/lib/quotes';
 import { isLive, hasProfile } from '@/lib/supplierAccount';
+import { searchAudience } from '@/lib/homeUsers';
 import './supplier.css';
 
 export const dynamic = 'force-dynamic';
@@ -24,6 +25,7 @@ type SP = Promise<{ q?: string; category?: string; postcode?: string }>;
 
 export default async function SuppliersPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
+  const audience = await searchAudience();
   const me = await getMembership();
   const q = (sp.q ?? '').trim().slice(0, 80);
   const category = SUPPLIER_CATEGORIES.some((c) => c.key === sp.category) ? sp.category! : '';
@@ -32,10 +34,11 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
 
   let query = db()
     .from('suppliers')
-    .select('id, name, categories, description, website, phone, town, postcode, lat, lng, delivers_nationally, email, quote_requests, quote_plan, quote_paid_until, status, tier, subscription_status, slug, public_email')
+    .select('id, name, categories, description, website, phone, town, postcode, lat, lng, delivers_nationally, does_domestic, email, quote_requests, quote_plan, quote_paid_until, status, tier, subscription_status, slug, public_email')
     .eq('status', 'approved')
     .order('name')
     .limit(500);
+  if (audience === 'home') query = query.eq('does_domestic', true);
   if (category) query = query.contains('categories', [category]);
   if (q) {
     const term = q.replace(/[%_,()]/g, ' ');
@@ -51,7 +54,7 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
   }
   // Plans that have lapsed drop out; paying suppliers (Match, then Appear) come first
   const rank = (s: Supplier) => (s.tier === 'match' ? 0 : s.tier === 'appear' ? 1 : 2);
-  let rows = ((data ?? []) as Supplier[])
+  let rows = (audience === 'anon' ? [] : (data ?? []) as Supplier[])
     .filter((s) => s.status === undefined || isLive({ status: 'approved', tier: s.tier ?? null, subscription_status: s.subscription_status ?? 'none' }))
     .sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name))
     .map((s) => ({
@@ -95,7 +98,14 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
       </form>
       {where && !where.ok && <p className="err">{where.reason}</p>}
 
-      {!rows.length && <p className="muted">No suppliers match that search yet.</p>}
+      {audience === 'anon' && (
+        <div className="ok-box">
+          <strong>Make a free account to search suppliers.</strong> It takes a minute and you only need an email address.{' '}
+          <Link href="/homeowners?next=/suppliers"><strong>Create a free account</strong></Link> or <Link href="/login?next=/suppliers">log in</Link>.
+        </div>
+      )}
+      {audience === 'home' && <p className="muted small">Showing suppliers that sell to homeowners.</p>}
+      {audience !== 'anon' && !rows.length && <p className="muted">No suppliers match that search yet.</p>}
       <div className="res-list">
         {rows.map((s) => (
           <div key={s.id} className={`res-card ${s.profile ? 'sup-paid' : ''}`}>

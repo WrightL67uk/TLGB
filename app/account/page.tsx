@@ -33,6 +33,8 @@ export default async function AccountPage() {
     if (sup?.length) redirect(`/supplier/${sup[0].id}`);
     const { count: js } = await db().from('job_seekers').select('id', { count: 'exact', head: true }).eq('email', email).neq('status', 'removed');
     if (js) redirect('/seeker');
+    const { count: hu } = await db().from('home_users').select('id', { count: 'exact', head: true }).eq('email', email).neq('status', 'removed');
+    if (hu) redirect('/search');
   }
 
   return (

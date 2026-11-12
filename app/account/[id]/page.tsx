@@ -350,6 +350,7 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
           accreditations: [...new Set([...b.accreditations, ...Object.keys(pend.acc ?? {})])],
           accreditation_expiries: { ...(b.accreditation_expiries ?? {}), ...Object.fromEntries(Object.entries(pend.acc ?? {}).filter(([, v]) => v)) } as Record<string, string>,
           turnover_band: b.turnover_band ?? '',
+          does_domestic: !!b.does_domestic,
           pl_cover_amount: pend.pl?.cover ?? b.pl_cover_amount ?? '',
           pl_expiry: pend.pl?.expiry ?? b.pl_expiry ?? '',
           el_cover_amount: (pend.el ? pend.el.cover : b.el_cover_amount) ?? '',

@@ -24,6 +24,7 @@ const Body = z.object({
   company_number: z.string().trim().max(10).optional(),
   trading_name: z.string().trim().max(120).optional(),
   turnover_band: z.enum(bandKeys, { message: 'Choose your annual turnover' }),
+  does_domestic: z.enum(['yes', 'no'], { message: 'Tell us whether you do domestic work' }),
   email: z.string().trim().toLowerCase().email('Enter a valid email address'),
   password: z.string(),
   terms: z.literal(true, { message: 'Please agree to the terms to continue' }),
@@ -73,6 +74,7 @@ export async function POST(req: NextRequest) {
     trading_name: tradingName,
     email: d.email,
     turnover_band: d.turnover_band,
+    does_domestic: d.does_domestic === 'yes',
     signup_code: cleanCode(req.cookies.get(CODE_COOKIE)?.value) || null,
     ...(d.plan === 'free' ? { free_listing: true } : {}),
   }).select('*').single();

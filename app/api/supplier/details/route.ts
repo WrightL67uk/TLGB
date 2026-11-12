@@ -30,6 +30,7 @@ const Body = z.object({
   min_order: z.preprocess(blank, z.string().trim().max(120).optional()),
   trade_accounts: z.boolean(),
   trade_only: z.boolean(),
+  does_domestic: z.boolean().default(false),
   standards: z.array(z.enum(STANDARDS.map((d) => d.key) as [string, ...string[]])),
   standards_other: z.preprocess(blank, z.string().trim().max(200).optional()),
   product_liability: z.boolean().nullable(),
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
     contact_name: d.contact_name, phone: d.phone, public_email: d.public_email ?? null, website, address: d.address ?? null,
     town: d.town, postcode: pc.postcode, lat: pc.lat, lng: pc.lng, delivers_nationally: d.delivers_nationally,
     categories: d.categories, description: d.description, about: d.about ?? null, year_established: d.year_established ?? null,
-    delivery_options: d.delivery_options, min_order: d.min_order ?? null, trade_accounts: d.trade_accounts, trade_only: d.trade_only,
+    delivery_options: d.delivery_options, min_order: d.min_order ?? null, trade_accounts: d.trade_accounts, trade_only: d.trade_only, does_domestic: d.does_domestic,
     standards: d.standards, standards_other: d.standards_other ?? null, product_liability: d.product_liability,
     ...(submitting ? { status: 'pending', submitted_at: new Date().toISOString() } : {}),
   }).eq('id', s.id);

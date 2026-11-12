@@ -9,7 +9,7 @@ import { DELIVERY_OPTIONS, STANDARDS } from '@/lib/supplierOptions';
 type S = {
   id: string; status: string; name: string; contact_name: string; phone: string; public_email: string; email: string; website: string;
   address: string; town: string; postcode: string; delivers_nationally: boolean; categories: string[]; description: string; about: string;
-  year_established: string; delivery_options: string[]; min_order: string; trade_accounts: boolean; trade_only: boolean; standards: string[];
+  year_established: string; delivery_options: string[]; min_order: string; trade_accounts: boolean; trade_only: boolean; does_domestic: boolean; standards: string[];
   standards_other: string; product_liability: boolean | null; tier: string | null;
 };
 type Photo = { id: string; url: string; caption: string };
@@ -62,7 +62,7 @@ export default function SupplierDetails({ supplier, logoUrl, photos }: { supplie
       supplierId: f.id, submit, contact_name: f.contact_name, phone: f.phone, public_email: f.public_email, website: f.website, address: f.address,
       town: f.town, postcode: f.postcode, delivers_nationally: f.delivers_nationally, categories: f.categories, description: f.description,
       about: f.about, year_established: f.year_established, delivery_options: f.delivery_options, min_order: f.min_order,
-      trade_accounts: f.trade_accounts, trade_only: f.trade_only, standards: f.standards, standards_other: f.standards_other,
+      trade_accounts: f.trade_accounts, trade_only: f.trade_only, does_domestic: f.does_domestic, standards: f.standards, standards_other: f.standards_other,
       product_liability: f.product_liability, captions: caps,
     });
     setBusy(null);
@@ -148,6 +148,7 @@ export default function SupplierDetails({ supplier, logoUrl, photos }: { supplie
         <label>Year established (optional)<input type="number" value={f.year_established} onChange={(e) => set('year_established', e.target.value)} min={1800} max={new Date().getFullYear()} /></label>
       </div>
       <label className="checks" style={{ fontWeight: 400 }}><input type="checkbox" checked={f.trade_accounts} onChange={(e) => set('trade_accounts', e.target.checked)} /> We offer trade accounts and credit terms</label>
+      <label className="checks" style={{ fontWeight: 400 }}><input type="checkbox" checked={f.does_domestic} onChange={(e) => set('does_domestic', e.target.checked)} /> We sell to homeowners (show us to the general public who search TLGB)</label>
       <label className="checks" style={{ fontWeight: 400 }}><input type="checkbox" checked={f.trade_only} onChange={(e) => set('trade_only', e.target.checked)} /> We supply trade customers only</label>
 
       <h2 style={{ margin: '12px 0 0' }}>Standards and insurance (optional)</h2>

@@ -13,7 +13,7 @@ type Props = {
   b: {
     id: string; status: string; business_type: 'ltd' | 'sole_trader'; company_number: string | null; email: string;
     trading_name: string; contact_name: string; phone: string; website: string; business_address: string; description: string;
-    base_postcode: string; radius_miles: number; trades: string[]; accreditations: string[]; accreditation_expiries: Record<string, string>; turnover_band: string;
+    base_postcode: string; radius_miles: number; trades: string[]; accreditations: string[]; accreditation_expiries: Record<string, string>; turnover_band: string; does_domestic: boolean;
     pl_cover_amount: number | ''; pl_expiry: string; el_cover_amount: number | ''; el_expiry: string;
   };
   docs: { id: string; label: string; fileName: string; date: string }[];
@@ -56,6 +56,7 @@ export default function AccountEditor({ b, docs, photos, bands }: Props) {
       accreditations: fd.getAll('accreditations'),
       accreditation_expiries: readAccreditationExpiries(fd),
       turnover_band: fd.get('turnover_band'),
+      does_domestic: fd.get('does_domestic') === 'on',
       pl_cover_amount: fd.get('pl_cover_amount'),
       pl_expiry: fd.get('pl_expiry'),
       el_cover_amount: fd.get('el_cover_amount'),
@@ -165,6 +166,9 @@ export default function AccountEditor({ b, docs, photos, bands }: Props) {
               </label>
             ))}
           </div>
+          <label className="check" htmlFor="does_domestic">
+            <input id="does_domestic" type="checkbox" name="does_domestic" defaultChecked={b.does_domestic} /> We do domestic work (show us to homeowners who search TLGB)
+          </label>
           <div className="two">
             <label htmlFor="base_postcode">Base postcode<input id="base_postcode" name="base_postcode" defaultValue={b.base_postcode} required /></label>
             <label htmlFor="radius_miles">Will travel up to

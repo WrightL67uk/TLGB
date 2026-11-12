@@ -657,6 +657,19 @@ export async function emailSeekerWelcome(to: string, firstName: string, link: st
   );
 }
 
+/** Sent when a homeowner starts (or comes back to) a free account. */
+export async function emailHomeWelcome(to: string, firstName: string, link: string, minutes: number, returning: boolean) {
+  await send(
+    to,
+    returning ? 'Your link to log in to The Little Green Book' : 'Your free Little Green Book account',
+    `<p>Hi ${esc(firstName)},</p>
+<p>${returning ? 'Here is your link to log in.' : 'Thanks for creating a free account. Use the link below to log in and start searching for trades and suppliers near you.'}</p>
+<p>${button(link, 'Log in and search')}</p>
+<p>The link works once and expires in ${minutes} minutes. After that you can always get a new one from the log in page.</p>`,
+    'home-welcome'
+  );
+}
+
 /** Admin: a job seeker profile has just gone live. */
 export async function emailAdminNewSeeker(s: { id: string; name: string; headline: string | null; area: string | null }) {
   await send(
