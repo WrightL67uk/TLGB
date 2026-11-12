@@ -17,7 +17,7 @@ export default async function UpgradePanel({ b, feature }: { b: B; feature: stri
       <ul className="upgrade-list">
         <li>The verified badge, and shown first in contractor searches</li>
         <li>Every lead and contractor job, with their contact details</li>
-        <li>Compliance pack, PQQ answer bank, price requests, payment tracker and your own website</li>
+        <li>Compliance pack, PQQ answer bank, estimate requests, payment tracker and your own website</li>
       </ul>
       <Link href={upgradeHref(pricing, b.id)} className="primary" style={{ display: 'inline-block', textDecoration: 'none' }}>
         {label.charAt(0).toUpperCase() + label.slice(1)}

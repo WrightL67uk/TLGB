@@ -147,7 +147,7 @@ export async function emailApplicantApproved(to: string, name: string, tradingNa
 <p>Contractors searching your area can now find you, and you have the full leads feed, the supply chain finder and the Help Hub. Keep your insurance documents up to date so your listing stays live.</p>${loginLine}`;
   } else if (chosen === 'paid') {
     body = `${hi}<p>Good news. <strong>${esc(tradingName)}</strong> has been approved and is now live with the <strong>Verified</strong> badge.</p>
-<p>Contractors searching your area can find you, and you have every lead and contractor job, the compliance pack, PQQ answer bank, price requests and your own website. Log in and make the most of them.</p>${loginLine}`;
+<p>Contractors searching your area can find you, and you have every lead and contractor job, the compliance pack, PQQ answer bank, estimate requests and your own website. Log in and make the most of them.</p>${loginLine}`;
   } else if (chosen === 'free') {
     body = `${hi}<p>Good news. <strong>${esc(tradingName)}</strong> has been approved and is now live as a free listing, shown to contractors as Unverified.</p>
 <p>Go verified at any time${trialDays ? `, starting with ${trialDays} days free` : ''}, to get the badge, be shown first, and see every lead and contractor job.</p>${loginLine}`;
@@ -293,7 +293,7 @@ export async function emailAdminSupplierSubmission(name: string, website: string
   await send(
     adminList(),
     `New supplier to check: ${name}`,
-    `<p><strong>${esc(name)}</strong> has asked to be listed on the supplier page.${wantsRequests ? ' They would also like to receive price requests from members.' : ''}</p>
+    `<p><strong>${esc(name)}</strong> has asked to be listed on the supplier page.${wantsRequests ? ' They would also like to receive estimate requests from members.' : ''}</p>
 <p>${website ? `Website: <a href="${esc(website)}">${esc(website)}</a><br>` : ''}Submitted by: ${esc(email)}</p>
 <p><a href="${siteUrl()}/admin/resources">Review it in admin</a></p>`,
     'supplier-admin'
@@ -694,7 +694,7 @@ export async function emailAdminSeekerReport(s: { id: string; name: string }, by
   );
 }
 
-// ---------- Price requests ----------
+// ---------- Estimates ----------
 
 const dateTime = (iso: string) =>
   new Date(iso).toLocaleString('en-GB', { timeZone: 'Europe/London', weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
@@ -705,14 +705,14 @@ export type PriceRequestMail = { reference: string; tradingName: string; area: s
 export async function emailSupplierPriceRequest(to: string, supplierName: string, r: PriceRequestMail, link: string) {
   await send(
     to,
-    `Price request from ${r.tradingName}: ${r.lines} item${r.lines === 1 ? '' : 's'}${r.area ? ` to ${r.area}` : ''}`,
+    `Estimate request from ${r.tradingName}: ${r.lines} item${r.lines === 1 ? '' : 's'}${r.area ? ` to ${r.area}` : ''}`,
     `<p>Hello ${esc(supplierName)},</p>
 <p><strong>${esc(r.tradingName)}</strong>, a landscaping firm listed on The Little Green Book, would like prices for ${r.lines} item${r.lines === 1 ? '' : 's'}${r.area ? ` delivered to ${esc(r.area)}` : ''}.</p>
 <p>${r.summary.map(esc).join('<br>')}${r.lines > r.summary.length ? `<br>and ${r.lines - r.summary.length} more` : ''}</p>
 <p>Reference: ${esc(r.reference)}<br>
 ${r.neededBy ? `Needed by: ${esc(ukDate(r.neededBy))}<br>` : ''}Prices wanted by: <strong>${esc(dateTime(r.closesAt))}</strong></p>
 <p>${button(link, 'See the full list and price it')}</p>
-<p style="color:#777;font-size:13px">No login needed: the button takes you straight to this request. Price what you can, offer alternatives where you are short, or tell them you cannot quote. Please keep this email, as the link is only for you.</p>`,
+<p style="color:#777;font-size:13px">No login needed: the button takes you straight to this request. Price what you can, offer alternatives where you are short, or tell them you cannot give an estimate. Please keep this email, as the link is only for you.</p>`,
     'quote-request'
   );
 }
@@ -724,7 +724,7 @@ export async function emailSupplierQuoteReminder(to: string, supplierName: strin
     `<p>Hello ${esc(supplierName)},</p>
 <p>${esc(tradingName)} is still waiting for your prices for <strong>${esc(reference)}</strong>. Prices are wanted by ${esc(dateTime(closesAt))}.</p>
 <p>${button(link, 'Price the list')}</p>
-<p style="color:#777;font-size:13px">If you cannot supply this one, press "We cannot quote" on the page and we will not remind you again.</p>`,
+<p style="color:#777;font-size:13px">If you cannot supply this one, press "We cannot give an estimate for this one" on the page and we will not remind you again.</p>`,
     'quote-reminder'
   );
 }
@@ -763,7 +763,7 @@ export async function emailSupplierWon(to: string, supplierName: string, referen
 <a href="mailto:${esc(c.email)}">${esc(c.email)}</a>${c.phone ? `<br>${esc(c.phone)}` : ''}<br>
 Delivery to: ${esc(c.deliveryPostcode)}${c.neededBy ? `<br>Needed by: ${esc(ukDate(c.neededBy))}` : ''}</p>
 ${c.deliveryNotes ? `<p>Delivery notes: ${para(c.deliveryNotes)}</p>` : ''}
-<p>${button(link, 'See your quote')}</p>
+<p>${button(link, 'See your estimate')}</p>
 <p style="color:#777;font-size:13px">The order is between you and the buyer. The Little Green Book does not take payment or deliveries. After delivery the buyer can rate you, and ratings show on your supplier listing.</p>`,
     'quote-won'
   );
@@ -782,8 +782,8 @@ export async function emailSupplierLost(to: string, supplierName: string, refere
 export async function emailAdminNewPriceRequest(r: { reference: string; tradingName: string; lines: number; suppliers: string[] }) {
   await send(
     adminList(),
-    `Price request sent: ${r.tradingName}, ${r.reference}`,
-    `<p><strong>${esc(r.tradingName)}</strong> sent a price request (${r.lines} item${r.lines === 1 ? '' : 's'}) to ${r.suppliers.length} supplier${r.suppliers.length === 1 ? '' : 's'}:</p>
+    `Estimate request sent: ${r.tradingName}, ${r.reference}`,
+    `<p><strong>${esc(r.tradingName)}</strong> sent an estimate request (${r.lines} item${r.lines === 1 ? '' : 's'}) to ${r.suppliers.length} supplier${r.suppliers.length === 1 ? '' : 's'}:</p>
 <p>${r.suppliers.map(esc).join('<br>')}</p>`,
     'admin-quote'
   );
@@ -792,8 +792,8 @@ export async function emailAdminNewPriceRequest(r: { reference: string; tradingN
 export async function emailAdminPriceRequestShort(r: { reference: string; tradingName: string; categories: string[]; postcode: string; found: number }) {
   await send(
     adminList(),
-    `Not enough suppliers for a price request: ${r.tradingName}`,
-    `<p><strong>${esc(r.tradingName)}</strong> tried to get prices for ${esc(r.categories.join(', '))} delivered to ${esc(r.postcode)}, and only ${r.found} supplier${r.found === 1 ? '' : 's'} taking price requests cover that.</p>
+    `Not enough suppliers for an estimate request: ${r.tradingName}`,
+    `<p><strong>${esc(r.tradingName)}</strong> tried to get prices for ${esc(r.categories.join(', '))} delivered to ${esc(r.postcode)}, and only ${r.found} supplier${r.found === 1 ? '' : 's'} taking estimate requests cover that.</p>
 <p>Worth signing up more suppliers for that area. <a href="${siteUrl()}/admin/resources">Supplier admin</a></p>`,
     'admin-quote'
   );
@@ -808,8 +808,8 @@ export async function emailSupplierApproved(to: string, name: string, wantsReque
 <p>Thanks for listing <strong>${esc(name)}</strong>. We have checked the details and you are now live on our supplier page, where landscaping firms can find you free of charge.</p>
 <p>${button(`${siteUrl()}/suppliers`, 'See the supplier page')}</p>
 ${wantsRequests
-    ? '<p>You asked to receive price requests from our members. We will be in touch shortly to confirm the email address they should go to and switch them on.</p>'
-    : '<p>Our members can also send plant and material lists to suppliers for pricing, and compare the quotes side by side. If you would like to receive these price requests, just reply to this email.</p>'}
+    ? '<p>You asked to receive estimate requests from our members. We will be in touch shortly to confirm the email address they should go to and switch them on.</p>'
+    : '<p>Our members can also send plant and material lists to suppliers for pricing, and compare the estimates side by side. If you would like to receive these estimate requests, just reply to this email.</p>'}
 <p>If anything on your listing needs changing, reply to this email and we will update it.</p>`,
     'supplier-approved'
   );

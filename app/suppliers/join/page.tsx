@@ -6,7 +6,7 @@ import { getSupplierPricing, tierKey, TIER_INFO, SUPPLIER_TIERS } from '@/lib/su
 import { stripeEnabled } from '@/lib/stripe';
 import '../../plans.css';
 
-export const metadata = { title: 'Supplier plans | The Little Green Book', description: 'Be found by landscaping contractors, and be matched to their price requests. Yearly plans for suppliers.' };
+export const metadata = { title: 'Supplier plans | The Little Green Book', description: 'Be found by landscaping contractors, and be matched to their estimate requests. Yearly plans for suppliers.' };
 export const dynamic = 'force-dynamic';
 
 const pounds = (n: number) => `£${n.toLocaleString('en-GB')}`;

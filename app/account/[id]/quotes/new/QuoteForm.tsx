@@ -235,7 +235,7 @@ export default function QuoteForm({ businessId, basePostcode }: { businessId: st
         <h2>3. Who to ask</h2>
         {!matches && !matchMsg && <p className="hint">Add the delivery postcode and at least one item, and we will show the suppliers that stock it and deliver there.</p>}
         {matchMsg && <p className="hint">{matchMsg}</p>}
-        {matches && !matches.length && <p>No suppliers taking price requests cover this yet. We have been told, and we are signing more up.</p>}
+        {matches && !matches.length && <p>No suppliers taking estimate requests cover this yet. We have been told, and we are signing more up.</p>}
         {matches && matches.length > 0 && (
           <>
             <p className="hint" style={{ margin: '0 0 8px' }}>Ticked suppliers get your list. Pick up to {MAX_PICK}. They will see your business name and delivery area, not your contact details, until you accept a price.</p>

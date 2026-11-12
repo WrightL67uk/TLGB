@@ -50,7 +50,7 @@ export default async function SupplierProfile({ params }: { params: Promise<{ sl
           <div className="badges">
             {s.categories.map((c) => <span key={c} className="badge ok">{supplierCategoryLabel(c)}</span>)}
             {s.ch_company_name && <span className="badge ok" title="Checked on Companies House">Company checked</span>}
-            {s.quote_requests && <span className="badge ok">takes price requests</span>}
+            {s.quote_requests && <span className="badge ok">takes estimate requests</span>}
             {rating && <span className="badge"><span style={{ color: '#c98a00' }}>★</span> {rating.avg.toFixed(1)} from {rating.count} order{rating.count === 1 ? '' : 's'}</span>}
           </div>
           {s.description && <p className="lead" style={{ marginTop: 10 }}>{s.description}</p>}

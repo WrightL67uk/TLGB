@@ -79,7 +79,7 @@ export default function WinningTendersGuide() {
       <ul>
         <li>Price the specification as written. If you think something is wrong, price it as written and offer an alternative separately.</li>
         <li>Check the quantities. Errors in a bill of quantities are common and can work for or against you.</li>
-        <li>Get real material prices, not last year&rsquo;s. Members can send the plant and materials list to several suppliers at once with a <Link href="/guides/price-requests">price request</Link> and compare the quotes side by side.</li>
+        <li>Get real material prices, not last year&rsquo;s. Members can send the plant and materials list to several suppliers at once with a <Link href="/guides/price-requests">estimate request</Link> and compare the estimates side by side.</li>
         <li>Allow for establishment and aftercare: watering, defects periods and plant replacements often catch landscapers out.</li>
         <li>Read the contract terms: retention, payment terms, liquidated damages and any design responsibility. Once you win, log the terms in the <Link href="/guides/payment-tracker">payment tracker</Link> so no deadline is missed.</li>
         <li>Submit early. Portals slow down in the last hour and late bids are rejected automatically.</li>

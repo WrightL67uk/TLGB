@@ -26,7 +26,7 @@ export type QuoteSupplier = {
   quote_requests: boolean; quote_plan: string | null; quote_paid_until: string | null;
 };
 
-/** A supplier gets price requests while switched on and either founding or paid up. */
+/** A supplier gets estimate requests while switched on and either founding or paid up. */
 export function takesRequests(s: Pick<QuoteSupplier, 'quote_requests' | 'quote_plan' | 'quote_paid_until' | 'email'>) {
   if (!s.quote_requests || !s.email) return false;
   if (s.quote_plan === 'founding') return true;

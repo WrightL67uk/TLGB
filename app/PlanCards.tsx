@@ -57,7 +57,7 @@ export default function PlanCards({ monthly, yearly, trial, save, live, target }
             <li className="yes">Verified badge, shown first</li>
             <li className="yes">Every lead and contractor job</li>
             <li className="yes">Compliance pack, PQQ bank</li>
-            <li className="yes">Price requests, free website</li>
+            <li className="yes">Estimates, free website</li>
             <li className="yes">Payment tracker, team records</li>
           </ul>
           {go('month', trial ? 'Start free trial' : 'Pay monthly', 'plan-go')}
@@ -75,7 +75,7 @@ export default function PlanCards({ monthly, yearly, trial, save, live, target }
             <li className="yes">Verified badge, shown first</li>
             <li className="yes">Every lead and contractor job</li>
             <li className="yes">Compliance pack, PQQ bank</li>
-            <li className="yes">Price requests, free website</li>
+            <li className="yes">Estimates, free website</li>
             <li className="yes">One payment, sorted for the year</li>
           </ul>
           {go('year', trial ? 'Start free trial' : 'Pay yearly', 'plan-go plan-go-big')}

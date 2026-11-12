@@ -12,7 +12,7 @@ import { shortUrl } from '@/lib/resources';
 import '../../../../quotes.css';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Price request | TLGB' };
+export const metadata = { title: 'Estimate request | TLGB' };
 
 const when = (iso: string) => new Date(iso).toLocaleString('en-GB', { timeZone: 'Europe/London', weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
 const day = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
@@ -89,7 +89,7 @@ export default async function QuoteRequest({ params, searchParams }: { params: P
 
   return (
     <div className="qt">
-      <p className="small"><Link href={`/account/${b.id}/quotes`}>Back to price requests</Link></p>
+      <p className="small"><Link href={`/account/${b.id}/quotes`}>Back to estimate requests</Link></p>
       <h1>{request.reference} <span className={`qt-status ${st.cls}`}>{st.label}</span></h1>
       <div className="qt-meta" style={{ marginBottom: 16 }}>
         <span>Deliver to <b>{request.postcode}</b></span>

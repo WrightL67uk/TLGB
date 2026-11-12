@@ -6,7 +6,7 @@ import PriceForm from './PriceForm';
 import '../../quotes.css';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Price request | The Little Green Book', robots: { index: false, follow: false } };
+export const metadata = { title: 'Estimate request | The Little Green Book', robots: { index: false, follow: false } };
 
 const when = (iso: string) => new Date(iso).toLocaleString('en-GB', { timeZone: 'Europe/London', weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' });
 const day = (d: string) => new Date(`${d}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
@@ -21,7 +21,7 @@ export default async function SupplierQuote({ params, searchParams }: { params: 
     return (
       <div className="narrow">
         <h1>Link not recognised</h1>
-        <p>This price request link is not valid. Please use the button in the email we sent you, or contact <a href="mailto:admin@tlgb.co.uk">admin@tlgb.co.uk</a>.</p>
+        <p>This estimate request link is not valid. Please use the button in the email we sent you, or contact <a href="mailto:admin@tlgb.co.uk">admin@tlgb.co.uk</a>.</p>
       </div>
     );
   }
@@ -29,7 +29,7 @@ export default async function SupplierQuote({ params, searchParams }: { params: 
     return (
       <div className="narrow">
         <h1>This request has finished</h1>
-        <p>The price request <strong>{v.request.reference}</strong> is no longer open.</p>
+        <p>The estimate request <strong>{v.request.reference}</strong> is no longer open.</p>
       </div>
     );
   }
@@ -59,7 +59,7 @@ export default async function SupplierQuote({ params, searchParams }: { params: 
       {invite.status === 'lost' && <p className="panel">The buyer went with another supplier this time. Thank you for pricing.</p>}
       {invite.status === 'declined' && (
         <div className="panel">
-          <p>You told the buyer you cannot quote for this one{invite.decline_reason ? `: "${invite.decline_reason}"` : ''}.</p>
+          <p>You told the buyer you cannot give an estimate for this one{invite.decline_reason ? `: "${invite.decline_reason}"` : ''}.</p>
           {open && (
             <form method="post" action={`/api/quote/${encodeURIComponent(token)}`}>
               <input type="hidden" name="action" value="undecline" />
@@ -85,13 +85,13 @@ export default async function SupplierQuote({ params, searchParams }: { params: 
           />
           {invite.status !== 'quoted' && (
             <details className="panel" style={{ marginTop: 16 }}>
-              <summary><b>We cannot quote for this one</b></summary>
+              <summary><b>We cannot give an estimate for this one</b></summary>
               <form method="post" action={`/api/quote/${encodeURIComponent(token)}`} className="qt-form" style={{ marginTop: 10 }}>
                 <input type="hidden" name="action" value="decline" />
                 <label>Reason (optional, the buyer will see it)
                   <input name="decline_reason" maxLength={300} placeholder="e.g. we do not deliver to that area" />
                 </label>
-                <div><button className="qt-btn" type="submit">Tell the buyer we cannot quote</button></div>
+                <div><button className="qt-btn" type="submit">Tell the buyer we cannot give an estimate</button></div>
               </form>
             </details>
           )}
@@ -113,7 +113,7 @@ export default async function SupplierQuote({ params, searchParams }: { params: 
       )}
 
       <p className="small muted" style={{ marginTop: 24 }}>
-        The Little Green Book passes price requests from checked landscaping firms to suppliers. The order itself is between you and the buyer.{' '}
+        The Little Green Book passes estimate requests from checked landscaping firms to suppliers. The order itself is between you and the buyer.{' '}
         <Link href="/legal/terms">Terms</Link> · <Link href="/legal/privacy">Privacy</Link>
       </p>
     </div>

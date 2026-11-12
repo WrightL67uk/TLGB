@@ -3,7 +3,7 @@ import { db } from '@/lib/supabase';
 
 export const runtime = 'nodejs';
 
-// Behind the admin password (middleware). Sets a supplier's email and whether they get price requests.
+// Behind the admin password (middleware). Sets a supplier's email and whether they get estimate requests.
 export async function POST(req: NextRequest) {
   const fd = await req.formData().catch(() => null);
   const id = String(fd?.get('id') ?? '');
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const email = String(fd.get('email') ?? '').trim().toLowerCase();
   const until = String(fd.get('paid_until') ?? '');
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return back('?supplier_error=' + encodeURIComponent('That email address does not look right.'));
-  if (plan !== 'off' && !email) return back('?supplier_error=' + encodeURIComponent('Add an email address before switching on price requests.'));
+  if (plan !== 'off' && !email) return back('?supplier_error=' + encodeURIComponent('Add an email address before switching on estimate requests.'));
   if (plan === 'paid' && !/^\d{4}-\d{2}-\d{2}$/.test(until)) return back('?supplier_error=' + encodeURIComponent('Add a "paid until" date for a paid supplier.'));
   const { error } = await db().from('suppliers').update({
     email: email || null,

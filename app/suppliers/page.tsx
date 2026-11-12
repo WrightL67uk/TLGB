@@ -43,7 +43,7 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
   }
   let { data, error } = await query;
   if (error) {
-    // Database not yet updated for price requests: fall back to the basic columns.
+    // Database not yet updated for estimate requests: fall back to the basic columns.
     let basic = db().from('suppliers').select('id, name, categories, description, website, phone, town, postcode, lat, lng, delivers_nationally').eq('status', 'approved').order('name').limit(500);
     if (category) basic = basic.contains('categories', [category]);
     if (q) { const term = q.replace(/[%_,()]/g, ' '); basic = basic.or(`name.ilike.%${term}%,description.ilike.%${term}%,town.ilike.%${term}%`); }
@@ -73,8 +73,8 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
       </p>
       <p className="ok-box" style={{ marginTop: -8 }}>
         <strong>Members:</strong> send one plant or materials list to several of these suppliers and compare their prices side by side. {me.loggedIn
-          ? <>Open <Link href="/account"><strong>Price requests</strong></Link> on your listing.</>
-          : <><Link href="/login?next=/account">Log in</Link> and open <strong>Price requests</strong> on your listing.</>}
+          ? <>Open <Link href="/account"><strong>Estimates</strong></Link> on your listing.</>
+          : <><Link href="/login?next=/account">Log in</Link> and open <strong>Estimates</strong> on your listing.</>}
       </p>
 
       <form className="res-filters" method="get" action="/suppliers">
@@ -104,7 +104,7 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
               {s.categories.map((c) => <span key={c} className="badge ok">{supplierCategoryLabel(c)}</span>)}
               {s.delivers_nationally && <span className="badge">delivers nationally</span>}
               {s.tier === 'match' && <span className="badge ok">Match supplier</span>}
-              {takesRequests(s) && <span className="badge ok">takes price requests</span>}
+              {takesRequests(s) && <span className="badge ok">takes estimate requests</span>}
               {ratings[s.id] && <span className="badge" title="Rated by members after real orders"><span style={{ color: '#c98a00' }}>★</span> {ratings[s.id].avg.toFixed(1)} from {ratings[s.id].count} order{ratings[s.id].count === 1 ? '' : 's'}</span>}
             </div>
             {s.description && <p>{s.description}</p>}
@@ -122,7 +122,7 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
 
       <div className="res-form" style={{ marginTop: 32 }}>
         <h2 style={{ margin: 0 }}>Supply the landscaping trade?</h2>
-        <p style={{ margin: 0 }}>Get your own company profile with pictures and contact details, and be matched to the price requests our members send. Yearly plans from the price shown on the plans page.</p>
+        <p style={{ margin: 0 }}>Get your own company profile with pictures and contact details, and be matched to the estimate requests our members send. Yearly plans from the price shown on the plans page.</p>
         <Link href="/suppliers/join" className="sq sq-rust">see supplier plans</Link>
       </div>
     </div>

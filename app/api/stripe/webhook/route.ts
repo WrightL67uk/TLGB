@@ -25,7 +25,7 @@ async function findSupplier(by: { id?: string | null; sub?: string | null; custo
   return null;
 }
 
-/** A supplier's yearly plan. Match also switches on price requests for as long as it is paid up. */
+/** A supplier's yearly plan. Match also switches on estimate requests for as long as it is paid up. */
 async function applySupplierSubscription(sub: Json) {
   const s = await findSupplier({ id: sub.metadata?.supplier_id, sub: sub.id, customer: sub.customer });
   if (!s) { console.warn('webhook: no supplier for subscription', sub.id); return; }

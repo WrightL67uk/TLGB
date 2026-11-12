@@ -4,7 +4,7 @@ import { getSessionEmail } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
-/** Short address for price requests: goes straight to it when there is one listing. */
+/** Short address for estimate requests: goes straight to it when there is one listing. */
 export default async function QuotesShortcut() {
   const email = await getSessionEmail();
   if (!email) redirect('/login?next=/account/quotes');

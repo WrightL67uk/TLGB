@@ -89,7 +89,7 @@ export default function SupplierDetails({ supplier, logoUrl, photos }: { supplie
           <label key={c.key}><input type="checkbox" checked={f.categories.includes(c.key)} onChange={() => toggle('categories', c.key)} /> {c.label}</label>
         ))}
       </div>
-      {f.tier === 'match' && <p className="hint" style={{ margin: 0 }}>On the Match plan, these decide which price requests you receive.</p>}
+      {f.tier === 'match' && <p className="hint" style={{ margin: 0 }}>On the Match plan, these decide which estimate requests you receive.</p>}
       <label>Summary for the supplier list (one or two sentences)
         <textarea value={f.description} onChange={(e) => set('description', e.target.value)} maxLength={400} rows={3} placeholder="What you supply and who to" />
       </label>

@@ -78,7 +78,7 @@ export default async function AdminResources({ searchParams }: { searchParams: P
           {s.description}<br />
           {s.website && <><a href={s.website} target="_blank" rel="noopener">{s.website}</a> &middot; </>}
           {s.phone} &middot; {s.town} {s.postcode} &middot; submitted by {s.email} on {ukDate(s.created_at)}
-          {s.wants_requests && <><br /><strong>Wants price requests.</strong> Switch them on below once approved.</>}
+          {s.wants_requests && <><br /><strong>Wants estimate requests.</strong> Switch them on below once approved.</>}
           <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
             <Act table="suppliers" id={s.id} action="approve" label="Approve" />
             <Act table="suppliers" id={s.id} action="reject" label="Reject" />
@@ -93,14 +93,14 @@ export default async function AdminResources({ searchParams }: { searchParams: P
         </>
       )}
 
-      <h2 id="price-requests">Price requests: which suppliers receive them</h2>
-      <p className="muted">Suppliers need an email address and a plan to receive price requests. Founding is free; paid needs a &quot;paid until&quot; date and stops after it.</p>
+      <h2 id="price-requests">Estimates: which suppliers receive them</h2>
+      <p className="muted">Suppliers need an email address and a plan to receive estimate requests. Founding is free; paid needs a &quot;paid until&quot; date and stops after it.</p>
       <table className="table">
         <thead><tr><th>Supplier</th><th>Email for requests</th><th>Plan</th><th>Paid until</th><th></th></tr></thead>
         <tbody>
           {approved?.map((s) => (
             <tr key={s.id}>
-              <td><strong>{s.name}</strong>{s.town ? `, ${s.town}` : ''}{s.tier && <> <span className="status approved">{TIER_INFO[s.tier as 'appear' | 'match'].label}{['active', 'trialing', 'past_due'].includes(s.subscription_status) ? '' : ' (lapsed)'}</span></>}<br /><span className="muted small">{s.categories.map(supplierCategoryLabel).join(', ')}</span>{s.wants_requests && !s.quote_requests && <><br /><strong className="small">Asked for price requests</strong></>}</td>
+              <td><strong>{s.name}</strong>{s.town ? `, ${s.town}` : ''}{s.tier && <> <span className="status approved">{TIER_INFO[s.tier as 'appear' | 'match'].label}{['active', 'trialing', 'past_due'].includes(s.subscription_status) ? '' : ' (lapsed)'}</span></>}<br /><span className="muted small">{s.categories.map(supplierCategoryLabel).join(', ')}</span>{s.wants_requests && !s.quote_requests && <><br /><strong className="small">Asked for estimate requests</strong></>}</td>
               <td colSpan={4}>
                 <form method="post" action="/api/admin/suppliers" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                   <input type="hidden" name="id" value={s.id} />
@@ -113,13 +113,13 @@ export default async function AdminResources({ searchParams }: { searchParams: P
                   <input name="paid_until" type="date" defaultValue={s.quote_paid_until ?? ''} />
                   <button type="submit">Save</button>
                 </form>
-                <DeleteForm kind="supplier" id={s.id} name={s.name} from="/admin/resources" what="their listing, quotes and ratings" />
+                <DeleteForm kind="supplier" id={s.id} name={s.name} from="/admin/resources" what="their listing, estimates and ratings" />
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <h3>Latest price requests</h3>
+      <h3>Latest estimate requests</h3>
       {!requests?.length && <p className="muted">None yet.</p>}
       {requests?.map((q) => <p key={q.id} style={{ margin: '2px 0' }}>{ukDate(q.created_at)}: {q.reference} ({q.postcode}), {q.status}</p>)}
 

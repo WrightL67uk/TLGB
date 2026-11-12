@@ -16,7 +16,7 @@ export const GROUPS: { key: HowTo['group']; title: string; blurb: string }[] = [
   { key: 'start', title: 'Getting started', blurb: 'Joining, getting verified and logging in.' },
   { key: 'trades', title: 'Member tools for trades', blurb: 'How to use each tool that comes with membership.' },
   { key: 'contractors', title: 'For main contractors', blurb: 'Free accounts for finding, checking and managing landscaping trades.' },
-  { key: 'suppliers', title: 'For suppliers', blurb: 'Free listings, and price requests from our members.' },
+  { key: 'suppliers', title: 'For suppliers', blurb: 'Free listings, and estimate requests from our members.' },
   { key: 'seekers', title: 'For people looking for work', blurb: 'A free profile that employers in the industry can find.' },
 ];
 
@@ -202,14 +202,14 @@ export const HOW_TOS: HowTo[] = [
   {
     slug: 'price-requests',
     group: 'trades',
-    title: 'Price requests to suppliers',
-    summary: 'Send one plant or materials list to several suppliers and compare every quote side by side.',
-    intro: 'Instead of ringing round four nurseries with the same schedule, send it once. Suppliers price it online and you see every quote on one page.',
+    title: 'Estimates from suppliers',
+    summary: 'Send one plant or materials list to several suppliers and compare every estimate side by side.',
+    intro: 'Instead of ringing round four nurseries with the same schedule, send it once. Suppliers price it online and you see every estimate on one page.',
     sections: [
       {
         h: 'Send a request',
         steps: [
-          'Open [price requests](/account/quotes) from your listing page and press "New price request".',
+          'Open [estimate requests](/account/quotes) from your listing page and press "New estimate request".',
           'Add a reference, the delivery postcode, when you need it on site and when you want prices by.',
           'Add your list. Pick plant names and sizes from the suggestions so every supplier prices the same thing, or press "Paste a list" and paste rows from a planting schedule or spreadsheet, such as "3 Acer palmatum 10L".',
           'Materials work too: topsoil, mulch, turf, seed, tree pit kits, fencing and paving, by m², m³, tonne or item.',
@@ -231,7 +231,7 @@ export const HOW_TOS: HowTo[] = [
         tip: 'Suppliers see your business name and delivery area, but not your phone or email until you accept their price. The order, payment and delivery are between you and the supplier.',
       },
     ],
-    cta: [{ label: 'start a price request', href: '/account/quotes' }, { label: 'browse suppliers', href: '/suppliers' }],
+    cta: [{ label: 'start an estimate request', href: '/account/quotes' }, { label: 'browse suppliers', href: '/suppliers' }],
   },
 
   {
@@ -380,20 +380,20 @@ export const HOW_TOS: HowTo[] = [
   {
     slug: 'suppliers',
     group: 'suppliers',
-    title: 'For suppliers: listing and price requests',
-    summary: 'Get on the supplier directory for free, and receive price requests from checked landscaping firms.',
+    title: 'For suppliers: listing and estimate requests',
+    summary: 'Get on the supplier directory for free, and receive estimate requests from checked landscaping firms.',
     intro: 'Nurseries, merchants, soil and turf producers, fencing, paving and landscape product suppliers can list for free and receive real enquiries from our members.',
     sections: [
       {
         h: 'Get listed',
         steps: [
           'Fill in the form at [list your supply business](/suppliers/add): what you supply, where you are and whether you deliver nationally.',
-          'Tick "Send us price requests" if you would like to receive them.',
+          'Tick "Send us estimate requests" if you would like to receive them.',
           'We check the details and email you when you are live.',
         ],
       },
       {
-        h: 'Price requests',
+        h: 'Estimates',
         list: [
           'When a member’s list matches what you supply and where you deliver, we email it to you with a private link. No login or password needed.',
           'Price each line, offer an alternative where you are short, add delivery, lead time and how long prices are valid, then send. You can change prices until the deadline.',
@@ -405,7 +405,7 @@ export const HOW_TOS: HowTo[] = [
       {
         h: 'Ratings',
         p: ['Members can rate you after an order they accepted. Ratings show on your directory listing and next to your name when members pick suppliers.'],
-        tip: 'Price requests are free for our founding suppliers. We will always tell you before anything is charged.',
+        tip: 'Estimates are free for our founding suppliers. We will always tell you before anything is charged.',
       },
     ],
     cta: [{ label: 'list your supply business', href: '/suppliers/add' }, { label: 'supplier directory', href: '/suppliers' }],

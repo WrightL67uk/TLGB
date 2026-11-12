@@ -57,12 +57,18 @@ export default async function MenuPage() {
       title: 'Guides and help',
       items: [
         { label: 'The retention ban', href: '/guides/retention-ban', note: 'Where the Commercial Payments Bill has got to, when the ban could start, and what to do now.', k: 'retention ban commercial payments bill retentions bond defects 60 day payment terms law change' },
-        { label: 'Payment dates calculator', href: '/tools/payment-dates', note: 'Due date, payment notice, pay less notice and final date under the Construction Act. Free.', k: 'payment notice pay less final date scheme construction act late payment interest suspend' },
-        { label: 'All guides', href: '/guides', note: 'Every guide and tool in one list.' },
+        { label: 'All guides', href: '/guides', note: 'Every how-to and know-how guide in one list.' },
         ...HOW_TOS.map((h) => ({ label: `How to: ${h.title}`, href: `/guides/${h.slug}`, note: h.summary, k: 'how to guide help instructions' })),
         { label: 'Finding leads worth chasing', href: '/guides/finding-leads', note: 'Which leads turn into work and how to work each type.' },
         { label: 'Winning tenders and PQQs', href: '/guides/winning-tenders', note: 'Prequalification, pricing to win and getting on approved lists.', k: 'pqq tender bid' },
         { label: 'Accreditation help', href: '/accreditation-help', note: 'Help with Constructionline, CHAS and SSIP applications.', k: 'smas safecontractor accreditation gold silver' },
+      ],
+    },
+    {
+      title: 'Toolkit',
+      items: [
+        { label: 'Toolkit', href: '/toolkit', note: 'Every tool, finder and template in one list.' },
+        { label: 'Payment dates calculator', href: '/tools/payment-dates', note: 'Due date, payment notice, pay less notice and final date under the Construction Act. Free.', k: 'payment notice pay less final date scheme construction act late payment interest suspend' },
       ],
     },
     {
@@ -73,7 +79,7 @@ export default async function MenuPage() {
         { label: 'PQQ answer bank', href: m.loggedIn ? mine('/pqq', '/account/pqq') : '/login?next=/account/pqq', note: 'Save answers to the questions every PQQ and supplier portal asks, then copy them in.', k: 'prequalification questionnaire tender portal answers turnover accident figures sq selection', tag: memberTag },
         { label: 'Team and training', href: m.loggedIn ? mine('/team', '/account/team') : '/login?next=/account/team', note: 'Every card and ticket your team holds, with expiry reminders and a training matrix you can download.', k: 'cscs liss cpcs npors pa1 pa6 first aid sssts smsts training matrix cards tickets qualifications operatives staff expiry', tag: memberTag },
         { label: 'Your free website', href: m.loggedIn ? mine('/website', '/account/website') : '/login?next=/account/website', note: 'A three-page website at yourname.tlgb.co.uk, written from your listing, with an enquiry form.', k: 'website site web page domain subdomain online presence enquiries', tag: memberTag },
-        { label: 'Price requests', href: m.loggedIn ? mine('/quotes', '/account/quotes') : '/login?next=/account/quotes', note: 'Send one plant or materials list to several suppliers and compare their prices side by side.', k: 'quote quotes price prices plants trees hedging topsoil turf materials suppliers nursery compare order buy rfq', tag: memberTag },
+        { label: 'Estimates', href: m.loggedIn ? mine('/quotes', '/account/quotes') : '/login?next=/account/quotes', note: 'Send one plant or materials list to several suppliers and compare their prices side by side.', k: 'quote quotes price prices plants trees hedging topsoil turf materials suppliers nursery compare order buy rfq', tag: memberTag },
         { label: 'Payment tracker', href: m.loggedIn ? mine('/payments', '/account/payments') : '/login?next=/account/payments', note: 'Every application, deadline and retention, with alerts and ready-made notices.', k: 'payment notice pay less final date retention suspend interest late payment construction act application valuation', tag: memberTag },
         { label: 'Project references', href: m.loggedIn ? `${mine('/pqq', '/account/pqq')}#sec-projects` : '/login?next=/account/pqq', note: 'Your library of past jobs and client references for tenders.', k: 'case studies experience similar contracts referees', tag: memberTag },
       ],
@@ -123,7 +129,7 @@ export default async function MenuPage() {
           ]
         : [
             { label: 'List your business', href: '/join', note: 'Apply to be listed. We check every business by hand.' },
-            { label: 'Supplier plans', href: '/suppliers/join', note: 'Be found by contractors and matched to their price requests.', k: 'supplier sign up appear match' },
+            { label: 'Supplier plans', href: '/suppliers/join', note: 'Be found by contractors and matched to their estimate requests.', k: 'supplier sign up appear match' },
             { label: 'Log in', href: '/login', note: 'We email you a login link. No password needed.' },
           ],
     },

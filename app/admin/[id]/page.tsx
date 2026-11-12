@@ -321,7 +321,7 @@ export default async function AdminDetail({
       <section className="panel">
         <h2>Delete this listing</h2>
         {deleteError && <p className="err big">{deleteError}</p>}
-        <p className="muted small">Removes the listing, its documents, photos, compliance pack, team records, payment tracker, PQQ answers and price requests, and cancels any Stripe subscription. Their job seeker profile or contractor account, if they have one, is not touched.</p>
+        <p className="muted small">Removes the listing, its documents, photos, compliance pack, team records, payment tracker, PQQ answers and estimate requests, and cancels any Stripe subscription. Their job seeker profile or contractor account, if they have one, is not touched.</p>
         <DeleteForm kind="business" id={b.id} name={b.trading_name} from={`/admin/${b.id}`} what="everything on their account" />
       </section>
 

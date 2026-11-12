@@ -26,7 +26,7 @@ export const TIER_INFO: Record<SupplierTier, { label: string; tagline: string; f
     tagline: 'Let the work come to you',
     features: [
       'Everything in Appear',
-      'Matched to members’ price requests for what you supply',
+      'Matched to members’ estimate requests for what you supply',
       'Requests go straight to your inbox, ready to price online',
       'Prices compared side by side, so you can win on the day',
       'Top of the list when members search',

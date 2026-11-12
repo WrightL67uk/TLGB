@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'See how it works | The Little Green Book',
-  description: 'A walkthrough of The Little Green Book for horticulture and landscaping trades: getting found, the compliance pack, team cards, PQQs, payments, price requests, your free website and leads.',
+  description: 'A walkthrough of The Little Green Book for horticulture and landscaping trades: getting found, the compliance pack, team cards, PQQs, payments, estimate requests, your free website and leads.',
   openGraph: {
     title: 'See how The Little Green Book works',
     description: 'An 8-minute walkthrough for horticulture and landscaping trades.',
@@ -16,7 +16,7 @@ const CHAPTERS = [
   'Team cards and training records',
   'PQQ answer bank',
   'Payment tracker and letters',
-  'Price requests to suppliers',
+  'Estimates from suppliers',
   'Your free website',
   'Leads, the Help Hub and more',
 ];

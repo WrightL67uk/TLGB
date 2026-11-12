@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
     if (error) throw new Error(error.message);
     return count ?? 0;
   });
-  await run('quotes', 'Price requests', runQuoteJob);
+  await run('quotes', 'Estimates', runQuoteJob);
   await run('cleanup', 'Data clean-up', runDataCleanup);
   if (failures.length) await emailAdminJobFailures(failures).catch((e) => console.error('daily: failure email failed', e));
   return NextResponse.json({ ok: failures.length === 0, ...out });

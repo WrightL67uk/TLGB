@@ -272,12 +272,12 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
 
       {b.status === 'approved' && isPaid(b) && (
         <section className="panel">
-          <h2>Price requests</h2>
+          <h2>Estimates</h2>
           <div className="cp-summary">
             <p>
-              Send one list of plants or materials to several suppliers at once. They price it online and you compare every quote side by side, delivery included.
+              Send one list of plants or materials to several suppliers at once. They price it online and you compare every estimate side by side, delivery included.
             </p>
-            <Link href={`/account/${b.id}/quotes`} className="sq sq-rust">Open price requests</Link>
+            <Link href={`/account/${b.id}/quotes`} className="sq sq-rust">Open estimate requests</Link>
           </div>
         </section>
       )}

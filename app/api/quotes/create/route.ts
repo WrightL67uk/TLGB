@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
   const own = await ownedBusiness(d.businessId);
   if (!own.ok) return fail(own.error, own.status);
   const b = own.business;
-  if (!isPaid(b)) return fail('Price requests are included with paid membership.', 403);
+  if (!isPaid(b)) return fail('Estimates are included with paid membership.', 403);
 
   const today = new Date().toISOString().slice(0, 10);
   const maxClose = new Date(Date.now() + 21 * 86_400_000).toISOString().slice(0, 10);
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
   // Limit requests so suppliers are not flooded: 10 a day per member.
   const { count } = await db().from('quote_requests').select('id', { count: 'exact', head: true })
     .eq('business_id', b.id).gte('created_at', new Date(Date.now() - 86_400_000).toISOString());
-  if ((count ?? 0) >= 10) return fail('You have sent 10 price requests today. Please try again tomorrow.', 429);
+  if ((count ?? 0) >= 10) return fail('You have sent 10 estimate requests today. Please try again tomorrow.', 429);
 
   const pc = await lookupPostcode(d.postcode);
   if (!pc.ok) return fail(pc.reason);

@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 const isId = (s: unknown): s is string => typeof s === 'string' && /^[0-9a-f-]{36}$/i.test(s);
 
-/** Member actions on one of their price requests: accept a quote, close it, rate the supplier, send to more suppliers. */
+/** Member actions on one of their estimate requests: accept a quote, close it, rate the supplier, send to more suppliers. */
 export async function POST(req: NextRequest) {
   const fd = await req.formData().catch(() => null);
   const bid = fd?.get('business_id');
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === 'more') {
-    if (!isPaid(b)) return err('Price requests are included with paid membership.');
+    if (!isPaid(b)) return err('Estimates are included with paid membership.');
     if (request.status !== 'open' && request.status !== 'closed') return err('This request is finished.');
     const ids = fd.getAll('supplier').map(String).filter(isId);
     if (!ids.length) return err('Tick at least one more supplier.');

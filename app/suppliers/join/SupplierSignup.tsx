@@ -145,7 +145,7 @@ export default function SupplierSignup({ tier }: { tier: 'appear' | 'match' }) {
 
           <label>Email
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" placeholder="name@company.co.uk" />
-            <span className="hint">This is your login, and where price requests are sent on the Match plan.</span>
+            <span className="hint">This is your login, and where estimate requests are sent on the Match plan.</span>
           </label>
           <div className="two">
             <label>Choose a password

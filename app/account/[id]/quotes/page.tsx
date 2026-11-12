@@ -8,7 +8,7 @@ import { gbp, statusText, type QRequest } from '@/lib/quotes';
 import '../../../quotes.css';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Price requests | TLGB' };
+export const metadata = { title: 'Estimates | TLGB' };
 
 const day = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/London' });
 
@@ -30,12 +30,12 @@ export default async function QuotesList({ params }: { params: Promise<{ id: str
   return (
     <div className="qt">
       <p className="small"><Link href={`/account/${b.id}`}>Back to my listing</Link></p>
-      <h1>Price requests</h1>
+      <h1>Estimates</h1>
       <p className="lead">Send one list of plants or materials to several suppliers, get their prices back on one page, and pick the best deal.</p>
       {!paid ? (
-        <UpgradePanel b={b} feature="Sending price requests to suppliers" />
+        <UpgradePanel b={b} feature="Sending estimate requests to suppliers" />
       ) : (
-        <p><Link href={`/account/${b.id}/quotes/new`} className="sq sq-rust">New price request</Link></p>
+        <p><Link href={`/account/${b.id}/quotes/new`} className="sq sq-rust">New estimate request</Link></p>
       )}
 
       {!requests.length && paid && (

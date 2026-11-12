@@ -25,7 +25,7 @@ async function endLoginsIfUnused(email: string | null | undefined) {
   await db().from('login_tokens').delete().eq('email', email);
 }
 
-/** A member listing and everything hanging off it: documents, photos, compliance pack, team, payments, price requests. */
+/** A member listing and everything hanging off it: documents, photos, compliance pack, team, payments, estimate requests. */
 export async function deleteBusiness(id: string): Promise<Result> {
   const { data: b } = await db().from('businesses').select('id, trading_name, email, stripe_subscription_id, subscription_status').eq('id', id).maybeSingle();
   if (!b) return { ok: false, error: 'Listing not found.' };

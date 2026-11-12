@@ -1,4 +1,4 @@
-// Shared lists for price requests (used by both server and browser code).
+// Shared lists for estimate requests (used by both server and browser code).
 // Sizes follow the categories in the HTA National Plant Specification so quotes compare like for like.
 
 export const QUOTE_CATEGORIES: { key: string; label: string; units: string[] }[] = [

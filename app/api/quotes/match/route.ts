@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   if (!p.success) return NextResponse.json({ ok: false, error: 'Add a delivery postcode and at least one item.' }, { status: 400 });
   const own = await ownedBusiness(p.data.businessId);
   if (!own.ok) return NextResponse.json({ ok: false, error: own.error }, { status: own.status });
-  if (!isPaid(own.business)) return NextResponse.json({ ok: false, error: 'Price requests are included with paid membership.' }, { status: 403 });
+  if (!isPaid(own.business)) return NextResponse.json({ ok: false, error: 'Estimates are included with paid membership.' }, { status: 403 });
   const pc = await lookupPostcode(p.data.postcode);
   if (!pc.ok) return NextResponse.json({ ok: false, error: pc.reason }, { status: 400 });
   const matches = await matchSuppliers(Array.from(new Set(p.data.categories)), pc.lat, pc.lng);
