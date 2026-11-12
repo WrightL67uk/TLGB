@@ -44,7 +44,7 @@ export default async function RecruitmentPage({ searchParams }: { searchParams: 
     if (pc.ok) where = pc; else pcError = pc.reason;
   }
 
-  // Vacancies: public, no login needed
+  // Vacancies: anyone can browse and search; employer names and how to apply need a free login
   const { data: vData } = await db().from('vacancies').select('*, businesses(trading_name)').eq('status', 'live').gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false }).limit(1000);
   let vacs = ((vData ?? []) as VacRow[]).filter(vacancyLive);
@@ -90,7 +90,7 @@ export default async function RecruitmentPage({ searchParams }: { searchParams: 
         <div>
           <p className="tender-tag">Looking for work?</p>
           <h2>Free for job seekers</h2>
-          <p>Browse the vacancies below, no login needed. Post a free profile so employers can find you, and we will email you new vacancies that match.</p>
+          <p>Browse and search the vacancies below. Create a free profile to see who is hiring and how to apply. Employers can then find you too, and we will email you new vacancies that match.</p>
           <Link href={meSeeker ? '/seeker' : '/looking-for-work'} className="wk-btn go">{meSeeker ? 'My profile' : 'Post a free profile'}</Link>
         </div>
         <div>
@@ -142,7 +142,7 @@ export default async function RecruitmentPage({ searchParams }: { searchParams: 
                 <Link key={v.id} href={`/recruitment/vacancies/${v.id}`} className="wk-card">
                   <h2>{v.title}</h2>
                   <div className="wk-meta">
-                    <b>{v.businesses?.trading_name ?? 'TLGB member'}</b>
+                    <b>{email ? (v.businesses?.trading_name ?? 'TLGB member') : 'Employer shown when you sign in'}</b>
                     <span>{v.area}{d != null ? `, ${Math.round(d)} miles away` : ''}</span>
                     {pay && <span>{pay}</span>}
                     {v.level && <span>{label(LEVELS, v.level)}</span>}

@@ -3,6 +3,7 @@ import { db } from '@/lib/supabase';
 import { TURNOVER_BANDS } from '@/lib/config';
 import { getPricing, yearlySaving, PLAN_INFO, type PlanKey } from '@/lib/pricing';
 import { PAID_STATUSES } from '@/lib/membership';
+import { getSupplierPricing, TIER_INFO, SUPPLIER_TIERS } from '@/lib/supplierPricing';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,9 @@ export default async function AdminPrices({ searchParams }: { searchParams: Prom
   const byInterval = (k: string) => rows.filter((r) => r.billing_interval === k).length;
   const { count: freeCount } = await db().from('businesses').select('id', { count: 'exact', head: true }).eq('status', 'approved').eq('free_listing', true).not('subscription_status', 'in', `(${PAID_STATUSES.join(',')})`);
   const save = yearlySaving(pricing);
+  const supplierPrices = await getSupplierPricing();
+  const { data: sups } = await db().from('suppliers').select('tier, subscription_status').not('tier', 'is', null).in('subscription_status', PAID_STATUSES);
+  const supCount = (k: string) => (sups ?? []).filter((r) => r.tier === k).length;
 
   return (
     <div>
@@ -119,6 +123,29 @@ export default async function AdminPrices({ searchParams }: { searchParams: Prom
           Members who joined on turnover pricing ({legacy} paying now) keep every tool, including Pro ones, if you switch to plans.
         </p>
         <button type="submit" className="primary">Save prices</button>
+      </form>
+
+      <h2 style={{ marginTop: 32 }}>Supplier plans</h2>
+      <p className="muted">
+        Suppliers pay yearly through Stripe, in whole pounds excluding VAT. A change applies to new payments straight away; suppliers who have
+        already paid keep their price until you tell them otherwise. Discount codes work for suppliers too.
+      </p>
+      <form method="post" action="/api/admin/supplier-prices" style={{ maxWidth: 640 }}>
+        <div className="panel">
+          <table className="table">
+            <thead><tr><th>Plan</th><th>Price a year (£)</th><th>Paying suppliers</th></tr></thead>
+            <tbody>
+              {SUPPLIER_TIERS.map((k) => (
+                <tr key={k}>
+                  <td><strong>{TIER_INFO[k].label}</strong><br /><span className="muted small">{TIER_INFO[k].tagline}</span></td>
+                  <td><input name={`supplier_${k}`} type="number" min="1" step="1" required defaultValue={supplierPrices[k]} style={{ maxWidth: 120 }} /></td>
+                  <td>{supCount(k)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <button type="submit" className="primary">Save supplier prices</button>
       </form>
     </div>
   );

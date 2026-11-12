@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
 import { stripe, verifyWebhook, mapStatus, periodEnd } from '@/lib/stripe';
-import { emailAdminBilling, emailMemberPaymentFailed } from '@/lib/email';
+import { emailAdminBilling, emailMemberPaymentFailed, emailAdminSupplier } from '@/lib/email';
+import { PAID_STATUSES } from '@/lib/membership';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,7 +17,49 @@ async function findBusiness(by: { id?: string | null; sub?: string | null; custo
   return null;
 }
 
+async function findSupplier(by: { id?: string | null; sub?: string | null; customer?: string | null }) {
+  const q = () => db().from('suppliers').select('id, name, email, tier, status, subscription_status, quote_plan');
+  if (by.id) { const { data } = await q().eq('id', by.id).maybeSingle(); if (data) return data; }
+  if (by.sub) { const { data } = await q().eq('stripe_subscription_id', by.sub).maybeSingle(); if (data) return data; }
+  if (by.customer) { const { data } = await q().eq('stripe_customer_id', by.customer).limit(1).maybeSingle(); if (data) return data; }
+  return null;
+}
+
+/** A supplier's yearly plan. Match also switches on price requests for as long as it is paid up. */
+async function applySupplierSubscription(sub: Json) {
+  const s = await findSupplier({ id: sub.metadata?.supplier_id, sub: sub.id, customer: sub.customer });
+  if (!s) { console.warn('webhook: no supplier for subscription', sub.id); return; }
+  const status = mapStatus(sub.status);
+  const until = periodEnd(sub);
+  const tier = sub.metadata?.tier === 'match' || sub.metadata?.tier === 'appear' ? sub.metadata.tier : s.tier;
+  const paying = PAID_STATUSES.includes(status);
+  const quote: Json = {};
+  if (s.quote_plan !== 'founding') {
+    if (tier === 'match' && paying && until) Object.assign(quote, { quote_requests: true, quote_plan: 'paid', quote_paid_until: until.slice(0, 10) });
+    else if (s.quote_plan === 'paid') Object.assign(quote, { quote_requests: false, quote_plan: null, quote_paid_until: null });
+  }
+  await db().from('suppliers').update({
+    stripe_subscription_id: sub.id,
+    stripe_customer_id: typeof sub.customer === 'string' ? sub.customer : sub.customer?.id,
+    subscription_status: status,
+    paid_until: until,
+    billing_interval: 'year',
+    ...(tier ? { tier } : {}),
+    ...quote,
+  }).eq('id', s.id);
+  if (status !== s.subscription_status) {
+    const label = tier === 'match' ? 'Match' : 'Appear';
+    if (status === 'active' && (s.subscription_status === 'none' || s.subscription_status === 'cancelled')) {
+      await emailAdminSupplier(`New paying supplier: ${s.name}`, `${s.name} has paid for the ${label} plan.`, s.id);
+    }
+    if (status === 'cancelled') {
+      await emailAdminSupplier(`Supplier plan ended: ${s.name}`, `${s.name}'s ${label} plan has ended. Their listing no longer shows in the supplier directory.`, s.id);
+    }
+  }
+}
+
 async function applySubscription(sub: Json) {
+  if (sub.metadata?.supplier_id) return applySupplierSubscription(sub);
   const b = await findBusiness({ id: sub.metadata?.business_id, sub: sub.id, customer: sub.customer });
   if (!b) { console.warn('webhook: no listing for subscription', sub.id); return; }
   const status = mapStatus(sub.status);
@@ -48,10 +91,12 @@ async function recordDiscount(session: Json) {
   if (!promo) return;
   const { data: code } = await db().from('discount_codes').select('id').eq('stripe_promo_id', promo).maybeSingle();
   if (!code) return;
-  const b = await findBusiness({ id: session.metadata?.business_id ?? session.client_reference_id, customer: session.customer });
+  const sup = session.metadata?.supplier_id ? await findSupplier({ id: session.metadata.supplier_id, customer: session.customer }) : null;
+  const b = sup ? null : await findBusiness({ id: session.metadata?.business_id ?? session.client_reference_id, customer: session.customer });
   await db().from('discount_redemptions').insert({
     code_id: code.id,
     business_id: b?.id ?? null,
+    supplier_id: sup?.id ?? null,
     stripe_session_id: session.id,
     amount_off_pence: session.total_details?.amount_discount ?? null,
   });
@@ -72,7 +117,9 @@ export async function POST(req: NextRequest) {
       case 'checkout.session.completed': {
         if (obj.mode === 'subscription' && obj.subscription) {
           const sub = await stripe('GET', `subscriptions/${obj.subscription}`);
-          sub.metadata = { business_id: obj.metadata?.business_id ?? obj.client_reference_id, ...(sub.metadata ?? {}) };
+          sub.metadata = obj.metadata?.supplier_id
+            ? { supplier_id: obj.metadata.supplier_id, ...(sub.metadata ?? {}) }
+            : { business_id: obj.metadata?.business_id ?? obj.client_reference_id, ...(sub.metadata ?? {}) };
           await applySubscription(sub);
           await recordDiscount(obj);
         }
@@ -89,6 +136,12 @@ export async function POST(req: NextRequest) {
         break;
       }
       case 'invoice.payment_failed': {
+        const sup = await findSupplier({ customer: obj.customer });
+        if (sup) {
+          if (sup.email) await emailMemberPaymentFailed(sup.email, sup.name);
+          await emailAdminSupplier(`Payment failed: ${sup.name}`, `A supplier plan payment for ${sup.name} failed. Stripe will retry it automatically.`, sup.id);
+          break;
+        }
         const b = await findBusiness({ customer: obj.customer });
         if (b) {
           await emailMemberPaymentFailed(b.email, b.trading_name);

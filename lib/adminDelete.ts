@@ -51,8 +51,10 @@ export async function deleteBusiness(id: string): Promise<Result> {
 }
 
 export async function deleteSupplier(id: string): Promise<Result> {
-  const { data: s } = await db().from('suppliers').select('name').eq('id', id).maybeSingle();
+  const { data: s } = await db().from('suppliers').select('name, logo_path, stripe_subscription_id, subscription_status').eq('id', id).maybeSingle();
   if (!s) return { ok: false, error: 'Supplier not found.' };
+  const { data: pics } = await db().from('supplier_photos').select('storage_path').eq('supplier_id', id);
+  await removeFiles('portfolio', [...(pics ?? []).map((p) => p.storage_path), ...(s.logo_path ? [s.logo_path] : [])]);
   const { error } = await db().from('suppliers').delete().eq('id', id);
   if (error) { console.error('delete supplier failed', error); return { ok: false, error: 'Something went wrong deleting the supplier.' }; }
   return { ok: true, name: s.name };

@@ -8,9 +8,10 @@ export const metadata = {
   description: 'Free job seeker profiles for landscapers, grounds maintenance staff, groundworkers, tree surgeons and supervisors. Seen by checked landscaping firms and main contractors.',
 };
 
-export default async function LookingForWork({ searchParams }: { searchParams: Promise<{ sent?: string; error?: string; deleted?: string }> }) {
+export default async function LookingForWork({ searchParams }: { searchParams: Promise<{ sent?: string; error?: string; deleted?: string; next?: string }> }) {
   const sp = await searchParams;
   const me = await getSeeker();
+  const next = typeof sp.next === 'string' && /^\/recruitment\/vacancies\/[0-9a-f-]{36}$/i.test(sp.next) ? sp.next : '';
 
   return (
     <div>
@@ -43,6 +44,8 @@ export default async function LookingForWork({ searchParams }: { searchParams: P
           <form method="post" action="/api/seeker/join" className="wk-form">
             <h2 style={{ margin: 0 }}>Start your free profile</h2>
             {sp.error && <p className="err big">{sp.error}</p>}
+            {next && <input type="hidden" name="next" value={next} />}
+            {next && <p className="ok-box" style={{ margin: 0 }}>Create your free profile to see who is hiring and how to apply. We will bring you straight back to the vacancy.</p>}
             <label className="hp" aria-hidden="true">Leave this empty<input name="company_url" tabIndex={-1} autoComplete="off" /></label>
             <div className="row">
               <label>First name<input type="text" name="first_name" required maxLength={60} autoComplete="given-name" /></label>
@@ -52,7 +55,7 @@ export default async function LookingForWork({ searchParams }: { searchParams: P
               <span className="hint">We email you a link to finish your profile. No password needed.</span></label>
             <label className="chk"><input type="checkbox" name="agree" value="yes" required /> I agree to the <Link href="/legal/terms" target="_blank">website terms</Link> and have read the <Link href="/legal/privacy" target="_blank">privacy notice</Link>.</label>
             <div><button type="submit" className="wk-btn go">Email me a link</button></div>
-            <p className="muted small" style={{ margin: 0 }}>Already have a profile? <Link href="/login?next=/seeker">Log in</Link>.</p>
+            <p className="muted small" style={{ margin: 0 }}>Already have a profile? <Link href={`/login?next=${encodeURIComponent(next || '/seeker')}`}>Log in</Link>.</p>
           </form>
         )}
         <p className="muted small" style={{ marginTop: 16 }}>Hiring? <Link href="/recruitment">See people looking for work</Link>.</p>

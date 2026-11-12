@@ -30,7 +30,11 @@ export async function POST(req: NextRequest) {
     if (!cu) {
       // So do job seekers
       const { count: js } = await db().from('job_seekers').select('id', { count: 'exact', head: true }).eq('email', email).neq('status', 'removed');
-      if (!js) return done;
+      if (!js) {
+        // And suppliers
+        const { count: sp } = await db().from('suppliers').select('id', { count: 'exact', head: true }).eq('email', email).neq('status', 'rejected');
+        if (!sp) return done;
+      }
     }
   }
   if ((await recentLoginRequests(email)) >= 5) return done;

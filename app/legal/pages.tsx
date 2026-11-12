@@ -101,6 +101,16 @@ export const LEGAL_PAGES: LegalPage[] = [
         </ul>
         <p>Founding members who were offered free membership keep the features they had at the time free for as long as that offer says.</p>
 
+        <h2>4A. Supplier plans</h2>
+        <ul>
+          <li>Suppliers choose a plan, <strong>Appear</strong> or <strong>Match</strong>, and pay for a year at a time, by card through Stripe. The price is shown before you pay. There is no free trial and no monthly option.</li>
+          <li><strong>Appear</strong> gives you a supplier listing with your contact details, and a company profile page with your pictures and company information. <strong>Match</strong> includes everything in Appear, and also matches you to price requests that our members send, for the categories you supply and the places you deliver to. We decide who receives each request, and we cannot promise any number of requests or any orders.</li>
+          <li>Your plan renews automatically each year unless you cancel. We email you before it renews. You can cancel at any time from &ldquo;Manage billing&rdquo; on your supplier account; your plan then runs to the end of the year you have paid for and does not renew. We do not refund part years unless the law requires it, except that if we do not approve your listing we refund what you paid.</li>
+          <li>We check every supplier by hand before the profile goes live, including your company details on Companies House and, if you are VAT registered, your VAT number. You do not need insurance certificates or accreditations to join. Standards and insurance you tell us about are shown as stated by you, and you must be able to show evidence if we ask.</li>
+          <li>You are responsible for your profile, pictures and prices, for having the right to use them, and for what you quote. A price you give on a price request is an offer between you and the member, not with us. We are not a party to the sale and do not guarantee that anyone will pay.</li>
+          <li>If your plan ends or a payment fails and is not put right, your profile and listing are taken down until you pay again. Prices, VAT and changes to features work as in section 4.</li>
+        </ul>
+
         <h2>5. Cancelling</h2>
         <p>You can cancel at any time from &ldquo;Manage billing&rdquo; on your listing page, or by emailing <Mail d={d} />. Your membership then runs until the end of the month or year you have paid for and does not renew. Because this is a business service, there is no statutory cooling-off period, and we do not refund part periods unless these terms say otherwise or the law requires it.</p>
         <p>When your membership ends, your listing shows as &ldquo;Unverified&rdquo; and is hidden from searches for verified members. Your compliance pack documents are deleted 90 days after your membership ends, so download anything you need before then. You can ask us to remove your listing entirely at any time.</p>
