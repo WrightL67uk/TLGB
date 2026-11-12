@@ -60,7 +60,7 @@ export default async function SupplierAccount({ params, searchParams }: { params
                 <p className="muted small" style={{ margin: '4px 0 8px' }}>{TIER_INFO.match.tagline}. Everything in Appear, plus you are matched to members&rsquo; price requests for what you supply.</p>
                 <label className="check" style={{ display: 'flex', gap: 8, fontWeight: 400 }}>
                   <input type="checkbox" name="confirm" value="yes" required />
-                  <span>Charge my card on file about {pounds(upgradeToday)} now, the difference for the rest of this year{renews ? ` (to ${renews})` : ''}. From then it renews at {pounds(prices.match)} a year. Prices exclude VAT.</span>
+                  <span>Charge my card on file about {pounds(upgradeToday)} now, the difference for the rest of this year{renews ? ` (to ${renews})` : ''}. From then it renews at {pounds(prices.match)} a year. No VAT is added.</span>
                 </label>
                 <button type="submit" className="primary" disabled={!stripeEnabled()}>Upgrade to Match</button>
               </form>
@@ -85,7 +85,7 @@ export default async function SupplierAccount({ params, searchParams }: { params
                 </form>
               ))}
             </div>
-            <p className="muted small">Prices exclude VAT. We are not VAT registered, so no VAT is charged at present.</p>
+            <p className="muted small">We are not VAT registered, so there is no VAT to pay on top of these prices. If that changes we will give you at least 30 days&rsquo; notice.</p>
           </>
         )}
       </div>

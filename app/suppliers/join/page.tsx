@@ -42,7 +42,7 @@ export default async function SupplierJoin({ searchParams }: { searchParams: Pro
               {k === 'match' && <span className="plan-badge">Most orders</span>}
               <h2>{TIER_INFO[k].label}</h2>
               <p className="muted small" style={{ margin: '2px 0 0' }}>{TIER_INFO[k].tagline}</p>
-              <p className={`plan-price ${k === 'match' ? 'plan-price-big' : ''}`}>{pounds(prices[k])} <span>a year + VAT if applicable</span></p>
+              <p className={`plan-price ${k === 'match' ? 'plan-price-big' : ''}`}>{pounds(prices[k])} <span>a year</span></p>
               <ul>{TIER_INFO[k].features.map((f) => <li key={f} className="yes">{f}</li>)}</ul>
               {live
                 ? <Link href={`/suppliers/join?plan=${k}`} className={`plan-btn plan-go ${k === 'match' ? 'plan-go-big' : ''}`}>Choose {TIER_INFO[k].label}</Link>
@@ -52,7 +52,7 @@ export default async function SupplierJoin({ searchParams }: { searchParams: Pro
         </div>
         <p className="muted small">
           No insurance certificates or accreditations are needed to join. We check your company details, then your profile, before it goes live.
-          Secure card payment through Stripe. Prices exclude VAT. We are not VAT registered, so no VAT is charged at present.
+          Secure card payment through Stripe. We are not VAT registered, so there is no VAT to pay on top of these prices. If that changes we will give you at least 30 days&rsquo; notice.
         </p>
         <p className="small">Already signed up? <Link href="/login">Log in</Link>. Looking for a trade listing? <Link href="/join">Join as a trade</Link>.</p>
       </div>
