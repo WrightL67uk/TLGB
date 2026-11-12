@@ -47,6 +47,7 @@ export async function openCheckout(b: Business, pricing: Pricing, choice: { inte
   const promo = fromLink && usable(fromLink.code, fromLink.uses) ? fromLink.code.stripe_promo_id : null;
   const params = {
     mode: 'subscription',
+    payment_method_collection: 'if_required', // a 100% code means no card is asked for
     customer,
     client_reference_id: b.id,
     line_items: [{
