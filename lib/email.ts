@@ -322,6 +322,36 @@ export async function emailAdminBilling(subject: string, line: string, businessI
   );
 }
 
+/** Tells admin something happened with a supplier (sign-up, payment, details sent). */
+export async function emailAdminSupplier(subject: string, line: string, supplierId?: string) {
+  await send(
+    adminList(),
+    subject,
+    `<p>${esc(line)}</p>${supplierId ? `<p><a href="${siteUrl()}/admin/resources#suppliers">Open suppliers in admin</a></p>` : ''}`,
+    'supplier-admin'
+  );
+}
+
+/** Tells a supplier their profile is live. */
+export async function emailSupplierLive(to: string, name: string, slug: string | null) {
+  await send(
+    to,
+    'Your Little Green Book supplier listing is live',
+    `<p>Good news: ${esc(name)} is now live on The Little Green Book.</p>${slug ? `<p><a href="${siteUrl()}/suppliers/${esc(slug)}">See your company profile</a></p>` : ''}<p>You can update your details and pictures any time from <a href="${siteUrl()}/login?next=/account">your account</a>.</p>`,
+    'supplier-live'
+  );
+}
+
+/** Tells a supplier their application was not approved. */
+export async function emailSupplierRejected(to: string, name: string, reason: string) {
+  await send(
+    to,
+    'Your Little Green Book supplier application',
+    `<p>Thank you for applying with ${esc(name)}. We could not approve it this time.</p><p>${esc(reason)}</p><p>Your payment will be refunded. Reply to this email if you would like to talk it through.</p>`,
+    'supplier-rejected'
+  );
+}
+
 /** Tells a member their renewal payment failed. Stripe retries automatically. */
 export async function emailMemberPaymentFailed(to: string, tradingName: string) {
   await send(

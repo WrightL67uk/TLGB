@@ -5,6 +5,8 @@ import { db } from '@/lib/supabase';
 import { lookupPostcode } from '@/lib/postcodes';
 import { SUPPLIER_CATEGORIES, supplierCategoryLabel, miles, shortUrl } from '@/lib/resources';
 import { takesRequests, ratingsFor } from '@/lib/quotes';
+import { isLive, hasProfile } from '@/lib/supplierAccount';
+import './supplier.css';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
@@ -16,6 +18,7 @@ type Supplier = {
   id: string; name: string; categories: string[]; description: string | null; website: string | null; phone: string | null;
   town: string | null; postcode: string | null; lat: number | null; lng: number | null; delivers_nationally: boolean;
   email: string | null; quote_requests: boolean; quote_plan: string | null; quote_paid_until: string | null;
+  status?: 'approved'; tier?: 'appear' | 'match' | null; subscription_status?: string; slug?: string | null; public_email?: string | null;
 };
 type SP = Promise<{ q?: string; category?: string; postcode?: string }>;
 
@@ -29,7 +32,7 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
 
   let query = db()
     .from('suppliers')
-    .select('id, name, categories, description, website, phone, town, postcode, lat, lng, delivers_nationally, email, quote_requests, quote_plan, quote_paid_until')
+    .select('id, name, categories, description, website, phone, town, postcode, lat, lng, delivers_nationally, email, quote_requests, quote_plan, quote_paid_until, status, tier, subscription_status, slug, public_email')
     .eq('status', 'approved')
     .order('name')
     .limit(500);
@@ -46,14 +49,20 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
     if (q) { const term = q.replace(/[%_,()]/g, ' '); basic = basic.or(`name.ilike.%${term}%,description.ilike.%${term}%,town.ilike.%${term}%`); }
     ({ data, error } = await basic as unknown as { data: typeof data; error: typeof error });
   }
-  let rows = ((data ?? []) as Supplier[]).map((s) => ({
+  // Plans that have lapsed drop out; paying suppliers (Match, then Appear) come first
+  const rank = (s: Supplier) => (s.tier === 'match' ? 0 : s.tier === 'appear' ? 1 : 2);
+  let rows = ((data ?? []) as Supplier[])
+    .filter((s) => s.status === undefined || isLive({ status: 'approved', tier: s.tier ?? null, subscription_status: s.subscription_status ?? 'none' }))
+    .sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name))
+    .map((s) => ({
     ...s,
     dist: where?.ok && s.lat != null && s.lng != null ? miles(where.lat, where.lng, s.lat, s.lng) : null,
+    profile: hasProfile({ status: 'approved', tier: s.tier ?? null, subscription_status: s.subscription_status ?? 'none', slug: s.slug ?? null }),
   }));
   const ratings = await ratingsFor(rows.map((r) => r.id));
   if (where?.ok) {
     // Nearest first; national suppliers without a location go after the local ones
-    rows = rows.sort((a, b) => (a.dist ?? 9999) - (b.dist ?? 9999));
+    rows = rows.sort((a, b) => rank(a) - rank(b) || (a.dist ?? 9999) - (b.dist ?? 9999));
   }
 
   return (
@@ -89,11 +98,12 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
       {!rows.length && <p className="muted">No suppliers match that search yet.</p>}
       <div className="res-list">
         {rows.map((s) => (
-          <div key={s.id} className="res-card">
-            <h2>{s.name}</h2>
+          <div key={s.id} className={`res-card ${s.profile ? 'sup-paid' : ''}`}>
+            <h2>{s.profile ? <Link href={`/suppliers/${s.slug}`}>{s.name}</Link> : s.name}</h2>
             <div className="badges">
               {s.categories.map((c) => <span key={c} className="badge ok">{supplierCategoryLabel(c)}</span>)}
               {s.delivers_nationally && <span className="badge">delivers nationally</span>}
+              {s.tier === 'match' && <span className="badge ok">Match supplier</span>}
               {takesRequests(s) && <span className="badge ok">takes price requests</span>}
               {ratings[s.id] && <span className="badge" title="Rated by members after real orders"><span style={{ color: '#c98a00' }}>★</span> {ratings[s.id].avg.toFixed(1)} from {ratings[s.id].count} order{ratings[s.id].count === 1 ? '' : 's'}</span>}
             </div>
@@ -103,15 +113,17 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
               {s.phone && <a href={`tel:${s.phone.replace(/\s/g, '')}`}>{s.phone}</a>}
               {s.town && <span>{s.town}</span>}
               {s.dist != null && <span>{Math.round(s.dist)} miles away</span>}
+              {s.profile && (s.public_email || s.email) && <a href={`mailto:${s.public_email || s.email}`}>{s.public_email || s.email}</a>}
             </p>
+            {s.profile && <p style={{ margin: '6px 0 0' }}><Link href={`/suppliers/${s.slug}`} className="sq">View company profile</Link></p>}
           </div>
         ))}
       </div>
 
       <div className="res-form" style={{ marginTop: 32 }}>
         <h2 style={{ margin: 0 }}>Supply the landscaping trade?</h2>
-        <p style={{ margin: 0 }}>Listing is free. Tell us about your business and we will add you once we have checked the details. You can also ask to receive price requests from our members.</p>
-        <Link href="/suppliers/add" className="sq sq-rust">list your supply business</Link>
+        <p style={{ margin: 0 }}>Get your own company profile with pictures and contact details, and be matched to the price requests our members send. Yearly plans from the price shown on the plans page.</p>
+        <Link href="/suppliers/join" className="sq sq-rust">see supplier plans</Link>
       </div>
     </div>
   );

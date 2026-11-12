@@ -123,6 +123,7 @@ export default async function MenuPage() {
           ]
         : [
             { label: 'List your business', href: '/join', note: 'Apply to be listed. We check every business by hand.' },
+            { label: 'Supplier plans', href: '/suppliers/join', note: 'Be found by contractors and matched to their price requests.', k: 'supplier sign up appear match' },
             { label: 'Log in', href: '/login', note: 'We email you a login link. No password needed.' },
           ],
     },

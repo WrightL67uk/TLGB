@@ -61,7 +61,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
           {' '}Prices exclude VAT. We are not VAT registered, so no VAT is charged at present.
           {!live && ' Online payment is not switched on yet, so only the free listing can be chosen for now.'}
         </p>
-        <p className="small">Already signed up? <Link href="/login">Log in</Link></p>
+        <p className="small">Already signed up? <Link href="/login">Log in</Link>. Supply the trade? <Link href="/suppliers/join">See supplier plans</Link>.</p>
       </div>
     );
   }

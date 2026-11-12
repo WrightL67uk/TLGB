@@ -29,6 +29,8 @@ export default async function AccountPage() {
   if (!rows?.length) {
     const { count } = await db().from('contractor_users').select('id', { count: 'exact', head: true }).eq('email', email).is('removed_at', null);
     if (count) redirect('/contractor');
+    const { data: sup } = await db().from('suppliers').select('id').eq('email', email).neq('status', 'rejected').order('created_at').limit(1);
+    if (sup?.length) redirect(`/supplier/${sup[0].id}`);
     const { count: js } = await db().from('job_seekers').select('id', { count: 'exact', head: true }).eq('email', email).neq('status', 'removed');
     if (js) redirect('/seeker');
   }
