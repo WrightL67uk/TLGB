@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/supabase';
+import { getSessionEmail } from '@/lib/session';
 import { LEVELS, WORK_TYPES, label, skillLabel, payText } from '@/lib/seekerTypes';
 import { qualLabel } from '@/lib/teamTypes';
 import { ukDate } from '@/lib/complianceTypes';
@@ -24,10 +25,12 @@ export async function generateMetadata({ params }: { params: Promise<{ vid: stri
     : { title: 'Vacancy | The Little Green Book' };
 }
 
-/** A vacancy, public to everyone. How to apply is shown to all. */
+/** A vacancy. Anyone can read the job; the employer's name and how to apply are for logged-in people (a free job seeker profile is enough). */
 export default async function VacancyPage({ params }: { params: Promise<{ vid: string }> }) {
   const v = await load((await params).vid);
   if (!v) notFound();
+  const signedIn = !!(await getSessionEmail());
+  const here = `/recruitment/vacancies/${v.id}`;
   const live = vacancyLive(v);
   if (live) await db().from('vacancies').update({ view_count: v.view_count + 1 }).eq('id', v.id);
   const biz = v.businesses;
@@ -43,7 +46,7 @@ export default async function VacancyPage({ params }: { params: Promise<{ vid: s
           <section>
             <h1 style={{ margin: '0 0 6px' }}>{v.title}</h1>
             <div className="wk-meta">
-              <b>{biz && biz.status === 'approved' ? <Link href={`/b/${biz.id}`}>{biz.trading_name}</Link> : biz?.trading_name ?? 'TLGB member'}</b>
+              <b>{!signedIn ? 'Employer shown when you sign in' : biz && biz.status === 'approved' ? <Link href={`/b/${biz.id}`}>{biz.trading_name}</Link> : biz?.trading_name ?? 'TLGB member'}</b>
               <span>{v.area}</span>
               {pay && <span>{pay}</span>}
               <span>{v.start_date && v.start_date > new Date().toISOString().slice(0, 10) ? `Starts ${ukDate(v.start_date)}` : 'Start as soon as possible'}</span>
@@ -69,7 +72,15 @@ export default async function VacancyPage({ params }: { params: Promise<{ vid: s
           )}
         </div>
         <aside>
-          {live && (
+          {live && !signedIn && (
+            <div className="rc-apply">
+              <h2 style={{ margin: '0 0 4px', color: 'var(--forest)', fontSize: '1.1rem' }}>See who is hiring and how to apply</h2>
+              <p className="small muted" style={{ margin: 0 }}>Create a free job seeker profile to see the employer and their contact details. It takes a minute and you only need an email address.</p>
+              <Link href={`/looking-for-work?next=${encodeURIComponent(here)}#start`} className="wk-btn go">Create a free profile</Link>
+              <p className="small muted" style={{ margin: '10px 0 0' }}>Already have one? <Link href={`/login?next=${encodeURIComponent(here)}`}>Log in</Link></p>
+            </div>
+          )}
+          {live && signedIn && (
             <div className="rc-apply">
               <h2 style={{ margin: '0 0 4px', color: 'var(--forest)', fontSize: '1.1rem' }}>How to apply</h2>
               <p className="small muted" style={{ margin: 0 }}>Contact {biz?.trading_name ?? 'the employer'} directly.</p>
@@ -79,10 +90,10 @@ export default async function VacancyPage({ params }: { params: Promise<{ vid: s
               <p className="small muted" style={{ margin: '10px 0 0' }}>Posted {ukDate(v.created_at.slice(0, 10))}.</p>
             </div>
           )}
-          <div className="panel small" style={{ marginTop: 14 }}>
+          {!signedIn ? null : <div className="panel small" style={{ marginTop: 14 }}>
             <p style={{ marginTop: 0 }}><strong>Looking for work?</strong> Post a free profile and we will email you vacancies like this one.</p>
             <Link href="/looking-for-work">Post a free profile</Link>
-          </div>
+          </div>}
         </aside>
       </div>
       <p className="muted small" style={{ marginTop: 18 }}>Vacancies are posted by TLGB members. We check member businesses, but not each vacancy, so make your own checks before you accept a job. Something wrong with this vacancy? <a href={`mailto:admin@tlgb.co.uk?subject=${encodeURIComponent(`Vacancy ${v.id}`)}`}>Tell us</a>.</p>
