@@ -32,3 +32,14 @@
 .plan-price-big .plan-was { font-size: 1.3rem; }
 .plan-founding { margin: 2px 0 0; font-size: .85rem; font-weight: 700; color: var(--rust, #b4532a); }
 .plan-fine { margin: 8px 0 0; font-size: .72rem; color: #8a8a8a; }
+
+.promo-video { margin: 18px auto 22px; max-width: 860px; }
+.promo-video video { width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; background: #14331f; display: block; box-shadow: 0 10px 30px rgba(0,0,0,.15); }
+.promo-video figcaption { text-align: center; margin-top: 8px; }
+.who { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin: 22px 0 14px; }
+.who a { display: flex; flex-direction: column; gap: 8px; padding: 26px 24px; border-radius: 16px; border: 2px solid var(--forest, #14331f); background: #fff; color: inherit; text-decoration: none; }
+.who a:hover, .who a:focus-visible { background: #eef5e8; }
+.who a strong { font-size: 1.45rem; color: var(--forest, #14331f); line-height: 1.15; }
+.who a span { color: #4d554f; }
+.who a em { font-style: normal; font-weight: 700; color: var(--rust, #b4532a); margin-top: auto; padding-top: 8px; }
+@media (max-width: 640px) { .who { grid-template-columns: 1fr; } }

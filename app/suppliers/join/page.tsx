@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import SupplierSignup from './SupplierSignup';
+import PromoVideo from '@/app/PromoVideo';
 import { CODE_COOKIE, describe, findCode, usable } from '@/lib/discounts';
 import { getSupplierPricing, tierKey, TIER_INFO, SUPPLIER_TIERS } from '@/lib/supplierPricing';
 import { stripeEnabled } from '@/lib/stripe';
@@ -35,6 +36,7 @@ export default async function SupplierJoin({ searchParams }: { searchParams: Pro
           Landscaping contractors use The Little Green Book to find suppliers and to ask several of them for prices at once.
           Choose how you want to be found. Both plans are paid yearly.
         </p>
+        <PromoVideo name="tlgb-suppliers" label="What a supplier plan gets you, in 50 seconds." />
         {offerBox}
         <div className="plans" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', alignItems: 'stretch' }}>
           {SUPPLIER_TIERS.map((k) => (

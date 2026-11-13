@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import QuickStart from './QuickStart';
 import JoinSteps from './JoinSteps';
 import PlanCards from '@/app/PlanCards';
+import PromoVideo from '@/app/PromoVideo';
 import { CODE_COOKIE, describe, findCode, usable } from '@/lib/discounts';
 import { getPricing, bandsWithPrices, yearlySaving } from '@/lib/pricing';
 import { stripeEnabled } from '@/lib/stripe';
@@ -15,7 +16,7 @@ const pounds = (n: number) => `£${Number.isInteger(n) ? n : n.toFixed(2)}`;
 type Plan = 'free' | 'month' | 'year';
 
 /** Sign-up: choose a plan first, then the account details, then payment (paid plans), then the rest. */
-export default async function JoinPage({ searchParams }: { searchParams: Promise<{ code?: string; plan?: string }> }) {
+export default async function JoinPage({ searchParams }: { searchParams: Promise<{ code?: string; plan?: string; as?: string }> }) {
   const sp = await searchParams;
   const raw = sp.code || (await cookies()).get(CODE_COOKIE)?.value;
   const found = raw ? await findCode(raw).catch(() => null) : null;
@@ -30,6 +31,35 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
   const offerBox = offer && (
     <p className="ok-box">Code <strong>{offer.code}</strong>: {describe(offer)}. It will be taken off when you pay.</p>
   );
+
+  // First question: a trade or a supplier? Each has its own sign-up. A plan already picked means a trade.
+  if (!plan && sp.as !== 'trade') {
+    const code = offer ? `?code=${encodeURIComponent(offer.code)}` : '';
+    return (
+      <div className="plans-page">
+        <h1>Join The Little Green Book</h1>
+        <p className="muted">First, tell us which you are, so we can show you the right sign-up.</p>
+        {offerBox}
+        <div className="who">
+          <Link href={`/join?as=trade${offer ? `&code=${encodeURIComponent(offer.code)}` : ''}`}>
+            <strong>I am a trade</strong>
+            <span>Landscapers, gardeners, groundworkers, fencers, tree surgeons and other external works businesses who carry out the work.</span>
+            <em>See trade membership</em>
+          </Link>
+          <Link href={`/suppliers/join${code}`}>
+            <strong>I am a supplier</strong>
+            <span>Nurseries, merchants, soil, turf, stone, fencing, machinery and plant hire businesses who sell to the trade.</span>
+            <em>See supplier plans</em>
+          </Link>
+        </div>
+        <p className="small">
+          Looking for work? <Link href="/looking-for-work">Post a free job seeker profile</Link>.{' '}
+          A main contractor or housebuilder? <Link href="/contractors/join">Create a free contractor account</Link>.{' '}
+          Already signed up? <Link href="/login">Log in</Link>.
+        </p>
+      </div>
+    );
+  }
 
   // Other pricing options keep the old order: account first, then details.
   if (!membership) {
@@ -54,6 +84,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
           Choose how you want to be listed.{m.trial_days ? <> Both verified options start with <strong>{m.trial_days} days free</strong>, with nothing to pay today.</> : null}{' '}
           Every business is checked by hand before it goes live, free or paid.
         </p>
+        <PromoVideo name="tlgb-trades" label="Everything in your membership, in 77 seconds." />
         {offerBox}
         <PlanCards monthly={m.monthly} yearly={m.yearly} trial={m.trial_days} save={yearlySaving(pricing)} live={live} target={{ join: true }} />
         <p className="muted small">
@@ -61,7 +92,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
           {' '}Prices exclude VAT. We are not VAT registered, so no VAT is charged at present.
           {!live && ' Online payment is not switched on yet, so only the free listing can be chosen for now.'}
         </p>
-        <p className="small">Already signed up? <Link href="/login">Log in</Link>. Supply the trade? <Link href="/suppliers/join">See supplier plans</Link>.</p>
+        <p className="small">Already signed up? <Link href="/login">Log in</Link>. Supply the trade? <Link href="/suppliers/join">See supplier plans</Link>. <Link href="/join">Back</Link>.</p>
       </div>
     );
   }
@@ -81,7 +112,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
       <h1>Set up your account</h1>
       <div className="plan-pick">
         <span>Your plan: <strong>{chosen}</strong></span>
-        <Link href="/join" className="small">change</Link>
+        <Link href="/join?as=trade" className="small">change</Link>
       </div>
       {offerBox}
       <QuickStart bands={bands} plan={plan} priceLine={priceLine} />
