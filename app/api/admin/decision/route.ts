@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     }).eq('id', id);
     await db().from('review_events').insert({ business_id: id, action: 'approved', actor, detail: notes || null });
     const chosen = ['active', 'trialing', 'past_due'].includes(b.subscription_status) ? 'paid' : b.free_listing ? 'free' : null;
-    await emailApplicantApproved(b.email, b.contact_name, b.trading_name, fd.get('founding_member') === 'on', chosen);
+    await emailApplicantApproved(b.email, b.contact_name, b.trading_name, fd.get('founding_member') === 'on', chosen, b.id);
   } else if (action === 'reject') {
     if (b.status !== 'pending_review') return new NextResponse('Only pending applications can be rejected', { status: 409 });
     if (!reason) return new NextResponse('A reason is required', { status: 400 });

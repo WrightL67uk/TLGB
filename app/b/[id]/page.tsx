@@ -27,11 +27,14 @@ export default async function BusinessPage({ params, searchParams }: { params: P
   const verified = !reason;
 
   const { data: photos } = await db().from('business_photos').select('storage_path, caption').eq('business_id', id).order('sort_order');
+  const { data: lg } = verified ? await db().from('businesses').select('logo_path').eq('id', id).maybeSingle() : { data: null };
+  const logo = (lg as { logo_path?: string | null } | null)?.logo_path ?? null;
   const me = await getContractor();
   const saved = me ? !!(await db().from('contractor_favourites').select('business_id', { count: 'exact', head: true }).eq('company_id', me.company.id).eq('business_id', id)).count : false;
 
   return (
     <div className="narrow">
+      {logo && <img src={photoUrl(logo)} alt={`${b.trading_name} logo`} className="listing-logo" />}
       <h1>{b.trading_name}</h1>
       <p className="muted">{b.trades.map(tradeLabel).join(', ')}</p>
       {me && error && <p className="err big">{error}</p>}

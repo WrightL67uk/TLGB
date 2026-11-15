@@ -32,6 +32,10 @@ export const PLAN_INFO: Record<PlanKey, { label: string; blurb: string }> = {
 // "was" prices are only displayed crossed out. Change these here when the offer ends.
 export const FOUNDING_OFFER = { monthlyWas: 45, yearlyWas: 450, ends: '31 December 2026' };
 
+// What people on the waiting list are promised: this much off the monthly price for this many paid months,
+// after the free trial. The launch code in admin must match (£ off, "a number of months").
+export const WAITLIST_OFFER = { off: 5, months: 3 };
+
 export const DEFAULT_PRICING: Pricing = {
   mode: 'bands',
   bands: Object.fromEntries(TURNOVER_BANDS.map((b) => [b.key, b.price])),

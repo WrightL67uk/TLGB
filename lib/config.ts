@@ -22,6 +22,11 @@ export const ACCREDITATION_LIST: Accreditation[] = [
   { key: 'CSCS/LISS cards', label: 'CSCS or LISS cards for all operatives', trades: [], expires: false },
   { key: 'TrustMark', label: 'TrustMark', trades: [], expires: true },
 
+  // Rail
+  { key: 'RISQS', label: 'RISQS (rail supplier qualification)', trades: [], expires: true },
+  { key: 'PTS/Sentinel', label: 'PTS and Sentinel carded operatives (rail)', trades: [], expires: false },
+  { key: 'Network Rail Principal Contractor', label: 'Network Rail Principal Contractor Licence', trades: [], expires: true },
+
   // Landscaping and grounds care
   { key: 'BALI', label: 'BALI accredited member', trades: ['landscaper', 'landscape-designer', 'grounds-maintenance', 'hard-landscaping', 'irrigation', 'supplier', 'nursery'], expires: true },
   { key: 'APL', label: 'Association of Professional Landscapers (APL)', trades: ['landscaper', 'landscape-designer', 'grounds-maintenance', 'hard-landscaping', 'irrigation'], expires: true },

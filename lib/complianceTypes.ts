@@ -47,6 +47,13 @@ export const DOC_TYPES: DocType[] = [
   { key: 'hs_policy', label: 'Health and safety policy', category: 'hs', checked: false, multiple: false, expires: false, core: true, template: 'health-and-safety-policy' },
   { key: 'rams', label: 'Risk assessment and method statement', category: 'hs', checked: false, multiple: true, expires: false, core: true, template: 'rams-soft-landscaping', hint: 'Add one for each type of work you do.' },
   { key: 'coshh', label: 'COSHH assessment', category: 'hs', checked: false, multiple: true, expires: false, core: true, template: 'coshh-assessment' },
+  { key: 'manual_handling', label: 'Manual handling assessment', category: 'hs', checked: false, multiple: true, expires: false, core: false },
+  { key: 'work_at_height', label: 'Working at height assessment', category: 'hs', checked: false, multiple: true, expires: false, core: false },
+  { key: 'havs', label: 'Hand-arm vibration (HAVS) assessment', category: 'hs', checked: false, multiple: true, expires: false, core: false },
+  { key: 'noise', label: 'Noise assessment', category: 'hs', checked: false, multiple: true, expires: false, core: false },
+  { key: 'lone_working', label: 'Lone working procedure', category: 'hs', checked: false, multiple: false, expires: false, core: false },
+  { key: 'accident_reporting', label: 'Accident and near miss reporting procedure', category: 'hs', checked: false, multiple: false, expires: false, core: false },
+  { key: 'hs_other', label: 'Other health and safety document', category: 'hs', checked: false, multiple: true, expires: false, core: false, hint: 'Anything else you get asked for: toolbox talks, PPE, fire, first aid, drugs and alcohol, emergency plans.' },
   { key: 'env_policy', label: 'Environmental policy', category: 'policy', checked: false, multiple: false, expires: false, core: true, template: 'environmental-policy' },
   { key: 'quality_policy', label: 'Quality policy', category: 'policy', checked: false, multiple: false, expires: false, core: true, template: 'quality-policy' },
   { key: 'modern_slavery', label: 'Modern slavery statement', category: 'policy', checked: false, multiple: false, expires: false, core: true, template: 'modern-slavery-statement' },
@@ -68,7 +75,7 @@ export const PACK_MIME = ['application/pdf', 'image/jpeg', 'image/png'];
 /** Suggested names for accreditation certificates. */
 export const ACCREDITATION_SUGGESTIONS = [
   'Constructionline Gold', 'Constructionline Silver', 'CHAS', 'SMAS Worksafe', 'SafeContractor',
-  'Acclaim', 'Avetta', 'ISO 9001', 'ISO 14001', 'ISO 45001', 'BALI', 'APL', 'NHSS 18', 'Arboricultural Association ARB Approved',
+  'Acclaim', 'Avetta', 'ISO 9001', 'ISO 14001', 'ISO 45001', 'BALI', 'APL', 'NHSS 18', 'RISQS', 'Arboricultural Association ARB Approved',
 ];
 
 export type DocStatus = 'checked' | 'provided' | 'pending' | 'rejected';

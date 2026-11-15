@@ -33,7 +33,9 @@ export function describe(c: Pick<DiscountCode, 'kind' | 'value' | 'duration' | '
   const off = c.kind === 'percent' ? `${Number(c.value)}% off` : `£${Number(c.value).toFixed(2).replace(/\.00$/, '')} off`;
   if (c.duration === 'once') return `${off} the first year`;
   if (c.duration === 'forever') return `${off} every year`;
-  const years = Math.max(1, Math.round((c.duration_months ?? 12) / 12));
+  const months = c.duration_months ?? 12;
+  if (months < 12) return `${off} each monthly payment for ${months} month${months === 1 ? '' : 's'}`;
+  const years = Math.max(1, Math.round(months / 12));
   return `${off} for ${years} year${years === 1 ? '' : 's'}`;
 }
 
@@ -57,13 +59,21 @@ export async function findCode(code: string) {
 /** Makes the coupon and promotion code in Stripe for a code saved in our table. */
 export async function pushToStripe(c: DiscountCode) {
   if (!stripeEnabled()) return c;
+  // Stripe counts a coupon's months from the day the membership starts, free trial included.
+  // A code that lasts a few months is meant as that many PAID months, so the trial is added on top.
+  let months = c.duration_months ?? 12;
+  if (c.duration === 'repeating' && months < 12) {
+    const { getPricing } = await import('@/lib/pricing');
+    const trial = (await getPricing()).membership.trial_days;
+    if (trial > 0) months += Math.ceil(trial / 30);
+  }
   let coupon = c.stripe_coupon_id;
   if (!coupon) {
     const made = await stripe('POST', 'coupons', {
       name: `${c.code}: ${describe(c)}`.slice(0, 40),
       ...(c.kind === 'percent' ? { percent_off: Number(c.value) } : { amount_off: Math.round(Number(c.value) * 100), currency: 'gbp' }),
       duration: c.duration,
-      ...(c.duration === 'repeating' ? { duration_in_months: c.duration_months ?? 12 } : {}),
+      ...(c.duration === 'repeating' ? { duration_in_months: months } : {}),
       metadata: { tlgb_code_id: c.id },
     });
     coupon = made.id as string;

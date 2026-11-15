@@ -61,23 +61,36 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <img src={LOGO_SRC} alt="" width={56} height={55} className="foot-logo" />
               <p>The Little Green Book. A directory of checked landscaping and external works trades.</p>
             </div>
-            <nav>
-              <Link href="/search">find a trade</Link>
-              <Link href="/tenders">tenders</Link>
-              <Link href="/suppliers">suppliers</Link>
-              <Link href="/help-hub">help hub</Link>
-              <Link href="/account/quotes">estimates</Link>
-              <Link href="/supply-chains">supply chain finder</Link>
-              <Link href="/guides">guides</Link>
-              <Link href="/toolkit">toolkit</Link>
-              <Link href="/accreditation-help">accreditation help</Link>
-              <Link href="/#checks">what we check</Link>
-              <Link href="/join">list your business</Link>
-              <Link href="/recruitment">recruitment</Link>
-              <Link href="/looking-for-work">post a job seeker profile</Link>
-              <Link href="/contractors">for main contractors</Link>
-              <Link href="/login">log in</Link>
-              <Link href="/menu">everything on TLGB</Link>
+            <nav className="foot-cols" aria-label="Site">
+              <div>
+                <h3>Find</h3>
+                <Link href="/search">Find a trade</Link>
+                <Link href="/suppliers">Suppliers</Link>
+                <Link href="/tenders">Tenders</Link>
+                <Link href="/recruitment">Recruitment</Link>
+                <Link href="/help-hub">Help Hub</Link>
+              </div>
+              <div>
+                <h3>Tools</h3>
+                <Link href="/account/quotes">Estimates</Link>
+                <Link href="/toolkit">Toolkit</Link>
+                <Link href="/guides">Guides</Link>
+                <Link href="/supply-chains">Supply chain finder</Link>
+                <Link href="/accreditation-help">Accreditation help</Link>
+              </div>
+              <div>
+                <h3>Join</h3>
+                <Link href="/join">List your business</Link>
+                <Link href="/suppliers/join">Supplier plans</Link>
+                <Link href="/contractors">For main contractors</Link>
+                <Link href="/looking-for-work">Looking for work</Link>
+                <Link href="/#checks">What we check</Link>
+              </div>
+              <div>
+                <h3>Account</h3>
+                <Link href="/login">Log in</Link>
+                <Link href="/menu">Everything on TLGB</Link>
+              </div>
             </nav>
           </div>
           <nav className="foot-legal">

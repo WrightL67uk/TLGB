@@ -64,11 +64,12 @@ export default async function AdminCodes({ searchParams }: { searchParams: Promi
             <select name="duration" defaultValue="once">
               <option value="once">First year only</option>
               <option value="years">A number of years</option>
+              <option value="months">A number of monthly payments (monthly plan)</option>
               <option value="forever">Every year while they stay a member</option>
             </select>
           </label>
-          <label style={{ flex: 1 }}>Years (if a number)
-            <input name="years" type="number" min="1" max="10" defaultValue="2" />
+          <label style={{ flex: 1 }}>Years or months (if a number)
+            <input name="years" type="number" min="1" max="11" defaultValue="2" />
           </label>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>

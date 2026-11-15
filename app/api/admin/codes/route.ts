@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const kind = fd.get('kind') === 'amount' ? 'amount' : 'percent';
     const value = Number(fd.get('value'));
     const durationRaw = String(fd.get('duration') ?? 'once');
-    const years = Math.max(1, Math.min(10, Math.round(Number(fd.get('years') || 2))));
+    const years = Math.max(1, Math.min(11, Math.round(Number(fd.get('years') || 2))));
     const maxUses = Number(fd.get('max_uses') || 0);
     const expires = String(fd.get('expires_on') ?? '');
 
@@ -28,13 +28,13 @@ export async function POST(req: NextRequest) {
     if (kind === 'percent' && value > 100) return back(req, err('A percentage discount cannot be more than 100.'));
     if (expires && !/^\d{4}-\d{2}-\d{2}$/.test(expires)) return back(req, err('The end date is not a valid date.'));
 
-    const duration = durationRaw === 'forever' ? 'forever' : durationRaw === 'years' ? 'repeating' : 'once';
+    const duration = durationRaw === 'forever' ? 'forever' : durationRaw === 'years' || durationRaw === 'months' ? 'repeating' : 'once';
     const { data, error } = await db().from('discount_codes').insert({
       code,
       kind,
       value,
       duration,
-      duration_months: duration === 'repeating' ? years * 12 : null,
+      duration_months: duration === 'repeating' ? (durationRaw === 'months' ? years : Math.min(10, years) * 12) : null,
       max_uses: maxUses > 0 ? Math.round(maxUses) : null,
       expires_on: expires || null,
       first_time_only: fd.get('first_time_only') === 'on',

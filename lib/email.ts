@@ -1,5 +1,6 @@
+import { badgeCode, BADGE_PATH, BADGE_W, BADGE_H } from './badge';
 import 'server-only';
-import { getPricing } from './pricing';
+import { getPricing, WAITLIST_OFFER } from './pricing';
 import sgMail from '@sendgrid/mail';
 import { env, siteUrl, TLGB_EMAIL } from './config';
 
@@ -134,7 +135,18 @@ export async function emailApplicantReceived(a: ApplicationSummary) {
   );
 }
 
-export async function emailApplicantApproved(to: string, name: string, tradingName: string, founding = false, chosen: 'paid' | 'free' | null = null) {
+/** The verified badge, with the code that puts it on the member's own website and links back to their listing. */
+function badgeBlock(businessId: string) {
+  const code = badgeCode(businessId);
+  return `<h3 style="margin:24px 0 6px">Your verified member badge</h3>
+<p>Show customers you have been checked. Add this badge to your website, quotes and email signature.</p>
+<p><img src="${siteUrl()}${BADGE_PATH}" alt="Verified member of The Little Green Book" width="${BADGE_W}" height="${BADGE_H}" style="border:0"></p>
+<p><strong>To add it to your website</strong>, paste this code where you want the badge to show, or forward this email to whoever looks after your site. It shows the badge and links it to your TLGB listing.</p>
+<p style="font-family:monospace;font-size:12px;background:#f3f1ea;border:1px solid #ddd8cc;border-radius:6px;padding:10px;word-break:break-all">${esc(code)}</p>
+<p>You can copy the code and download the badge at any time from <a href="${siteUrl()}/account/${businessId}/badge">your badge page</a>.</p>`;
+}
+
+export async function emailApplicantApproved(to: string, name: string, tradingName: string, founding = false, chosen: 'paid' | 'free' | null = null, businessId: string | null = null) {
   const pricing = await getPricing();
   const membershipMode = pricing.mode === 'membership';
   const trialDays = pricing.membership.trial_days;
@@ -147,7 +159,7 @@ export async function emailApplicantApproved(to: string, name: string, tradingNa
 <p>Contractors searching your area can now find you, and you have the full leads feed, the supply chain finder and the Help Hub. Keep your insurance documents up to date so your listing stays live.</p>${loginLine}`;
   } else if (chosen === 'paid') {
     body = `${hi}<p>Good news. <strong>${esc(tradingName)}</strong> has been approved and is now live with the <strong>Verified</strong> badge.</p>
-<p>Contractors searching your area can find you, and you have every lead and contractor job, the compliance pack, PQQ answer bank, estimate requests and your own website. Log in and make the most of them.</p>${loginLine}`;
+<p>Contractors searching your area can find you, and you have every lead and contractor job, the compliance pack, PQQ answer bank, estimate requests and your own website. Log in and make the most of them.</p>${loginLine}${businessId ? badgeBlock(businessId) : ''}`;
   } else if (chosen === 'free') {
     body = `${hi}<p>Good news. <strong>${esc(tradingName)}</strong> has been approved and is now live as a free listing, shown to contractors as Unverified.</p>
 <p>Go verified at any time${trialDays ? `, starting with ${trialDays} days free` : ''}, to get the badge, be shown first, and see every lead and contractor job.</p>${loginLine}`;
@@ -864,15 +876,41 @@ ${e.company ? `${esc(e.company)}<br>` : ''}${e.postcode ? `Site postcode: ${esc(
 
 /** Someone joined the coming soon waiting list. */
 export async function emailWaitlistWelcome(to: string, name: string) {
+  const m = (await getPricing()).membership;
+  const pounds = (n: number) => `£${Number.isInteger(n) ? n : n.toFixed(2)}`;
+  const offer = `${m.trial_days ? `<li><strong>${m.trial_days} days free</strong> to try everything</li>` : ''}
+<li>then <strong>${pounds(Math.max(0, m.monthly - WAITLIST_OFFER.off))} a month for your first ${WAITLIST_OFFER.months} months</strong></li>
+<li>then the standard monthly price at the time you join (${pounds(m.monthly)} today)</li>`;
   await send(
     to,
     'You are on the waiting list',
     `<p>Hi ${esc(name.split(' ')[0] || name)},</p>
 <p>Thanks for joining the waiting list for The Little Green Book.</p>
-<p>Before we open, we will send a one-time discount code to this email address, and you will be offered membership ahead of anyone else.</p>
+<p>As a thank you for being early, here is what you get when we open:</p>
+<ul>${offer}</ul>
+<p>Before we open we will email your one-time code to this address, and you will be offered membership ahead of anyone else. The code is for monthly membership and can be used once.</p>
 <p>If you did not sign up, you can ignore this email, or reply and we will remove your details.</p>
 <p>The Little Green Book</p>`,
     'waitlist'
+  );
+}
+
+/** Launch day: the invite to join as a founding member, with the waiting list code. */
+export async function emailWaitlistInvite(to: string, name: string, type: 'trade' | 'supplier' | null, code: string, offer: string) {
+  const supplier = type === 'supplier';
+  const link = `${siteUrl()}${supplier ? '/suppliers/join' : '/join'}?${supplier ? '' : 'as=trade&'}code=${encodeURIComponent(code)}`;
+  const m = (await getPricing()).membership;
+  await send(
+    to,
+    'We are open. Your founding member invite',
+    `<p>Hi ${esc(name.split(' ')[0] || name)},</p>
+<p>The Little Green Book is now open, and because you joined the waiting list you are invited first, as a <strong>founding member</strong>.</p>
+<p>Your code is <strong style="font-size:18px;letter-spacing:.06em">${esc(code)}</strong>${offer ? `: ${esc(offer)}` : ''}.${!supplier && m.trial_days ? ` Membership starts with ${m.trial_days} days free, so there is nothing to pay today.` : ''}</p>
+<p>${button(link, supplier ? 'See supplier plans' : 'Join as a founding member')}</p>
+<p>The button adds your code for you. It can be used once, so please do not pass it on.</p>
+<p>If you no longer want to hear from us, reply to this email and we will remove your details.</p>
+<p>The Little Green Book</p>`,
+    'waitlist-invite'
   );
 }
 

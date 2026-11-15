@@ -44,6 +44,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
 
   let results: Result[] | null = null;
   let thumbs = new Map<string, string>();
+  const logos = new Map<string, string>();
   let searchError: string | null = null;
 
   if (postcode) {
@@ -70,6 +71,12 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
             .in('business_id', results.map((r) => r.id))
             .order('sort_order');
           for (const p of photos ?? []) if (!thumbs.has(p.business_id)) thumbs.set(p.business_id, photoUrl(p.storage_path));
+        }
+        // Verified members show their logo on the card
+        const paidIds = results.filter((r) => r.verified).map((r) => r.id);
+        if (paidIds.length) {
+          const { data: lg } = await db().from('businesses').select('id, logo_path').in('id', paidIds).not('logo_path', 'is', null);
+          for (const l of lg ?? []) logos.set(l.id as string, photoUrl(l.logo_path as string));
         }
       }
     }
@@ -110,7 +117,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
               <Link href={`/b/${r.id}`} key={r.id} className="card">
                 {thumbs.get(r.id) ? <img src={thumbs.get(r.id)} alt="" /> : <div className="noimg" />}
                 <div className="card-body">
-                  <h3>{r.trading_name}</h3>
+                  <h3>{logos.get(r.id) && <img src={logos.get(r.id)} alt="" className="card-logo" />}{r.trading_name}</h3>
                   <p className="muted">{r.trades.map(tradeLabel).join(', ')}</p>
                   {r.verified ? (
                     <p className="badges">

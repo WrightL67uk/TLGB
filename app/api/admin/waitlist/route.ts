@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
 import { setComingSoon } from '@/lib/launch';
+import { findCode, usable, describe } from '@/lib/discounts';
+import { emailWaitlistInvite } from '@/lib/email';
 import { TYPE_LABEL, type MemberType } from '@/lib/waitlistType';
 
 export const runtime = 'nodejs';
+export const maxDuration = 300;
 
 // Behind the admin password (middleware).
 const csv = (v: unknown) => {
@@ -37,6 +40,29 @@ export async function POST(req: NextRequest) {
     if (!/^[0-9a-f-]{36}$/.test(id)) return back('error=Not+found');
     await db().from('waitlist').delete().eq('id', id);
     return back('removed=1');
+  }
+  if (action === 'invite') {
+    // Emails the launch invite and code to everyone who has not had it yet, 100 at a time.
+    if (fd.get('confirm') !== 'yes') return back('error=' + encodeURIComponent('Tick the box to confirm you want to send the emails.'));
+    const found = await findCode(String(fd.get('code') ?? ''));
+    if (!found) return back('error=' + encodeURIComponent('That code does not exist. Create it in Discount codes first.'));
+    if (!usable(found.code, found.uses)) return back('error=' + encodeURIComponent('That code is switched off, expired or used up.'));
+    const who = String(fd.get('who') ?? 'all');
+    let q = db().from('waitlist').select('id, name, email, member_type').is('code_sent_at', null).order('created_at').limit(100);
+    if (who === 'trade') q = q.or('member_type.eq.trade,member_type.is.null');
+    if (who === 'supplier') q = q.eq('member_type', 'supplier');
+    const { data: rows, error } = await q;
+    if (error) return back('error=Could+not+read+the+list');
+    let sent = 0;
+    for (const r of rows ?? []) {
+      try {
+        await emailWaitlistInvite(r.email, r.name, r.member_type, found.code.code, describe(found.code));
+        await db().from('waitlist').update({ code_sent_at: new Date().toISOString() }).eq('id', r.id);
+        sent++;
+      } catch (e) { console.error('waitlist invite failed', r.id, e); }
+    }
+    const { count: left } = await db().from('waitlist').select('id', { count: 'exact', head: true }).is('code_sent_at', null);
+    return back(`invited=${sent}&left=${left ?? 0}`);
   }
   return back('error=Unknown+action');
 }

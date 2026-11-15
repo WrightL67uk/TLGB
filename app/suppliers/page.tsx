@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getMembership } from '@/lib/membership';
 import '../resources.css';
-import { db } from '@/lib/supabase';
+import { db, photoUrl } from '@/lib/supabase';
 import { lookupPostcode } from '@/lib/postcodes';
 import { SUPPLIER_CATEGORIES, supplierCategoryLabel, miles, shortUrl } from '@/lib/resources';
 import { takesRequests, ratingsFor } from '@/lib/quotes';
@@ -17,7 +17,7 @@ export const metadata = {
 type Supplier = {
   id: string; name: string; categories: string[]; description: string | null; website: string | null; phone: string | null;
   town: string | null; postcode: string | null; lat: number | null; lng: number | null; delivers_nationally: boolean;
-  email: string | null; quote_requests: boolean; quote_plan: string | null; quote_paid_until: string | null;
+  email: string | null; logo_path: string | null; quote_requests: boolean; quote_plan: string | null; quote_paid_until: string | null;
   status?: 'approved'; tier?: 'appear' | 'match' | null; subscription_status?: string; slug?: string | null; public_email?: string | null;
 };
 type SP = Promise<{ q?: string; category?: string; postcode?: string }>;
@@ -32,7 +32,7 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
 
   let query = db()
     .from('suppliers')
-    .select('id, name, categories, description, website, phone, town, postcode, lat, lng, delivers_nationally, email, quote_requests, quote_plan, quote_paid_until, status, tier, subscription_status, slug, public_email')
+    .select('id, name, categories, description, website, phone, town, postcode, lat, lng, delivers_nationally, email, logo_path, quote_requests, quote_plan, quote_paid_until, status, tier, subscription_status, slug, public_email')
     .eq('status', 'approved')
     .order('name')
     .limit(500);
@@ -99,7 +99,7 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
       <div className="res-list">
         {rows.map((s) => (
           <div key={s.id} className={`res-card ${s.profile ? 'sup-paid' : ''}`}>
-            <h2>{s.profile ? <Link href={`/suppliers/${s.slug}`}>{s.name}</Link> : s.name}</h2>
+            <h2>{s.profile && s.logo_path && <img src={photoUrl(s.logo_path)} alt="" className="card-logo" />}{s.profile ? <Link href={`/suppliers/${s.slug}`}>{s.name}</Link> : s.name}</h2>
             <div className="badges">
               {s.categories.map((c) => <span key={c} className="badge ok">{supplierCategoryLabel(c)}</span>)}
               {s.delivers_nationally && <span className="badge">delivers nationally</span>}
