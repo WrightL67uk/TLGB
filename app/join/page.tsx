@@ -29,7 +29,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
   const plan: Plan | null = sp.plan === 'free' || sp.plan === 'month' || sp.plan === 'year' ? sp.plan : null;
 
   const offerBox = offer && (
-    <p className="ok-box">Code <strong>{offer.code}</strong>: {describe(offer)}. It will be taken off when you pay.</p>
+    <p className="ok-box">Code <strong>{offer.code}</strong>: {describe(offer)}.{offer.kind === 'price' ? ' Choose monthly to use it.' : ' It will be taken off when you pay.'}</p>
   );
 
   // First question: a trade or a supplier? Each has its own sign-up. A plan already picked means a trade.
@@ -86,12 +86,21 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
         </p>
         <PromoVideo name="tlgb-trades" label="Everything in your membership, in 77 seconds." />
         {offerBox}
-        <PlanCards monthly={m.monthly} yearly={m.yearly} trial={m.trial_days} save={yearlySaving(pricing)} live={live} target={{ join: true }} />
+        <PlanCards monthly={offer?.kind === 'price' && Number(offer.value) < m.monthly ? Number(offer.value) : m.monthly} yearly={m.yearly} trial={m.trial_days} save={yearlySaving(pricing)} live={live} target={{ join: true }} />
         <p className="muted small">
           Secure card payment through Stripe.{m.trial_days ? ' We email you before your free trial ends, and you can cancel before then and pay nothing.' : ''}
           {' '}Prices exclude VAT. We are not VAT registered, so no VAT is charged at present.
           {!live && ' Online payment is not switched on yet, so only the free listing can be chosen for now.'}
         </p>
+        {!offer && (
+          <form method="get" action="/join" style={{ display: 'flex', gap: 8, alignItems: 'end', flexWrap: 'wrap', margin: '10px 0' }}>
+            <input type="hidden" name="as" value="trade" />
+            <label className="small">Have a code?
+              <input name="code" maxLength={20} pattern="[A-Za-z0-9]{3,20}" style={{ textTransform: 'uppercase', width: 180 }} />
+            </label>
+            <button type="submit">Use code</button>
+          </form>
+        )}
         <p className="small">Already signed up? <Link href="/login">Log in</Link>. Supply the trade? <Link href="/suppliers/join">See supplier plans</Link>. <Link href="/join">Back</Link>.</p>
       </div>
     );

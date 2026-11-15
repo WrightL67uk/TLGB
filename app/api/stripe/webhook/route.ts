@@ -88,8 +88,12 @@ async function applySubscription(sub: Json) {
 /** Notes which discount code a paid checkout used, for the admin Discount codes page. */
 async function recordDiscount(session: Json) {
   const promo = (session.discounts ?? []).map((d: Json) => (typeof d.promotion_code === 'string' ? d.promotion_code : d.promotion_code?.id)).find(Boolean);
-  if (!promo) return;
-  const { data: code } = await db().from('discount_codes').select('id').eq('stripe_promo_id', promo).maybeSingle();
+  // Codes that set the price are not Stripe promotion codes: the checkout carries our own code id instead
+  const ours = typeof session.metadata?.tlgb_code_id === 'string' && /^[0-9a-f-]{36}$/.test(session.metadata.tlgb_code_id) ? session.metadata.tlgb_code_id : null;
+  if (!promo && !ours) return;
+  const { data: code } = ours
+    ? await db().from('discount_codes').select('id').eq('id', ours).maybeSingle()
+    : await db().from('discount_codes').select('id').eq('stripe_promo_id', promo).maybeSingle();
   if (!code) return;
   const sup = session.metadata?.supplier_id ? await findSupplier({ id: session.metadata.supplier_id, customer: session.customer }) : null;
   const b = sup ? null : await findBusiness({ id: session.metadata?.business_id ?? session.client_reference_id, customer: session.customer });

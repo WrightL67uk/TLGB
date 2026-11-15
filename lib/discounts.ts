@@ -14,7 +14,8 @@ export type DiscountCode = {
   id: string;
   created_at: string;
   code: string;
-  kind: 'percent' | 'amount';
+  /** percent and amount take money off. price sets the monthly membership price itself. */
+  kind: 'percent' | 'amount' | 'price';
   value: number;
   duration: 'once' | 'repeating' | 'forever';
   duration_months: number | null;
@@ -29,7 +30,14 @@ export type DiscountCode = {
 
 export const cleanCode = (v: unknown) => String(v ?? '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20);
 
+const money = (v: number) => `£${Number(v).toFixed(2).replace(/\.00$/, '')}`;
+
 export function describe(c: Pick<DiscountCode, 'kind' | 'value' | 'duration' | 'duration_months'>) {
+  if (c.kind === 'price') {
+    if (c.duration === 'forever') return `monthly membership for ${money(c.value)} a month, for as long as you stay a member`;
+    const n = c.duration_months ?? 3;
+    return `monthly membership for ${money(c.value)} a month for your first ${n} monthly payment${n === 1 ? '' : 's'}`;
+  }
   const off = c.kind === 'percent' ? `${Number(c.value)}% off` : `£${Number(c.value).toFixed(2).replace(/\.00$/, '')} off`;
   if (c.duration === 'once') return `${off} the first year`;
   if (c.duration === 'forever') return `${off} every year`;
@@ -58,7 +66,8 @@ export async function findCode(code: string) {
 
 /** Makes the coupon and promotion code in Stripe for a code saved in our table. */
 export async function pushToStripe(c: DiscountCode) {
-  if (!stripeEnabled()) return c;
+  // A code that sets the price has nothing to make in Stripe: the price is set when the payment page opens.
+  if (!stripeEnabled() || c.kind === 'price') return c;
   // Stripe counts a coupon's months from the day the membership starts, free trial included.
   // A code that lasts a few months is meant as that many PAID months, so the trial is added on top.
   let months = c.duration_months ?? 12;

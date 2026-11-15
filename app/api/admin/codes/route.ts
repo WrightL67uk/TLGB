@@ -16,7 +16,8 @@ export async function POST(req: NextRequest) {
 
   if (action === 'create') {
     const code = cleanCode(fd.get('code'));
-    const kind = fd.get('kind') === 'amount' ? 'amount' : 'percent';
+    const kindRaw = String(fd.get('kind') ?? '');
+    const kind = kindRaw === 'amount' ? 'amount' : kindRaw === 'price' ? 'price' : 'percent';
     const value = Number(fd.get('value'));
     const durationRaw = String(fd.get('duration') ?? 'once');
     const years = Math.max(1, Math.min(11, Math.round(Number(fd.get('years') || 2))));
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
     if (code.length < 3) return back(req, err('Codes need at least 3 letters or numbers.'));
     if (!(value > 0)) return back(req, err('Enter how much the discount is.'));
     if (kind === 'percent' && value > 100) return back(req, err('A percentage discount cannot be more than 100.'));
+    if (kind === 'price' && durationRaw !== 'months' && durationRaw !== 'forever') return back(req, err('A set monthly price lasts for a number of monthly payments, or for life. Choose one of those under How long it lasts.'));
     if (expires && !/^\d{4}-\d{2}-\d{2}$/.test(expires)) return back(req, err('The end date is not a valid date.'));
 
     const duration = durationRaw === 'forever' ? 'forever' : durationRaw === 'years' || durationRaw === 'months' ? 'repeating' : 'once';

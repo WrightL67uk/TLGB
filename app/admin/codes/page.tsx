@@ -49,13 +49,14 @@ export default async function AdminCodes({ searchParams }: { searchParams: Promi
           <input name="code" required minLength={3} maxLength={20} pattern="[A-Za-z0-9]+" style={{ textTransform: 'uppercase' }} />
         </label>
         <div style={{ display: 'flex', gap: 8, alignItems: 'end' }}>
-          <label style={{ flex: 1 }}>Discount
+          <label style={{ flex: 1 }}>Discount or price
             <input name="value" type="number" min="0.01" step="0.01" required />
           </label>
           <label style={{ flex: 1 }}>&nbsp;
             <select name="kind" defaultValue="percent">
               <option value="percent">% off</option>
               <option value="amount">£ off</option>
+              <option value="price">£ a month (sets the monthly price)</option>
             </select>
           </label>
         </div>
@@ -65,13 +66,17 @@ export default async function AdminCodes({ searchParams }: { searchParams: Promi
               <option value="once">First year only</option>
               <option value="years">A number of years</option>
               <option value="months">A number of monthly payments (monthly plan)</option>
-              <option value="forever">Every year while they stay a member</option>
+              <option value="forever">For life (while they stay a member)</option>
             </select>
           </label>
           <label style={{ flex: 1 }}>Years or months (if a number)
             <input name="years" type="number" min="1" max="11" defaultValue="2" />
           </label>
         </div>
+        <p className="muted small" style={{ margin: 0 }}>
+          <strong>Founding price for life:</strong> enter 25, choose &ldquo;£ a month&rdquo; and &ldquo;For life&rdquo;. They pay £25 every month for as long as they stay, whatever the standard price becomes.
+          A set monthly price works on monthly membership only, and only from a link with the code in it (or the code box on the sign-up page), not typed on the card page.
+        </p>
         <div style={{ display: 'flex', gap: 8 }}>
           <label style={{ flex: 1 }}>Most times it can be used (blank for no limit)
             <input name="max_uses" type="number" min="1" />

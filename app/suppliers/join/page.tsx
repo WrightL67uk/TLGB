@@ -21,7 +21,7 @@ export default async function SupplierJoin({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const raw = sp.code || (await cookies()).get(CODE_COOKIE)?.value;
   const found = raw ? await findCode(raw).catch(() => null) : null;
-  const offer = found && usable(found.code, found.uses) ? found.code : null;
+  const offer = found && usable(found.code, found.uses) && found.code.kind !== 'price' ? found.code : null;
   const prices = await getSupplierPricing();
   const live = stripeEnabled();
   const tier = tierKey(sp.plan);

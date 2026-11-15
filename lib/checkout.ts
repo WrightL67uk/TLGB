@@ -39,12 +39,31 @@ export async function openCheckout(b: Business, pricing: Pricing, choice: { inte
     await db().from('businesses').update({ stripe_customer_id: customer }).eq('id', b.id);
   }
   const trial = item.trialDays ?? Number(process.env.STRIPE_TRIAL_DAYS || 0);
-  const meta = { business_id: b.id, interval: item.interval, ...(item.plan ? { plan: item.plan } : {}) };
+  const meta: Record<string, string> = { business_id: b.id, interval: item.interval, ...(item.plan ? { plan: item.plan } : {}) };
   const tax = process.env.STRIPE_AUTOMATIC_TAX === '1';
   // A code from a shared link is applied for them. Otherwise they can type one on Stripe's page.
   // Stripe does not allow both at once.
   const fromLink = b.signup_code ? await findCode(b.signup_code) : null;
-  const promo = fromLink && usable(fromLink.code, fromLink.uses) ? fromLink.code.stripe_promo_id : null;
+  const live = fromLink && usable(fromLink.code, fromLink.uses) ? fromLink.code : null;
+  const promo = live && live.kind !== 'price' ? live.stripe_promo_id : null;
+  // A code that sets the monthly price (for example £25 a month for life). Monthly membership only.
+  const fixed = live && live.kind === 'price' && pricing.mode === 'membership' && item.interval === 'month' && Number(live.value) < item.price ? live : null;
+  let fixedCoupon: string | null = null;
+  if (fixed && fixed.duration === 'forever') {
+    item.price = Number(fixed.value); // the membership itself is set up at this price, so it stays when our prices change
+  } else if (fixed) {
+    // For a number of payments: money off for that long, then back to the price at the time they joined.
+    // Stripe counts the months from the day the trial starts, so the trial is added on.
+    const months = (fixed.duration_months ?? 3) + (trial > 0 ? Math.ceil(trial / 30) : 0);
+    const made = await stripe('POST', 'coupons', {
+      name: `${fixed.code}: £${Number(fixed.value)} a month`.slice(0, 40),
+      amount_off: Math.round((item.price - Number(fixed.value)) * 100), currency: 'gbp',
+      duration: 'repeating', duration_in_months: months,
+      metadata: { tlgb_code_id: fixed.id, business_id: b.id },
+    });
+    fixedCoupon = made.id as string;
+  }
+  if (fixed) Object.assign(meta, { tlgb_code_id: fixed.id });
   const params = {
     mode: 'subscription',
     payment_method_collection: 'if_required', // a 100% code means no card is asked for
@@ -54,7 +73,7 @@ export async function openCheckout(b: Business, pricing: Pricing, choice: { inte
       quantity: 1,
       price_data: {
         currency: 'gbp',
-        unit_amount: item.price * 100,
+        unit_amount: Math.round(item.price * 100),
         recurring: { interval: item.interval },
         product_data: { name: item.name },
         ...(tax ? { tax_behavior: 'exclusive' } : {}),
@@ -65,7 +84,7 @@ export async function openCheckout(b: Business, pricing: Pricing, choice: { inte
       ...(trial > 0 ? { trial_period_days: trial } : {}),
     },
     metadata: meta,
-    ...(promo ? { discounts: [{ promotion_code: promo }] } : { allow_promotion_codes: 'true' }),
+    ...(fixedCoupon ? { discounts: [{ coupon: fixedCoupon }] } : fixed ? {} : promo ? { discounts: [{ promotion_code: promo }] } : { allow_promotion_codes: 'true' }),
     billing_address_collection: 'auto',
     customer_update: { address: 'auto', name: 'auto' },
     ...(tax ? { automatic_tax: { enabled: 'true' }, tax_id_collection: { enabled: 'true' } } : {}),
@@ -77,7 +96,7 @@ export async function openCheckout(b: Business, pricing: Pricing, choice: { inte
     session = await stripe('POST', 'checkout/sessions', params);
   } catch (e) {
     // If Stripe will not take the code (used up, ended), open the page without it so they can still pay.
-    if (!promo) throw e;
+    if (!promo || fixed) throw e;
     console.warn('checkout with code failed, retrying without', e);
     const { discounts: _drop, ...rest } = params as Record<string, unknown>; // eslint-disable-line @typescript-eslint/no-unused-vars
     session = await stripe('POST', 'checkout/sessions', { ...rest, allow_promotion_codes: 'true' });
