@@ -376,8 +376,10 @@ export async function emailMemberPaymentFailed(to: string, tradingName: string) 
   );
 }
 
+// A table cell with a bgcolor attribute keeps its colour in email apps that strip CSS backgrounds,
+// so the white label never ends up on a white page.
 const button = (href: string, label: string) =>
-  `<a href="${href}" style="display:inline-block;background:#b8562a;color:#fff;padding:10px 18px;text-decoration:none;border-radius:2px;font-weight:bold">${esc(label)}</a>`;
+  `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="display:inline-table"><tr><td bgcolor="#b8562a" style="background:#b8562a;border-radius:4px"><a href="${href}" style="display:inline-block;padding:11px 20px;color:#ffffff;text-decoration:none;font-weight:bold;font-family:Arial,sans-serif"><font color="#ffffff">${esc(label)}</font></a></td></tr></table>`;
 
 /** A member uploaded an insurance or accreditation certificate to their compliance pack. */
 export async function emailAdminComplianceUpload(b: { id: string; tradingName: string }, title: string) {

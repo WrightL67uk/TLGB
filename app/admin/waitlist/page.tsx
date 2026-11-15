@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 const when = (s: string) => new Date(s).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' });
 
-export default async function AdminWaitlist({ searchParams }: { searchParams: Promise<{ saved?: string; removed?: string; error?: string; invited?: string; left?: string }> }) {
+export default async function AdminWaitlist({ searchParams }: { searchParams: Promise<{ saved?: string; removed?: string; error?: string; invited?: string; left?: string; tested?: string }> }) {
   const sp = await searchParams;
   const on = await comingSoon();
   const { data, error } = await db().from('waitlist').select('id, created_at, name, business_name, email, phone, code_sent_at, member_type, source').order('created_at', { ascending: false }).limit(5000);
@@ -21,6 +21,7 @@ export default async function AdminWaitlist({ searchParams }: { searchParams: Pr
       <h1>Waiting list</h1>
       {sp.saved && <p className="ok-box">{sp.saved === 'on' ? 'The homepage now shows the coming soon page.' : 'The coming soon page is off. The homepage now shows the full site.'}</p>}
       {sp.removed && <p className="ok-box">Removed from the list.</p>}
+      {sp.tested && <p className="ok-box"><strong>Test sent to {sp.tested}.</strong> Nobody on the list was emailed.</p>}
       {sp.invited && <p className="ok-box"><strong>{sp.invited} invite{sp.invited === '1' ? '' : 's'} sent.</strong> {Number(sp.left) > 0 ? `${sp.left} still to send. Press the button again to send the next batch.` : 'Everyone on the list has now been sent their code.'}</p>}
       {sp.error && <p className="err big">{sp.error}</p>}
       {error && <p className="err big">The waiting list table is not set up yet (migration 022 needs running).</p>}
@@ -61,6 +62,25 @@ export default async function AdminWaitlist({ searchParams }: { searchParams: Pr
           </div>
           <label className="check"><input type="checkbox" name="confirm" value="yes" required /> Yes, send the emails now. This cannot be undone.</label>
           <div><button type="submit">Send launch invites</button></div>
+        </form>
+        <h3 style={{ marginBottom: 4 }}>Send yourself a test first</h3>
+        <form method="post" action="/api/admin/waitlist" className="stack">
+          <input type="hidden" name="action" value="invite_test" />
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'end' }}>
+            <label style={{ flex: 1, minWidth: 160 }}>Code
+              <input name="code" required placeholder="e.g. FOUNDER25" />
+            </label>
+            <label style={{ flex: 1, minWidth: 200 }}>Send the test to
+              <input name="test_email" type="email" required placeholder="you@example.com" />
+            </label>
+            <label style={{ minWidth: 140 }}>Version
+              <select name="who" defaultValue="trade">
+                <option value="trade">Trade</option>
+                <option value="supplier">Supplier</option>
+              </select>
+            </label>
+            <button type="submit">Send test</button>
+          </div>
         </form>
         <p className="muted small">Create the code first in <Link href="/admin/codes">Discount codes</Link>. Switch the coming soon page off before you send, so the link takes people to the sign-up.</p>
       </div>

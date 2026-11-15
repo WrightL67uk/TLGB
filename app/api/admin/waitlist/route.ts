@@ -41,6 +41,21 @@ export async function POST(req: NextRequest) {
     await db().from('waitlist').delete().eq('id', id);
     return back('removed=1');
   }
+  if (action === 'invite_test') {
+    // Sends the real invite to one address only, so it can be checked. Nobody on the list is marked as sent.
+    const to = String(fd.get('test_email') ?? '').trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(to)) return back('error=' + encodeURIComponent('Enter the email address to send the test to.'));
+    const found = await findCode(String(fd.get('code') ?? ''));
+    if (!found) return back('error=' + encodeURIComponent('That code does not exist. Create it in Discount codes first.'));
+    const who = String(fd.get('who') ?? 'trade') === 'supplier' ? 'supplier' : 'trade';
+    try {
+      await emailWaitlistInvite(to, 'Test', who, found.code.code, describe(found.code));
+    } catch (e) {
+      console.error('waitlist test invite failed', e);
+      return back('error=' + encodeURIComponent('The test email could not be sent.'));
+    }
+    return back('tested=' + encodeURIComponent(to));
+  }
   if (action === 'invite') {
     // Emails the launch invite and code to everyone who has not had it yet, 100 at a time.
     if (fd.get('confirm') !== 'yes') return back('error=' + encodeURIComponent('Tick the box to confirm you want to send the emails.'));
