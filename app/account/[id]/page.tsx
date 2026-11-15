@@ -216,6 +216,37 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
         </section>
       )}
 
+      {b.status === 'approved' && isPaid(b) && (
+        <section className="panel">
+          <h2>Your verified badge</h2>
+          <div className="cp-summary">
+            <p>Put the verified member badge on your website, linked to your listing. We give you the code to paste in.</p>
+            <Link href={`/account/${b.id}/badge`} className="sq sq-rust">Get my badge</Link>
+          </div>
+        </section>
+      )}
+
+      <section className="panel" id="logo">
+        <h2>Your logo</h2>
+        {logoMsg && (logoMsg === 'saved' || logoMsg === 'removed'
+          ? <p className="ok-box">{logoMsg === 'saved' ? 'Logo saved.' : 'Logo removed.'}</p>
+          : <p className="err">{logoMsg.slice(0, 200)}</p>)}
+        <p className="muted">Verified members have their logo shown next to their name in search results and on their listing. JPG, PNG or WebP, under 2MB. Square logos look best.</p>
+        {logoPath && <p><img src={photoUrl(logoPath)} alt="Your logo" className="listing-logo" /></p>}
+        <form method="post" action="/api/account/logo" encType="multipart/form-data" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <input type="hidden" name="business_id" value={b.id} />
+          <input type="file" name="logo" accept="image/jpeg,image/png,image/webp" required />
+          <button type="submit">{logoPath ? 'Replace logo' : 'Add logo'}</button>
+        </form>
+        {logoPath && (
+          <form method="post" action="/api/account/logo" style={{ marginTop: 8 }}>
+            <input type="hidden" name="business_id" value={b.id} />
+            <input type="hidden" name="action" value="remove" />
+            <button type="submit" className="linkish small">Remove logo</button>
+          </form>
+        )}
+      </section>
+
       {b.status === 'approved' && (
         <section className="panel">
           <h2>Compliance pack</h2>
@@ -330,37 +361,6 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
           )}
         </section>
       )}
-
-      {b.status === 'approved' && isPaid(b) && (
-        <section className="panel">
-          <h2>Your verified badge</h2>
-          <div className="cp-summary">
-            <p>Put the verified member badge on your website, linked to your listing. We give you the code to paste in.</p>
-            <Link href={`/account/${b.id}/badge`} className="sq sq-rust">Get my badge</Link>
-          </div>
-        </section>
-      )}
-
-      <section className="panel" id="logo">
-        <h2>Your logo</h2>
-        {logoMsg && (logoMsg === 'saved' || logoMsg === 'removed'
-          ? <p className="ok-box">{logoMsg === 'saved' ? 'Logo saved.' : 'Logo removed.'}</p>
-          : <p className="err">{logoMsg.slice(0, 200)}</p>)}
-        <p className="muted">Verified members have their logo shown next to their name in search results and on their listing. JPG, PNG or WebP, under 2MB. Square logos look best.</p>
-        {logoPath && <p><img src={photoUrl(logoPath)} alt="Your logo" className="listing-logo" /></p>}
-        <form method="post" action="/api/account/logo" encType="multipart/form-data" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-          <input type="hidden" name="business_id" value={b.id} />
-          <input type="file" name="logo" accept="image/jpeg,image/png,image/webp" required />
-          <button type="submit">{logoPath ? 'Replace logo' : 'Add logo'}</button>
-        </form>
-        {logoPath && (
-          <form method="post" action="/api/account/logo" style={{ marginTop: 8 }}>
-            <input type="hidden" name="business_id" value={b.id} />
-            <input type="hidden" name="action" value="remove" />
-            <button type="submit" className="linkish small">Remove logo</button>
-          </form>
-        )}
-      </section>
 
       <AccountEditor
         b={{
