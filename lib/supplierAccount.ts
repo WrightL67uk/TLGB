@@ -104,7 +104,7 @@ export async function photosFor(supplierId: string) {
 export const MAX_SUPPLIER_PHOTOS = 12;
 
 export const MAX_SUPPLIER_VIDEOS = 3;
-export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+export const MAX_VIDEO_BYTES = 45 * 1024 * 1024;
 export const VIDEO_MIME = ['video/mp4', 'video/quicktime', 'video/webm'];
 export type SupplierVideo = { id: string; storage_path: string; caption: string | null; status: 'pending' | 'approved' };
 /** Videos for a supplier. Buyers only ever see the approved ones. */

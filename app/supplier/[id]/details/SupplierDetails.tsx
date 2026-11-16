@@ -14,7 +14,7 @@ type S = {
 };
 type Photo = { id: string; url: string; caption: string };
 type Video = { id: string; url: string; caption: string; approved: boolean };
-const MAX_VIDEO_MB = 50;
+const MAX_VIDEO_MB = 45;
 
 async function post(url: string, body: unknown) {
   const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
