@@ -18,7 +18,7 @@ export const runtime = 'nodejs';
 // Creates the supplier as 'started' (hidden), logs them in and sends them straight to Stripe.
 
 const Body = z.object({
-  tier: z.enum(['appear', 'match'], { message: 'Choose a plan first' }),
+  tier: z.enum(['basic', 'appear', 'match'], { message: 'Choose a plan first' }),
   business_type: z.enum(['ltd', 'sole_trader'], { message: 'Choose how your business is set up' }),
   company_number: z.string().trim().max(10).optional(),
   trading_name: z.string().trim().max(120).optional(),
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 
   const { data: row, error } = await db().from('suppliers').insert({
     status: 'started',
-    tier: d.tier,
+    tier: d.tier === 'basic' ? null : d.tier,
     name,
     slug: await freeSlug(name),
     contact_name: d.contact_name,
@@ -96,12 +96,14 @@ export async function POST(req: NextRequest) {
 
   const { error: pwErr } = await setPassword(d.email, d.password);
   if (pwErr) console.error('supplier signup password failed', pwErr);
-  await emailAdminSupplier(`New supplier sign-up: ${name}`, `${name} (${d.email}) has chosen ${d.tier === 'match' ? 'Match' : 'Appear'} and is going to payment. Their details are not sent yet.`, row.id).catch(() => null);
+  await emailAdminSupplier(`New supplier sign-up: ${name}`, `${name} (${d.email}) has chosen ${d.tier === 'basic' ? 'the free Basic listing' : `${d.tier === 'match' ? 'Match' : 'Appear'} and is going to payment`}. Their details are not sent yet.`, row.id).catch(() => null);
 
   let next = `/supplier/${row.id}`;
-  if (stripeEnabled()) {
+  if (d.tier === 'basic') {
+    next = `/supplier/${row.id}/details`; // free: nothing to pay, straight to their details
+  } else if (stripeEnabled()) {
     try {
-      const r = await openSupplierCheckout(row as Supplier, await getSupplierPricing(), d.tier);
+      const r = await openSupplierCheckout(row as Supplier, await getSupplierPricing(), d.tier as 'appear' | 'match');
       next = 'url' in r ? r.url : `${next}?billing=${encodeURIComponent(r.error)}`;
     } catch (e) {
       console.error('supplier signup checkout failed', e);

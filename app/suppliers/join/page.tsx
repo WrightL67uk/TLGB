@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import SupplierSignup from './SupplierSignup';
 import PromoVideo from '@/app/PromoVideo';
 import { CODE_COOKIE, describe, findCode, usable } from '@/lib/discounts';
-import { getSupplierPricing, tierKey, TIER_INFO, SUPPLIER_TIERS } from '@/lib/supplierPricing';
+import { getSupplierPricing, tierKey, TIER_INFO, SUPPLIER_TIERS, BASIC_INFO } from '@/lib/supplierPricing';
 import { stripeEnabled } from '@/lib/stripe';
 import '../../plans.css';
 
@@ -24,7 +24,7 @@ export default async function SupplierJoin({ searchParams }: { searchParams: Pro
   const offer = found && usable(found.code, found.uses) && found.code.kind !== 'price' ? found.code : null;
   const prices = await getSupplierPricing();
   const live = stripeEnabled();
-  const tier = tierKey(sp.plan);
+  const tier = sp.plan === 'basic' ? 'basic' as const : tierKey(sp.plan);
   const offerBox = offer && <p className="ok-box">Code <strong>{offer.code}</strong>: {describe(offer)}. It will be taken off when you pay.</p>;
 
   if (!tier) {
@@ -34,11 +34,21 @@ export default async function SupplierJoin({ searchParams }: { searchParams: Pro
         <h1>Put your supply business in front of the trade</h1>
         <p className="muted">
           Landscaping contractors use The Little Green Book to find suppliers and to ask several of them for prices at once.
-          Choose how you want to be found. Both plans are paid yearly.
+          Choose how you want to be found. Start with a free Basic listing, or pick a paid plan (paid yearly) for a full profile and more enquiries.
         </p>
         <PromoVideo name="tlgb-suppliers" label="What a supplier plan gets you, in 50 seconds." />
         {offerBox}
-        <div className="plans" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', alignItems: 'stretch' }}>
+        <div className="plans sup-plans" style={{ alignItems: 'stretch' }}>
+          <section className="plan">
+            <h2>{BASIC_INFO.label}</h2>
+            <p className="muted small" style={{ margin: '2px 0 0' }}>{BASIC_INFO.tagline}</p>
+            <p className="plan-price">Free</p>
+            <ul>
+              {BASIC_INFO.features.map((f) => <li key={f} className="yes">{f}</li>)}
+              {BASIC_INFO.missing.map((f) => <li key={f} className="no">{f}</li>)}
+            </ul>
+            <Link href="/suppliers/join?plan=basic" className="plan-btn">Choose Basic</Link>
+          </section>
           {SUPPLIER_TIERS.map((k) => (
             <section key={k} className={`plan ${k === 'match' ? 'plan-best' : 'plan-mid'}`}>
               {k === 'match' && <span className="plan-badge">Most orders</span>}
@@ -75,7 +85,7 @@ export default async function SupplierJoin({ searchParams }: { searchParams: Pro
       <Steps on={1} />
       <h1>Set up your supplier account</h1>
       <div className="plan-pick">
-        <span>Your plan: <strong>{TIER_INFO[tier].label}, {pounds(prices[tier])} a year</strong></span>
+        <span>Your plan: <strong>{tier === 'basic' ? 'Basic, free' : `${TIER_INFO[tier].label}, ${pounds(prices[tier])} a year`}</strong></span>
         <Link href="/suppliers/join" className="small">change</Link>
       </div>
       {offerBox}

@@ -79,6 +79,7 @@ export default function SupplierDetails({ supplier, logoUrl, photos }: { supplie
     </div>
   );
 
+  const basic = !f.tier; // the free listing: name, what they supply and contact details only
   return (
     <form className="res-form" onSubmit={(e) => { e.preventDefault(); void save(started); }}>
       {msg && <p className={msg.kind === 'ok' ? 'ok-box' : 'err big'}>{msg.text}</p>}
@@ -93,6 +94,7 @@ export default function SupplierDetails({ supplier, logoUrl, photos }: { supplie
       <label>Summary for the supplier list (one or two sentences)
         <textarea value={f.description} onChange={(e) => set('description', e.target.value)} maxLength={400} rows={3} placeholder="What you supply and who to" />
       </label>
+      {!basic && <>
       <label>About us (shown on your company profile)
         <textarea value={f.about} onChange={(e) => set('about', e.target.value)} maxLength={2000} rows={6} placeholder="Who you are, what you are known for, your ranges, how you look after trade customers" />
         <span className="hint">{f.about.length} of 2,000 characters</span>
@@ -123,13 +125,15 @@ export default function SupplierDetails({ supplier, logoUrl, photos }: { supplie
         {busy === 'photo' && <span className="hint"> Uploading...</span>}
       </div>
 
+      </>}
+      {basic && <p className="ok-box" style={{ margin: 0 }}>You are on the free Basic listing. A company profile page, logo, pictures and your email address come with the Appear and Match plans. <a href={`/supplier/${f.id}`}>See the plans</a>.</p>}
       <h2 style={{ margin: '12px 0 0' }}>Contact details shown on your listing</h2>
       <div className="row">
         <label>Contact name<input value={f.contact_name} onChange={(e) => set('contact_name', e.target.value)} required /></label>
         <label>Phone<input value={f.phone} onChange={(e) => set('phone', e.target.value)} required /></label>
       </div>
       <div className="row">
-        <label>Email shown to buyers<input type="email" value={f.public_email} onChange={(e) => set('public_email', e.target.value)} placeholder={f.email} /><span className="hint">Leave blank to show {f.email}.</span></label>
+        {!basic && <label>Email shown to buyers<input type="email" value={f.public_email} onChange={(e) => set('public_email', e.target.value)} placeholder={f.email} /><span className="hint">Leave blank to show {f.email}.</span></label>}
         <label>Website<input value={f.website} onChange={(e) => set('website', e.target.value)} placeholder="www.example.co.uk" /></label>
       </div>
       <label>Address (optional)<input value={f.address} onChange={(e) => set('address', e.target.value)} maxLength={200} /></label>
@@ -138,8 +142,9 @@ export default function SupplierDetails({ supplier, logoUrl, photos }: { supplie
         <label>Postcode of your yard or depot<input value={f.postcode} onChange={(e) => set('postcode', e.target.value)} required /></label>
       </div>
 
-      <h2 style={{ margin: '12px 0 0' }}>How you work with trade buyers</h2>
+      <h2 style={{ margin: '12px 0 0' }}>{basic ? 'Delivery' : 'How you work with trade buyers'}</h2>
       <label className="checks" style={{ fontWeight: 400 }}><input type="checkbox" checked={f.delivers_nationally} onChange={(e) => set('delivers_nationally', e.target.checked)} /> We deliver nationally</label>
+      {!basic && <>
       <div className="checks">
         {DELIVERY_OPTIONS.map((d) => <label key={d.key}><input type="checkbox" checked={f.delivery_options.includes(d.key)} onChange={() => toggle('delivery_options', d.key)} /> {d.label}</label>)}
       </div>
@@ -161,6 +166,7 @@ export default function SupplierDetails({ supplier, logoUrl, photos }: { supplie
         {yn(f.product_liability, (b) => set('product_liability', b), 'pli')}
       </div>
 
+      </>}
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         {started ? (
           <>
@@ -171,7 +177,7 @@ export default function SupplierDetails({ supplier, logoUrl, photos }: { supplie
           <button type="submit" className="primary" disabled={!!busy}>{busy === 'save' ? 'Saving...' : 'Save changes'}</button>
         )}
       </div>
-      {started && <p className="muted small">We check every supplier by hand before it goes live, usually within a working day. If we cannot approve your listing, you get your money back.</p>}
+      {started && <p className="muted small">We check every supplier by hand before it goes live, usually within a working day. {basic ? '' : 'If we cannot approve your listing, you get your money back.'}</p>}
     </form>
   );
 }

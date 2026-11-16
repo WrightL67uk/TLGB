@@ -34,6 +34,14 @@ export const TIER_INFO: Record<SupplierTier, { label: string; tagline: string; f
   },
 };
 
+/** The free listing: in the directory with the basics, nothing more. Stored as a supplier with no tier. */
+export const BASIC_INFO = {
+  label: 'Basic',
+  tagline: 'A simple free listing',
+  features: ['Your business name in the supplier list', 'What you supply, with a short summary', 'Your town, phone number and website'],
+  missing: ['No company profile page', 'No logo or pictures', 'No email address shown', 'Listed below paying suppliers'],
+};
+
 export const DEFAULT_SUPPLIER_PRICING: SupplierPricing = { appear: 195, match: 495 };
 
 const whole = (v: unknown, fallback: number) => {

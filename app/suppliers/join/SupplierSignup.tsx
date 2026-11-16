@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 type Hit = { companyNumber: string; name: string; status: string; address: string };
 
 /** The account step for suppliers: set-up, Companies House, VAT, name, email and password. Payment and the rest come after. */
-export default function SupplierSignup({ tier }: { tier: 'appear' | 'match' }) {
+export default function SupplierSignup({ tier }: { tier: 'basic' | 'appear' | 'match' }) {
+  const free = tier === 'basic';
   const [type, setType] = useState<'ltd' | 'sole_trader' | null>(null);
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[]>([]);
@@ -168,8 +169,10 @@ export default function SupplierSignup({ tier }: { tier: 'appear' | 'match' }) {
             <span>I agree to the <a href="/legal/terms" target="_blank">website terms</a> and <a href="/legal/member-terms" target="_blank">member terms</a> (including the supplier plan terms), and I have read the <a href="/legal/privacy" target="_blank">privacy notice</a>.</span>
           </label>
           {error && <p className="err big">{error}</p>}
-          <button type="submit" className="primary" disabled={busy}>{busy ? 'Opening secure payment...' : 'Continue to payment'}</button>
-          <p className="muted small">Next you go to Stripe to pay for the year. Then you add your products, pictures and company details, and send them to us to check. If we cannot approve your listing, you get your money back.</p>
+          <button type="submit" className="primary" disabled={busy}>{busy ? (free ? 'Setting up your account...' : 'Opening secure payment...') : free ? 'Create my free listing' : 'Continue to payment'}</button>
+          {free
+            ? <p className="muted small">Next you add what you supply and your contact details, and send them to us to check. There is nothing to pay.</p>
+            : <p className="muted small">Next you go to Stripe to pay for the year. Then you add your products, pictures and company details, and send them to us to check. If we cannot approve your listing, you get your money back.</p>}
         </>
       )}
     </form>

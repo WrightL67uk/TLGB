@@ -22,7 +22,8 @@ export async function POST(req: NextRequest) {
   if (!stripeEnabled()) return back(req, id, 'billing=' + encodeURIComponent('Online payment is not switched on yet. We will be in touch.'));
   if (isSubscribed(s)) return back(req, id, 'billing=' + encodeURIComponent('Your plan is already active. Use Manage billing to change it.'));
   try {
-    if (tier !== s.tier) await db().from('suppliers').update({ tier }).eq('id', s.id);
+    // A free Basic listing keeps showing while they pay: the plan is set when the payment comes through.
+    if (s.tier && tier !== s.tier) await db().from('suppliers').update({ tier }).eq('id', s.id);
     const r = await openSupplierCheckout({ ...s, tier }, await getSupplierPricing(), tier);
     if ('error' in r) return back(req, id, 'billing=' + encodeURIComponent(r.error));
     return NextResponse.redirect(r.url, 303);

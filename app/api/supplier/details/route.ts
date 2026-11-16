@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   if (!pc.ok) return fail(pc.reason);
 
   const submitting = !!d.submit && s.status === 'started';
-  if (submitting) {
+  if (submitting && s.tier) {
     if (!isSubscribed(s)) return fail('Please complete payment first, then send your details.');
     if ((d.about ?? '').length < 40) return fail('Tell buyers a bit about your company in "About us" (a few sentences).');
     const { count } = await db().from('supplier_photos').select('id', { count: 'exact', head: true }).eq('supplier_id', s.id);
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
     if (/^[0-9a-f-]{36}$/i.test(id)) await db().from('supplier_photos').update({ caption: caption || null }).eq('id', id).eq('supplier_id', s.id);
   }
   if (submitting) {
-    await emailAdminSupplier(`Supplier waiting for approval: ${s.name}`, `${s.name} has paid for ${s.tier === 'match' ? 'Match' : 'Appear'} and sent their details to be checked.`, s.id).catch(() => null);
+    await emailAdminSupplier(`Supplier waiting for approval: ${s.name}`, s.tier ? `${s.name} has paid for ${s.tier === 'match' ? 'Match' : 'Appear'} and sent their details to be checked.` : `${s.name} has sent a free Basic listing to be checked.`, s.id).catch(() => null);
   }
   return NextResponse.json({ ok: true, submitted: submitting });
 }

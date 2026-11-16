@@ -74,7 +74,7 @@ export default async function AdminResources({ searchParams }: { searchParams: P
         </div>
       ) : (
         <div key={s.id} className="ok-box" style={{ marginBottom: 12, background: '#fff', border: '1px solid #ddd' }}>
-          <strong>{s.name}</strong> ({s.categories.map(supplierCategoryLabel).join(', ')})<br />
+          <strong>{s.name}</strong> <span className="status">Basic (free)</span> ({s.categories.map(supplierCategoryLabel).join(', ')})<br />
           {s.description}<br />
           {s.website && <><a href={s.website} target="_blank" rel="noopener">{s.website}</a> &middot; </>}
           {s.phone} &middot; {s.town} {s.postcode} &middot; submitted by {s.email} on {ukDate(s.created_at)}
@@ -89,7 +89,7 @@ export default async function AdminResources({ searchParams }: { searchParams: P
       {!!started?.length && (
         <>
           <h3>Signed up, details not sent yet ({started.length})</h3>
-          {started.map((s) => <p key={s.id} style={{ margin: '2px 0' }}>{s.name} ({s.email}), {s.tier ? TIER_INFO[s.tier as 'appear' | 'match'].label : 'no plan'}, {['active', 'trialing'].includes(s.subscription_status) ? 'paid' : 'not paid'}, {ukDate(s.created_at)}</p>)}
+          {started.map((s) => <p key={s.id} style={{ margin: '2px 0' }}>{s.name} ({s.email}), {s.tier ? TIER_INFO[s.tier as 'appear' | 'match'].label : 'Basic (free)'}, {['active', 'trialing'].includes(s.subscription_status) ? 'paid' : 'not paid'}, {ukDate(s.created_at)}</p>)}
         </>
       )}
 

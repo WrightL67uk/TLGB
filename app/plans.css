@@ -43,3 +43,6 @@
 .who a span { color: #4d554f; }
 .who a em { font-style: normal; font-weight: 700; color: var(--rust, #b4532a); margin-top: auto; padding-top: 8px; }
 @media (max-width: 640px) { .who { grid-template-columns: 1fr; } }
+
+.sup-plans { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .sup-plans { grid-template-columns: 1fr; } }

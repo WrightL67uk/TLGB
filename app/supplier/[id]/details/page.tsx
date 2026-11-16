@@ -25,16 +25,16 @@ export default async function SupplierDetailsPage({ params }: { params: Promise<
     <div className="narrow">
       {started && (
         <ol className="join-steps" aria-label="Sign-up steps">
-          {['Choose your plan', 'Your account', 'Payment', 'Your details', 'Send for approval'].map((x, i) => <li key={x} className={i === 3 ? 'on' : ''}>{i + 1}. {x}</li>)}
+          {(s.tier ? ['Choose your plan', 'Your account', 'Payment', 'Your details', 'Send for approval'] : ['Choose your plan', 'Your account', 'Your details', 'Send for approval']).map((x, i) => <li key={x} className={i === (s.tier ? 3 : 2) ? 'on' : ''}>{i + 1}. {x}</li>)}
         </ol>
       )}
       <p className="small"><Link href={`/supplier/${s.id}`}>&larr; Back to my supplier account</Link></p>
       <h1>{started ? 'Tell buyers about your business' : 'Your profile'}</h1>
       <p className="muted">
-        This is what contractors see on your company profile, and what we use to match you to estimate requests.
+        {s.tier ? 'This is what contractors see on your company profile, and what we use to match you to estimate requests.' : 'This is what contractors see next to your name in the supplier list.'}
         {started && ' You can come back and finish later: nothing is sent to us until you press the last button.'}
       </p>
-      {started && !isSubscribed(s) && <p className="err big">Your payment has not come through yet. You can fill this in now, but you need to <Link href={`/supplier/${s.id}`}>complete payment</Link> before you can send it.</p>}
+      {started && !!s.tier && !isSubscribed(s) && <p className="err big">Your payment has not come through yet. You can fill this in now, but you need to <Link href={`/supplier/${s.id}`}>complete payment</Link> before you can send it.</p>}
       <SupplierDetails
         supplier={{
           id: s.id, status: s.status, name: s.name, contact_name: s.contact_name ?? '', phone: s.phone ?? '', public_email: s.public_email ?? '',

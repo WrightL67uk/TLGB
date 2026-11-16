@@ -41,7 +41,7 @@ export default async function SupplierAccount({ params, searchParams }: { params
 
       <div className="panel">
         <strong>Status: {STATUS[s.status] ?? s.status}</strong>
-        {s.status === 'started' && <p style={{ margin: '6px 0 0' }}><Link href={`/supplier/${s.id}/details`} className="sq sq-rust">{subscribed ? 'Add your details' : 'Continue'}</Link></p>}
+        {s.status === 'started' && <p style={{ margin: '6px 0 0' }}><Link href={`/supplier/${s.id}/details`} className="sq sq-rust">{subscribed || !s.tier ? 'Add your details' : 'Continue'}</Link></p>}
         {s.status === 'pending' && <p className="muted small" style={{ margin: '6px 0 0' }}>You can still update your details while we check them.</p>}
         {s.status === 'approved' && hasProfile(s) && <p style={{ margin: '6px 0 0' }}><Link href={`/suppliers/${s.slug}`}>View your public company profile</Link></p>}
         {s.status === 'approved' && !subscribed && !!s.tier && <p className="err" style={{ margin: '6px 0 0' }}>Your plan has ended, so you no longer show in the supplier list. Choose a plan below to come back.</p>}
@@ -73,7 +73,9 @@ export default async function SupplierAccount({ params, searchParams }: { params
           </>
         ) : (
           <>
-            <p>Pick a plan to {s.status === 'started' ? 'finish joining' : 'come back'}. Plans are paid yearly through Stripe.</p>
+            {!s.tier
+              ? <p><strong>Basic, free.</strong> Your name, what you supply, town, phone and website in the supplier list. Upgrade for a company profile page, logo, pictures, your email address shown and a higher place in the list.</p>
+              : <p>Pick a plan to {s.status === 'started' ? 'finish joining' : 'come back'}. Plans are paid yearly through Stripe.</p>}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
               {SUPPLIER_TIERS.map((k) => (
                 <form key={k} method="post" action="/api/supplier/checkout" className="panel" style={{ margin: 0 }}>
@@ -81,7 +83,7 @@ export default async function SupplierAccount({ params, searchParams }: { params
                   <input type="hidden" name="tier" value={k} />
                   <strong>{TIER_INFO[k].label}</strong> <span className="muted">{pounds(prices[k])} a year</span>
                   <p className="muted small">{TIER_INFO[k].tagline}</p>
-                  <button type="submit" className={s.tier === k ? 'primary' : ''} disabled={!stripeEnabled()}>Pay for {TIER_INFO[k].label}</button>
+                  <button type="submit" className={s.tier === k ? 'primary' : ''} disabled={!stripeEnabled()}>{s.tier ? 'Pay for' : 'Upgrade to'} {TIER_INFO[k].label}</button>
                 </form>
               ))}
             </div>
@@ -93,7 +95,7 @@ export default async function SupplierAccount({ params, searchParams }: { params
       {s.status !== 'rejected' && (
         <div className="panel">
           <h2 style={{ marginTop: 0 }}>Your profile</h2>
-          <p><Link href={`/supplier/${s.id}/details`} className="sq">Edit details, logo and pictures</Link></p>
+          <p><Link href={`/supplier/${s.id}/details`} className="sq">{s.tier ? 'Edit details, logo and pictures' : 'Edit my listing'}</Link></p>
           <p className="muted small">Account email: {s.email}. {s.vat_registered ? `VAT registered (${s.vat_number}).` : 'Not VAT registered.'} {s.company_number ? `Company ${s.company_number}.` : ''}</p>
         </div>
       )}

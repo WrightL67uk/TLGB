@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
   const own = await ownedSupplier(supplierId);
   if (!own.ok) return fail(own.error, own.status);
   const s = own.supplier;
+  if (!s.tier) return fail('Logos and pictures are part of the Appear and Match plans. Upgrade from your supplier account to add them.', 403);
   for (const f of files) if (!PHOTO_MIME.includes(f.type)) return fail(`${f.name}: pictures must be JPG, PNG or WebP.`);
   if (kind === 'logo' && files.length > 1) return fail('One logo only.');
   if (kind === 'photo') {

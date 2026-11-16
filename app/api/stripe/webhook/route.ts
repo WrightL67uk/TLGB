@@ -44,7 +44,8 @@ async function applySupplierSubscription(sub: Json) {
     subscription_status: status,
     paid_until: until,
     billing_interval: 'year',
-    ...(tier ? { tier } : {}),
+    // When a paid plan ends for good, a live supplier drops back to the free Basic listing instead of vanishing
+    ...(status === 'cancelled' && s.status === 'approved' ? { tier: null } : tier ? { tier } : {}),
     ...quote,
   }).eq('id', s.id);
   if (status !== s.subscription_status) {
