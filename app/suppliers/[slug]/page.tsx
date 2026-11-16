@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { db, photoUrl } from '@/lib/supabase';
 import { supplierCategoryLabel, shortUrl } from '@/lib/resources';
-import { hasProfile, photosFor, standardLabel, type Supplier } from '@/lib/supplierAccount';
+import { hasProfile, photosFor, videosFor, standardLabel, type Supplier } from '@/lib/supplierAccount';
 import { DELIVERY_OPTIONS } from '@/lib/supplierOptions';
 import { ratingsFor } from '@/lib/quotes';
 import SoilPanel from '../SoilPanel';
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function SupplierProfile({ params }: { params: Promise<{ slug: string }> }) {
   const s = await load((await params).slug);
   if (!s) notFound();
-  const [photos, ratings] = await Promise.all([photosFor(s.id), ratingsFor([s.id])]);
+  const [photos, videos, ratings] = await Promise.all([photosFor(s.id), videosFor(s.id), ratingsFor([s.id])]);
   const rating = ratings[s.id];
   const sx = s as Supplier & { soil?: unknown; soil_status?: string; soil_checked_at?: string | null };
   const soilOk = sx.soil_status === 'approved';
@@ -72,6 +72,17 @@ export default async function SupplierProfile({ params }: { params: Promise<{ sl
             <figure key={p.id} className="sup-pic">
               <img src={photoUrl(p.storage_path)} alt={p.caption ?? `${s.name} product`} loading="lazy" />
               {p.caption && <figcaption>{p.caption}</figcaption>}
+            </figure>
+          ))}
+        </div>
+      )}
+
+      {videos.length > 0 && (
+        <div className="sup-gallery big">
+          {videos.map((v) => (
+            <figure key={v.id} className="sup-pic">
+              <video src={photoUrl(v.storage_path)} controls preload="metadata" playsInline style={{ width: '100%', borderRadius: 10, background: '#000' }} />
+              {v.caption && <figcaption>{v.caption}</figcaption>}
             </figure>
           ))}
         </div>

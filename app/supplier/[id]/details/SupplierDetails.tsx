@@ -13,16 +13,19 @@ type S = {
   standards_other: string; product_liability: boolean | null; tier: string | null;
 };
 type Photo = { id: string; url: string; caption: string };
+type Video = { id: string; url: string; caption: string };
+const MAX_VIDEO_MB = 50;
 
 async function post(url: string, body: unknown) {
   const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   return r.json();
 }
 
-export default function SupplierDetails({ supplier, logoUrl, photos }: { supplier: S; logoUrl: string | null; photos: Photo[] }) {
+export default function SupplierDetails({ supplier, logoUrl, photos, videos }: { supplier: S; logoUrl: string | null; photos: Photo[]; videos: Video[] }) {
   const router = useRouter();
   const [f, setF] = useState(supplier);
   const [caps, setCaps] = useState<Record<string, string>>(Object.fromEntries(photos.map((p) => [p.id, p.caption])));
+  const [vcaps, setVcaps] = useState<Record<string, string>>(Object.fromEntries(videos.map((v) => [v.id, v.caption])));
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const started = f.status === 'started';
@@ -48,6 +51,33 @@ export default function SupplierDetails({ supplier, logoUrl, photos }: { supplie
     } finally { setBusy(null); }
   }
 
+  async function uploadVideos(files: File[], input: HTMLInputElement) {
+    if (!files.length) return;
+    setBusy('video'); setMsg(null);
+    try {
+      for (const file of files) {
+        const prep = await post('/api/supplier/videos', { action: 'sign', supplierId: f.id, file: { name: file.name, type: file.type, size: file.size } });
+        if (!prep.ok) throw new Error(prep.error);
+        await uploadToSignedUrl(prep.signedUrl, file);
+        const done = await post('/api/supplier/videos', { action: 'register', supplierId: f.id, path: prep.path, name: file.name });
+        if (!done.ok) throw new Error(done.error);
+      }
+      input.value = '';
+      setMsg({ kind: 'ok', text: 'Video added. Add a caption below, then save.' });
+      router.refresh();
+    } catch (e) {
+      setMsg({ kind: 'err', text: e instanceof Error ? e.message : 'Upload failed. Try again.' });
+    } finally { setBusy(null); }
+  }
+
+  async function removeVideo(videoId: string) {
+    setBusy('del'); setMsg(null);
+    const r = await post('/api/supplier/videos', { action: 'delete', supplierId: f.id, videoId });
+    setBusy(null);
+    if (!r.ok) return setMsg({ kind: 'err', text: r.error ?? 'Could not delete.' });
+    router.refresh();
+  }
+
   async function remove(body: { photoId?: string; logo?: boolean }) {
     setBusy('del'); setMsg(null);
     const r = await post('/api/supplier/photos/delete', { supplierId: f.id, ...body });
@@ -65,6 +95,7 @@ export default function SupplierDetails({ supplier, logoUrl, photos }: { supplie
       trade_accounts: f.trade_accounts, trade_only: f.trade_only, standards: f.standards, standards_other: f.standards_other,
       product_liability: f.product_liability, captions: caps,
     });
+    if (r.ok && videos.length) await post('/api/supplier/videos', { action: 'caption', supplierId: f.id, captions: vcaps });
     setBusy(null);
     if (!r.ok) { setMsg({ kind: 'err', text: r.error ?? 'Something went wrong.' }); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     if (r.submitted) { window.location.assign(`/supplier/${f.id}?sent=1`); return; }
@@ -124,6 +155,22 @@ export default function SupplierDetails({ supplier, logoUrl, photos }: { supplie
         </div>
         <input type="file" multiple accept="image/jpeg,image/png,image/webp" disabled={busy === 'photo' || photos.length >= 12} onChange={(e) => void upload('photo', Array.from(e.target.files ?? []), e.target)} />
         {busy === 'photo' && <span className="hint"> Uploading...</span>}
+      </div>
+
+      <div className="panel" style={{ margin: 0 }}>
+        <strong>Videos ({videos.length} of 3, optional)</strong>
+        <p className="hint" style={{ margin: '4px 0 8px' }}>Show your yard, your stock or how you deliver. MP4, MOV or WebM, up to {MAX_VIDEO_MB}MB each. Shown on your company profile.</p>
+        <div className="sup-gallery">
+          {videos.map((v) => (
+            <div key={v.id} className="sup-pic">
+              <video src={v.url} controls preload="metadata" style={{ width: '100%', borderRadius: 10, background: '#000' }} />
+              <input value={vcaps[v.id] ?? ''} onChange={(e) => setVcaps((c) => ({ ...c, [v.id]: e.target.value }))} maxLength={120} placeholder="Caption, e.g. Loading a topsoil delivery" />
+              <button type="button" className="linkish small" onClick={() => void removeVideo(v.id)}>Delete</button>
+            </div>
+          ))}
+        </div>
+        <input type="file" accept="video/mp4,video/quicktime,video/webm" disabled={busy === 'video' || videos.length >= 3} onChange={(e) => void uploadVideos(Array.from(e.target.files ?? []), e.target)} />
+        {busy === 'video' && <span className="hint"> Uploading, this can take a minute...</span>}
       </div>
 
       </>}

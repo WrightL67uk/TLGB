@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { ownedSupplier, photosFor, isSubscribed } from '@/lib/supplierAccount';
+import { ownedSupplier, photosFor, videosFor, isSubscribed } from '@/lib/supplierAccount';
 import { photoUrl } from '@/lib/supabase';
 import SupplierDetails from './SupplierDetails';
 import '../../../resources.css';
@@ -20,6 +20,7 @@ export default async function SupplierDetailsPage({ params }: { params: Promise<
   const s = own.supplier;
   if (s.status === 'rejected') redirect(`/supplier/${s.id}`);
   const photos = (await photosFor(s.id)).map((p) => ({ id: p.id, url: photoUrl(p.storage_path), caption: p.caption ?? '' }));
+  const videos = (await videosFor(s.id)).map((v) => ({ id: v.id, url: photoUrl(v.storage_path), caption: v.caption ?? '' }));
   const started = s.status === 'started';
   return (
     <div className="narrow">
@@ -46,6 +47,7 @@ export default async function SupplierDetailsPage({ params }: { params: Promise<
         }}
         logoUrl={s.logo_path ? photoUrl(s.logo_path) : null}
         photos={photos}
+        videos={videos}
       />
     </div>
   );

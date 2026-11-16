@@ -102,3 +102,12 @@ export async function photosFor(supplierId: string) {
   return (data ?? []) as SupplierPhoto[];
 }
 export const MAX_SUPPLIER_PHOTOS = 12;
+
+export const MAX_SUPPLIER_VIDEOS = 3;
+export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+export const VIDEO_MIME = ['video/mp4', 'video/quicktime', 'video/webm'];
+export type SupplierVideo = { id: string; storage_path: string; caption: string | null };
+export async function videosFor(supplierId: string) {
+  const { data } = await db().from('supplier_videos').select('id, storage_path, caption').eq('supplier_id', supplierId).order('sort_order').order('created_at');
+  return (data ?? []) as SupplierVideo[];
+}
