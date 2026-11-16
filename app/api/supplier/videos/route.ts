@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/supabase';
 import { sameOrigin } from '@/lib/session';
+import { emailAdminSupplier } from '@/lib/email';
 import { ownedSupplier, MAX_SUPPLIER_VIDEOS, VIDEO_MIME, MAX_VIDEO_BYTES } from '@/lib/supplierAccount';
 
 export const runtime = 'nodejs';
@@ -46,11 +47,16 @@ export async function POST(req: NextRequest) {
     const order = Math.max(-1, ...(existing ?? []).map((v) => v.sort_order)) + 1;
     const { error } = await db().from('supplier_videos').insert({ supplier_id: s.id, storage_path: d.path, sort_order: order });
     if (error) return fail('Could not save the video. Try again.', 500);
+    await emailAdminSupplier(`Video waiting for approval: ${s.name}`, `${s.name} has uploaded a video. It will not show on their profile until you approve it.`, s.id).catch(() => null);
     return NextResponse.json({ ok: true });
   }
   if (d.action === 'caption') {
+    // A changed caption is checked again, so a new caption cannot go live unseen
+    const { data: cur } = await db().from('supplier_videos').select('id, caption').eq('supplier_id', s.id);
     for (const [id, caption] of Object.entries(d.captions)) {
-      if (/^[0-9a-f-]{36}$/i.test(id)) await db().from('supplier_videos').update({ caption: caption || null }).eq('id', id).eq('supplier_id', s.id);
+      const old = (cur ?? []).find((v) => v.id === id);
+      if (!old || (old.caption ?? '') === caption) continue;
+      await db().from('supplier_videos').update({ caption: caption || null, status: 'pending' }).eq('id', id).eq('supplier_id', s.id);
     }
     return NextResponse.json({ ok: true });
   }

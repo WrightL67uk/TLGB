@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function SupplierProfile({ params }: { params: Promise<{ slug: string }> }) {
   const s = await load((await params).slug);
   if (!s) notFound();
-  const [photos, videos, ratings] = await Promise.all([photosFor(s.id), videosFor(s.id), ratingsFor([s.id])]);
+  const [photos, videos, ratings] = await Promise.all([photosFor(s.id), videosFor(s.id, true), ratingsFor([s.id])]);
   const rating = ratings[s.id];
   const sx = s as Supplier & { soil?: unknown; soil_status?: string; soil_checked_at?: string | null };
   const soilOk = sx.soil_status === 'approved';

@@ -2,7 +2,7 @@ import DeleteForm from '@/app/admin/DeleteForm';
 import RenameForm from '@/app/admin/RenameForm';
 import { cleanSoil, soilLines, docKindLabel } from '@/lib/soil';
 import Link from 'next/link';
-import { db } from '@/lib/supabase';
+import { db, photoUrl } from '@/lib/supabase';
 import { supplierCategoryLabel, helpKindLabel } from '@/lib/resources';
 import { standardLabel, DELIVERY_OPTIONS } from '@/lib/supplierAccount';
 import { TIER_INFO } from '@/lib/supplierPricing';
@@ -42,6 +42,13 @@ export default async function AdminResources({ searchParams }: { searchParams: P
     const { data: urls } = await db().storage.from('documents').createSignedUrls(soilDocs.map((d) => d.storage_path), 1800);
     for (const u of urls ?? []) if (u.path && u.signedUrl) docUrls.set(u.path, u.signedUrl);
   }
+  // Videos waiting for approval
+  const { data: vids } = await db().from('supplier_videos').select('id, supplier_id, storage_path, caption, created_at').eq('status', 'pending').order('created_at');
+  const vidSupp = new Map<string, string>();
+  if (vids?.length) {
+    const { data: vs } = await db().from('suppliers').select('id, name').in('id', [...new Set(vids.map((v) => v.supplier_id as string))]);
+    for (const x of vs ?? []) vidSupp.set(x.id as string, x.name as string);
+  }
   const pending = pendingNew ?? (await db().from('suppliers').select('id, created_at, name, categories, description, website, phone, town, postcode, email').eq('status', 'pending').order('created_at')).data?.map((x) => ({ ...x, wants_requests: false }));
 
   return (
@@ -52,6 +59,26 @@ export default async function AdminResources({ searchParams }: { searchParams: P
       {sp.delete_error && <p className="err big">{sp.delete_error}</p>}
       {sp.renamed && <p className="ok-box">Name saved.</p>}
       {sp.rename_error && <p className="err big">{sp.rename_error}</p>}
+
+      <h2 id="videos">Videos waiting ({vids?.length ?? 0})</h2>
+      {!vids?.length && <p className="muted">No videos waiting.</p>}
+      {vids?.map((v) => (
+        <div key={v.id} className="ok-box" style={{ marginBottom: 12, background: '#fff', border: '1px solid #ddd' }}>
+          <strong>{vidSupp.get(v.supplier_id as string) ?? 'Supplier'}</strong> <span className="muted small">uploaded {ukDate(v.created_at as string)}</span>{v.caption ? <> &middot; caption: {v.caption}</> : null}
+          <div style={{ margin: '8px 0' }}><video src={photoUrl(v.storage_path as string)} controls preload="metadata" style={{ maxWidth: 420, width: '100%', borderRadius: 8, background: '#000' }} /></div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <form method="post" action="/api/admin/video-decision" style={{ display: 'inline' }}>
+              <input type="hidden" name="id" value={v.id as string} /><input type="hidden" name="action" value="approve" />
+              <button type="submit">Approve video</button>
+            </form>
+            <form method="post" action="/api/admin/video-decision" style={{ display: 'flex', gap: 6 }}>
+              <input type="hidden" name="id" value={v.id as string} /><input type="hidden" name="action" value="remove" />
+              <input name="reason" placeholder="Reason (sent to them)" required style={{ minWidth: 220 }} />
+              <button type="submit">Remove video</button>
+            </form>
+          </div>
+        </div>
+      ))}
 
       <h2 id="soil">Soil checks ({(soilRows ?? []).filter((x) => x.soil_status === 'pending').length} waiting)</h2>
       {!soilRows?.length && <p className="muted">No soil suppliers have sent details yet.</p>}

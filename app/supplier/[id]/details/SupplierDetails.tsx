@@ -13,7 +13,7 @@ type S = {
   standards_other: string; product_liability: boolean | null; tier: string | null;
 };
 type Photo = { id: string; url: string; caption: string };
-type Video = { id: string; url: string; caption: string };
+type Video = { id: string; url: string; caption: string; approved: boolean };
 const MAX_VIDEO_MB = 50;
 
 async function post(url: string, body: unknown) {
@@ -159,12 +159,13 @@ export default function SupplierDetails({ supplier, logoUrl, photos, videos }: {
 
       <div className="panel" style={{ margin: 0 }}>
         <strong>Videos ({videos.length} of 3, optional)</strong>
-        <p className="hint" style={{ margin: '4px 0 8px' }}>Show your yard, your stock or how you deliver. MP4, MOV or WebM, up to {MAX_VIDEO_MB}MB each. Shown on your company profile.</p>
+        <p className="hint" style={{ margin: '4px 0 8px' }}>Show your yard, your stock or how you deliver. MP4, MOV or WebM, up to {MAX_VIDEO_MB}MB each. We check each video before it shows on your company profile.</p>
         <div className="sup-gallery">
           {videos.map((v) => (
             <div key={v.id} className="sup-pic">
               <video src={v.url} controls preload="metadata" style={{ width: '100%', borderRadius: 10, background: '#000' }} />
               <input value={vcaps[v.id] ?? ''} onChange={(e) => setVcaps((c) => ({ ...c, [v.id]: e.target.value }))} maxLength={120} placeholder="Caption, e.g. Loading a topsoil delivery" />
+              <span className={`small ${v.approved ? '' : 'muted'}`}>{v.approved ? 'Live on your profile' : 'Waiting for us to check it'}</span>
               <button type="button" className="linkish small" onClick={() => void removeVideo(v.id)}>Delete</button>
             </div>
           ))}

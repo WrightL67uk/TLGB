@@ -366,6 +366,18 @@ export async function emailSoilResult(to: string, name: string, approved: boolea
   );
 }
 
+/** Tells a supplier whether a video they uploaded is now live. */
+export async function emailVideoResult(to: string, name: string, approved: boolean, note: string | null) {
+  await send(
+    to,
+    approved ? 'Your video is live on The Little Green Book' : 'About the video you uploaded to The Little Green Book',
+    approved
+      ? `<p>We have checked the video you uploaded for ${esc(name)} and it now shows on your company profile.</p>`
+      : `<p>We could not put the video you uploaded for ${esc(name)} on your profile.</p>${note ? `<p>${esc(note)}</p>` : ''}<p>You are welcome to upload a different one from <a href="${siteUrl()}/login?next=/account">your account</a>.</p>`,
+    'video-result'
+  );
+}
+
 /** Tells a supplier their application was not approved. */
 export async function emailSupplierRejected(to: string, name: string, reason: string) {
   await send(

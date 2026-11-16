@@ -20,7 +20,7 @@ export default async function SupplierDetailsPage({ params }: { params: Promise<
   const s = own.supplier;
   if (s.status === 'rejected') redirect(`/supplier/${s.id}`);
   const photos = (await photosFor(s.id)).map((p) => ({ id: p.id, url: photoUrl(p.storage_path), caption: p.caption ?? '' }));
-  const videos = (await videosFor(s.id)).map((v) => ({ id: v.id, url: photoUrl(v.storage_path), caption: v.caption ?? '' }));
+  const videos = (await videosFor(s.id)).map((v) => ({ id: v.id, url: photoUrl(v.storage_path), caption: v.caption ?? '', approved: v.status === 'approved' }));
   const started = s.status === 'started';
   return (
     <div className="narrow">
