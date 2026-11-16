@@ -1,14 +1,14 @@
 import Link from 'next/link';
 import { db } from '@/lib/supabase';
 import { expiryItems, daysUntil, fmtDate, type Expiries } from '@/lib/expiries';
-import { getTakings, VAT_THRESHOLD, VAT_REVIEW_AT, VAT_WARN_AT, type Takings } from '@/lib/takings';
+import { getTakings, VAT_THRESHOLD, VAT_REVIEW_AT, VAT_WARN_AT, type Takings, type Payment } from '@/lib/takings';
 
 export const dynamic = 'force-dynamic';
 
 const gbp0 = (n: number) => `£${Math.round(n).toLocaleString('en-GB')}`;
 
 /** Takings over the last 12 months against the VAT registration threshold. */
-function VatWatch({ t }: { t: Takings | 'error' }) {
+function VatWatch({ t, who }: { t: Takings | 'error'; who: Map<string, { name: string; kind: string; href: string }> }) {
   if (t === null) return null;
   if (t === 'error') return <p className="muted small">VAT watch: could not read takings from Stripe just now.</p>;
   const pct = Math.min(100, (t.year / VAT_THRESHOLD) * 100);
@@ -32,6 +32,29 @@ function VatWatch({ t }: { t: Takings | 'error' }) {
             : 'Close to the VAT threshold. Register now so members get their 30 days’ notice in time.'}
         </p>
       )}
+      <details style={{ marginTop: 8 }}>
+        <summary style={{ cursor: 'pointer' }}>Who has paid what ({t.payments.length} {t.payments.length === 1 ? 'payment' : 'payments'})</summary>
+        {t.payments.length === 0 ? <p className="muted small">No card payments in the last 12 months.</p> : (
+          <table className="table" style={{ marginTop: 6 }}>
+            <thead><tr><th>Date</th><th>Who</th><th>For</th><th style={{ textAlign: 'right' }}>Paid</th><th style={{ textAlign: 'right' }}>Refunded</th></tr></thead>
+            <tbody>
+              {t.payments.map((p: Payment) => {
+                const w = p.customer ? who.get(p.customer) : undefined;
+                return (
+                  <tr key={p.id}>
+                    <td>{new Date(p.created * 1000).toLocaleDateString('en-GB')}</td>
+                    <td>{w ? <><Link href={w.href}>{w.name}</Link> <span className="muted small">({w.kind})</span></> : (p.name || p.email || 'Not matched')}</td>
+                    <td className="small">{p.what}</td>
+                    <td style={{ textAlign: 'right' }}>£{p.paid.toFixed(2)}</td>
+                    <td style={{ textAlign: 'right' }}>{p.refunded ? `£${p.refunded.toFixed(2)}` : ''}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot><tr><td colSpan={3}><strong>Total, less refunds</strong></td><td colSpan={2} style={{ textAlign: 'right' }}><strong>£{t.year.toFixed(2)}</strong></td></tr></tfoot>
+          </table>
+        )}
+      </details>
       <p className="muted small" style={{ margin: '4px 0 0' }}>Card payments through Stripe, less refunds. Updated hourly. Amber at {gbp0(VAT_REVIEW_AT)}, red at {gbp0(VAT_WARN_AT)}.</p>
     </div>
   );
@@ -107,10 +130,21 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
     : { data: [] as { id: string; trading_name: string }[] };
 
   const takings = await getTakings();
+  // Match Stripe customers to the trade or supplier they belong to
+  const who = new Map<string, { name: string; kind: string; href: string }>();
+  if (takings && takings !== 'error' && takings.payments.length) {
+    const ids = [...new Set(takings.payments.map((p) => p.customer).filter(Boolean))] as string[];
+    const [{ data: bs }, { data: ss }] = await Promise.all([
+      db().from('businesses').select('id, trading_name, stripe_customer_id').in('stripe_customer_id', ids),
+      db().from('suppliers').select('id, name, stripe_customer_id').in('stripe_customer_id', ids),
+    ]);
+    for (const b of bs ?? []) who.set(b.stripe_customer_id as string, { name: b.trading_name as string, kind: 'trade', href: `/admin/${b.id}` });
+    for (const x of ss ?? []) who.set(x.stripe_customer_id as string, { name: x.name as string, kind: 'supplier', href: '/admin/resources' });
+  }
 
   return (
     <div>
-      <VatWatch t={takings} />
+      <VatWatch t={takings} who={who} />
       <div className="admin-head">
         <h1>Admin</h1>
         {sp.deleted && <p className="ok-box">Deleted {sp.deleted}.</p>}
