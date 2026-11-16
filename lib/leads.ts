@@ -308,6 +308,19 @@ async function plainFetch(url: string) {
   return fetch(url, { headers: { Accept: 'application/json', 'User-Agent': UA }, signal: AbortSignal.timeout(25_000), cache: 'no-store' });
 }
 
+// Politeness: one request at a time per host with a gap between them, so the parallel
+// jobs together never look like a burst (Find a Tender and PlanIt both block bursts).
+const GAP_MS: Record<string, number> = { 'www.find-tender.service.gov.uk': 1500, 'www.planit.org.uk': 1500 };
+const lastCall = new Map<string, Promise<void>>();
+function pace(host: string): Promise<void> {
+  const gap = GAP_MS[host] ?? 0;
+  if (!gap) return Promise.resolve();
+  const prev = lastCall.get(host) ?? Promise.resolve();
+  const next = prev.then(() => new Promise<void>((r) => setTimeout(r, gap)));
+  lastCall.set(host, next);
+  return next;
+}
+
 async function getJson(url: string): Promise<unknown> {
   const host = new URL(url).host;
   const ca = extraCa.get(host);
@@ -315,6 +328,7 @@ async function getJson(url: string): Promise<unknown> {
 
   let res: Response;
   try {
+    await pace(host);
     res = await plainFetch(url);
   } catch (err) {
     const code = (err as { cause?: { code?: string } })?.cause?.code ?? '';
@@ -325,13 +339,12 @@ async function getJson(url: string): Promise<unknown> {
     }
     throw explain(err, host);
   }
-  if (res.status === 429 || res.status === 503) {
-    // Busy: wait as asked (up to 15 seconds) and try once more
-    const wait = Math.min(15, Number(res.headers.get('retry-after')) || 5);
+  // Busy or blocking us for going too fast: wait as asked and try again, a few times
+  for (let attempt = 1; (res.status === 429 || res.status === 503 || res.status === 403) && attempt <= 3; attempt++) {
+    const asked = Number(res.headers.get('retry-after')) || 0;
+    const wait = Math.min(20, Math.max(asked, attempt * 6));
     await new Promise((r) => setTimeout(r, wait * 1000));
-    const again = await plainFetch(url).catch((err) => { throw explain(err, host); });
-    if (!again.ok) throw new Error(`${again.status} from ${host}`);
-    return again.json();
+    res = await pace(host).then(() => plainFetch(url)).catch((err) => { throw explain(err, host); });
   }
   if (!res.ok) throw new Error(`${res.status} from ${host}`);
   return res.json();
@@ -403,18 +416,22 @@ async function fetchMonthly(base: string, source: LeadSource, months: string[]):
   const out: LeadRow[] = [];
   let lastErr: unknown = null;
   let okMonths = 0;
+  // Type 2 is the OJEU contract notice; 51 is the Sell2Wales website invitation to tender
+  // (the sub-threshold ones, which suit smaller trades). Either may error on their side.
   for (const m of months) {
-    let body: unknown;
-    try {
-      body = await getJson(`${base}/Notices?dateFrom=${m}&noticeType=2&outputType=0&locale=2057`);
-      okMonths++;
-    } catch (err) {
-      lastErr = err;
-      continue;
-    }
-    for (const r of releasesOf(body)) {
-      const lead = toLead(r, source);
-      if (lead) out.push(lead);
+    for (const type of [2, 51]) {
+      let body: unknown;
+      try {
+        body = await getJson(`${base}/Notices?dateFrom=${m}&noticeType=${type}&outputType=0&locale=2057`);
+        okMonths++;
+      } catch (err) {
+        lastErr = err;
+        continue;
+      }
+      for (const r of releasesOf(body)) {
+        const lead = toLead(r, source);
+        if (lead) out.push(lead);
+      }
     }
   }
   if (!okMonths && lastErr) throw lastErr;
@@ -614,7 +631,7 @@ export async function importLeads({ days = 3 }: { days?: number } = {}) {
   const pages = Math.min(40, 5 + days * 3);
   // Find a Tender's stage filter misses most notices published under the Procurement Act
   // 2023, so read everything and sort each notice by its tags instead.
-  const ftsPages = Math.min(120, 10 + days * 8);
+  const ftsPages = Math.min(70, 10 + days * 4);
   const ftsAll = `https://www.find-tender.service.gov.uk/api/1.0/ocdsReleasePackages?updatedFrom=${iso(from)}&limit=100`;
   const cf = (stage: string) => `https://www.contractsfinder.service.gov.uk/Published/Notices/OCDS/Search?publishedFrom=${iso(from)}&stages=${stage}&limit=100`;
   // PlanIt fills in an application's type and size a few days after it first appears, so
