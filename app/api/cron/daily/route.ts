@@ -34,7 +34,15 @@ export async function GET(req: NextRequest) {
       failures.push({ job, error: err instanceof Error ? err.message : String(err) });
     }
   };
-  await run('leads', 'Fetching tenders (leads)', () => importLeads({ days: Math.min(30, Math.max(1, Number(req.nextUrl.searchParams.get('days')) || 3)) }));
+  // Look further back after a bad day, so a source that was down catches up
+  const lastRun = (await db().from('site_settings').select('value').eq('key', 'leads_status').maybeSingle()).data?.value as { sources?: Record<string, { ok: boolean }> } | undefined;
+  const hadFailure = Object.values(lastRun?.sources ?? {}).some((x) => !x.ok);
+  const leadDays = Math.min(30, Math.max(1, Number(req.nextUrl.searchParams.get('days')) || (hadFailure ? 14 : 3)));
+  await run('leads', 'Fetching tenders (leads)', async () => {
+    const r = await importLeads({ days: leadDays });
+    for (const [k, v] of Object.entries(r.bySource)) if (typeof v === 'string') failures.push({ job: `Leads source: ${k}`, error: v });
+    return r;
+  });
   await run('expiryFlags', 'Insurance and accreditation expiry reminders', runExpiryJob);
   await run('suppliersPlaced', 'Placing suppliers on the map', geocodeSuppliers);
   await run('membershipsSynced', 'Checking memberships with Stripe', syncOverdueMemberships);

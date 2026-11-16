@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { db } from '@/lib/supabase';
 import { expiryItems, daysUntil, fmtDate, type Expiries } from '@/lib/expiries';
+import type { LeadStatus } from '@/lib/leads';
 import { getTakings, VAT_THRESHOLD, VAT_REVIEW_AT, VAT_WARN_AT, type Takings, type Payment } from '@/lib/takings';
 
 export const dynamic = 'force-dynamic';
@@ -130,6 +131,8 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
     : { data: [] as { id: string; trading_name: string }[] };
 
   const takings = await getTakings();
+  const { data: ls } = await db().from('site_settings').select('value').eq('key', 'leads_status').maybeSingle();
+  const leadStatus = (ls?.value ?? null) as LeadStatus | null;
   // Match Stripe customers to the trade or supplier they belong to
   const who = new Map<string, { name: string; kind: string; href: string }>();
   if (takings && takings !== 'error' && takings.payments.length) {
@@ -169,6 +172,26 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
         </Link>
       </div>
       {leadsMsg && <p className="ok-box">{leadsMsg}</p>}
+      {leadStatus && (
+        <details className="panel" style={{ borderColor: Object.values(leadStatus.sources).some((x) => !x.ok) ? 'var(--danger)' : undefined }}>
+          <summary style={{ cursor: 'pointer' }}>
+            <strong>Lead sources</strong>: last run {new Date(leadStatus.at).toLocaleString('en-GB')}, {leadStatus.saved} leads saved,{' '}
+            {Object.values(leadStatus.sources).filter((x) => !x.ok).length ? <span className="err">{Object.values(leadStatus.sources).filter((x) => !x.ok).length} source(s) failing</span> : 'all sources working'}
+          </summary>
+          <table className="table" style={{ marginTop: 6 }}>
+            <thead><tr><th>Source</th><th>Last run</th><th>Last worked</th></tr></thead>
+            <tbody>
+              {Object.entries(leadStatus.sources).map(([k, v]) => (
+                <tr key={k}>
+                  <td>{k}</td>
+                  <td className={v.ok ? '' : 'err'}>{v.ok ? '✓ ' : '✗ '}{v.note}</td>
+                  <td className="small">{leadStatus.lastOk[k] ? new Date(leadStatus.lastOk[k]).toLocaleString('en-GB') : 'never'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </details>
+      )}
       {packIds.length > 0 && (
         <div className="panel" style={{ borderColor: 'var(--warn)' }}>
           <strong>Compliance pack certificates to check: {packPending!.length}</strong>

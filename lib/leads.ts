@@ -89,7 +89,9 @@ const CPV_TRADES: [string, string[]][] = [
   ['0345', ['nursery']],                            // tree-nursery products
   ['034520', ['nursery']],                          // trees
   ['14212400', ['supplier']],                       // soil
-  ['4550', ['plant-hire']],                         // hire of construction equipment with operator
+  ['4550', ['plant-hire']],
+  ['03451', ['nursery']],                           // plants
+  ['14211', ['supplier']], ['14212', ['supplier']], ['44111', ['supplier']], ['44112', ['supplier']], ['44113', ['supplier']], ['44114', ['supplier']],                         // hire of construction equipment with operator
 ];
 
 const KEYWORD_TRADES: [RegExp, string[]][] = [
@@ -112,6 +114,10 @@ const KEYWORD_TRADES: [RegExp, string[]][] = [
   [/\bfootpaths?\b|\bpatios?\b|\bresin bound\b/i, ['hard-landscaping']],
   [/\bcemeter(y|ies)\b|\bchurchyards?\b|\ballotments?\b/i, ['grounds-maintenance']],
   [/\btree planting\b|\bstreet trees?\b/i, ['landscaper', 'arborist']],
+  [/\b(horticultur|landscap|arboricultur|grounds ?(man|care|keeping)|greenkeeping)\w*\b[^.]{0,80}\b(training|apprentice\w*|course|qualification)/i, ['training']],
+  [/\b(supply|supplier|delivery) (of|and delivery of)? ?(topsoil|soil|compost|bark|mulch|aggregates?|stone|kerbs?|paving|timber|plants|trees|shrubs|turf|seed)\b/i, ['supplier']],
+  [/\b(supply|supply and plant) (of )?(plants|trees|shrubs|whips|hedging|bulbs|turf)\b|\bnursery stock\b/i, ['nursery']],
+  [/\b(plant|machinery|excavator|equipment|dumper) hire\b/i, ['plant-hire']],
 ];
 
 // Contract awards worth passing on: new buildings, housing, schools, health, roads and site works
@@ -344,13 +350,40 @@ function kindFromTags(tags: unknown): LeadKind | null {
 // What each feed returned on the last run, so a thin result can be told apart from a broken one
 const scanned: Record<string, string> = {};
 
+export type LeadStatus = { at: string; saved: number; sources: Record<string, { ok: boolean; note: string }>; lastOk: Record<string, string> };
+/** Remembers what each source did on the last run, and when it last worked, for the admin page. */
+async function recordStatus(summary: Record<string, number | string>, saved: number) {
+  const { data } = await db().from('site_settings').select('value').eq('key', 'leads_status').maybeSingle();
+  const prev = (data?.value ?? null) as LeadStatus | null;
+  const at = new Date().toISOString();
+  const lastOk: Record<string, string> = { ...(prev?.lastOk ?? {}) };
+  const sources: LeadStatus['sources'] = {};
+  for (const [k, v] of Object.entries(summary)) {
+    const ok = typeof v === 'number';
+    sources[k] = { ok, note: ok ? `${v} leads` : String(v) };
+    if (ok) lastOk[k] = at;
+  }
+  await db().from('site_settings').upsert({ key: 'leads_status', value: { at, saved, sources, lastOk }, updated_at: at });
+}
+// Feeds that gave some pages and then failed: kept, but flagged so it is not mistaken for a full read
+const partial: Record<string, string> = {};
+
 async function fetchPaged(firstUrl: string, source: LeadSource, maxPages: number, kind: LeadKind | 'auto' = 'tender'): Promise<LeadRow[]> {
   const out: LeadRow[] = [];
   let url: string | null = firstUrl;
   let seen = 0;
   let page = 0;
   for (; url && page < maxPages; page++) {
-    const body = (await getJson(url)) as Json;
+    let body: Json;
+    try {
+      body = (await getJson(url)) as Json;
+    } catch (err) {
+      // One bad page should not throw away the pages already read
+      if (!page) throw err;
+      partial[`${source}-${kind}`] = String((err as Error)?.message ?? err).slice(0, 120);
+      url = null;
+      break;
+    }
     const rels = releasesOf(body);
     seen += rels.length;
     for (const r of rels) {
@@ -368,13 +401,24 @@ async function fetchPaged(firstUrl: string, source: LeadSource, maxPages: number
 /** Scotland and Wales: one call per month of contract notices. */
 async function fetchMonthly(base: string, source: LeadSource, months: string[]): Promise<LeadRow[]> {
   const out: LeadRow[] = [];
+  let lastErr: unknown = null;
+  let okMonths = 0;
   for (const m of months) {
-    const body = await getJson(`${base}/Notices?dateFrom=${m}&noticeType=2&outputType=0&locale=2057`);
+    let body: unknown;
+    try {
+      body = await getJson(`${base}/Notices?dateFrom=${m}&noticeType=2&outputType=0&locale=2057`);
+      okMonths++;
+    } catch (err) {
+      lastErr = err;
+      continue;
+    }
     for (const r of releasesOf(body)) {
       const lead = toLead(r, source);
       if (lead) out.push(lead);
     }
   }
+  if (!okMonths && lastErr) throw lastErr;
+  if (lastErr) partial[source] = String((lastErr as Error)?.message ?? lastErr).slice(0, 120);
   return out;
 }
 
@@ -392,7 +436,7 @@ const short = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1).tri
 
 type Applic = Json & { other_fields?: Json };
 
-function planitLead(a: Applic, kind: 'planning' | 'trees'): LeadRow | null {
+function planitLead(a: Applic, kind: 'planning' | 'trees', extra?: { label: string; trades: string[] }): LeadRow | null {
   const desc = String(a.description ?? '').trim();
   const address = String(a.address ?? '').replace(/\s+/g, ' ').trim();
   if (!desc || !a.name) return null;
@@ -407,6 +451,12 @@ function planitLead(a: Applic, kind: 'planning' | 'trees'): LeadRow | null {
   if (kind === 'trees') {
     title = `Tree works: ${short(address || desc, 110)}`;
     trades = ['arborist'];
+  } else if (extra) {
+    // A search aimed at one trade (play areas, fencing and so on): any size, but not paperwork about a scheme
+    if (/screening opinion|scoping opinion|prior notification|pre-?app|certificate of lawful/i.test(`${desc} ${a.uid ?? ''}`)) return null;
+    if (!['Full', 'Outline', 'Amendment', 'Conditions'].includes(type)) return null;
+    title = `${extra.label}: ${short(address || desc, 100)}`;
+    trades = [...matchTrades([], desc), ...extra.trades];
   } else if (type === 'Conditions') {
     if (!LANDSCAPE_CONDITION.test(desc)) return null;
     title = `Landscaping details submitted: ${short(address || desc, 90)}`;
@@ -463,18 +513,37 @@ function planitLead(a: Applic, kind: 'planning' | 'trees'): LeadRow | null {
 }
 
 /** One PlanIt search, paged. PlanIt asks for modest use, so pages are big and calls are few. */
-async function fetchPlanit(query: string, kind: 'planning' | 'trees', maxPages: number): Promise<LeadRow[]> {
+async function fetchPlanit(query: string, kind: 'planning' | 'trees', maxPages: number, extra?: { label: string; trades: string[] }): Promise<LeadRow[]> {
   const out: LeadRow[] = [];
   for (let page = 1; page <= maxPages; page++) {
-    const body = (await getJson(`${PLANIT}?${query}&pg_sz=400&page=${page}`)) as Json;
+    let body: Json;
+    try {
+      body = (await getJson(`${PLANIT}?${query}&pg_sz=400&page=${page}`)) as Json;
+    } catch (err) {
+      if (page === 1) throw err;
+      partial[`planit-${kind}`] = String((err as Error)?.message ?? err).slice(0, 120);
+      break;
+    }
     for (const a of body?.records ?? []) {
-      const lead = planitLead(a, kind);
+      const lead = planitLead(a, kind, extra);
       if (lead) out.push(lead);
     }
     if (typeof body?.to !== 'number' || typeof body?.total !== 'number' || body.to + 1 >= body.total) break;
   }
   return out;
 }
+
+/** [name, PlanIt search words, title prefix, trades the lead is for] */
+const TRADE_SEARCHES: [string, string, string, string[]][] = [
+  ['planning-play', '"play area" or playground or MUGA or "multi use games area" or "sports pitch" or "artificial grass pitch" or "3G pitch" or "all weather pitch" or "tennis court" or skatepark or "outdoor gym"', 'Play and sports', ['play-sports', 'groundworks']],
+  ['planning-fencing', '"acoustic fence" or "acoustic barrier" or "security fencing" or palisade or "boundary fence" or "perimeter fence" or "weldmesh" or "gated" or railings', 'Fencing and boundaries', ['fencing']],
+  ['planning-irrigation', 'irrigation or "green roof" or "living wall" or "rainwater harvesting" or "sports pitch drainage"', 'Irrigation and green infrastructure', ['irrigation', 'landscaper']],
+  ['planning-hard', '"block paving" or "resin bound" or "hard landscaping" or "public realm" or "shared surface" or "cycle path" or footway or "car park resurfacing" or "paved"', 'Hard landscaping and paving', ['hard-landscaping', 'groundworks']],
+  ['planning-groundworks', '"enabling works" or earthworks or "land raising" or "ground remodelling" or "retaining wall" or "site levels" or "bulk excavation" or "remediation"', 'Groundworks and plant', ['groundworks', 'plant-hire']],
+  ['planning-planting', '"tree planting" or "woodland planting" or "wildflower" or "biodiversity net gain" or "habitat creation" or "orchard" or "hedgerow planting" or "landscape scheme"', 'Planting scheme', ['nursery', 'supplier', 'landscaper', 'grounds-maintenance']],
+  ['planning-design', '"landscape masterplan" or "landscape strategy" or "garden design" or "landscape design" or "landscape and visual impact" or "landscape management plan"', 'Landscape design', ['landscape-architect', 'landscape-designer']],
+  ['planning-maintenance', '"landscape maintenance" or "grounds maintenance" or "management company" or "open space management" or "long term management"', 'Grounds maintenance', ['grounds-maintenance']],
+];
 
 const iso = (d: Date) => d.toISOString().slice(0, 19);
 const mmyyyy = (d: Date) => `${String(d.getUTCMonth() + 1).padStart(2, '0')}-${d.getUTCFullYear()}`;
@@ -563,6 +632,9 @@ export async function importLeads({ days = 3 }: { days?: number } = {}) {
     ['planning', () => fetchPlanit(`recent=${recent}&app_size=Medium,Large&app_type=Full,Outline,Amendment`, 'planning', pp)],
     ['planning-conditions', () => fetchPlanit(`recent=${recent}&app_type=Conditions&search=${encodeURIComponent('landscape or landscaping or planting or trees or "boundary treatment" or biodiversity')}`, 'planning', pp)],
     ['tree-works', () => fetchPlanit(`recent=${recent}&app_type=Trees`, 'trees', pp * 3)],
+    // Searches aimed at the trades that planning applications for big schemes do not reach
+    ...TRADE_SEARCHES.map(([key, words, label, trades]): [string, () => Promise<LeadRow[]>] =>
+      [key, () => fetchPlanit(`recent=${recent}&app_type=Full,Outline,Amendment&search=${encodeURIComponent(words)}`, 'planning', pp, { label, trades })]),
   ];
 
   const summary: Record<string, number | string> = {};
@@ -603,5 +675,11 @@ export async function importLeads({ days = 3 }: { days?: number } = {}) {
   const keepDays: [LeadKind, number][] = [['trees', 45], ['planning', 120], ['award', 120], ['pipeline', 180], ['tender', 90]];
   for (const [kind, d] of keepDays) await db().from('leads').delete().eq('kind', kind).is('deadline', null).lt('published_at', ago(d));
 
+  for (const [k, msg] of Object.entries(partial)) {
+    const root = k.split('-')[0];
+    const key = k === 'planit-trees' ? 'tree-works' : k === 'planit-planning' ? 'planning' : (Object.keys(summary).find((x) => x === k || x.startsWith(root)) ?? k);
+    if (typeof summary[key] === 'number') summary[key] = `${summary[key]} (partial, then: ${msg})`;
+  }
+  await recordStatus(summary, unique.length).catch((e) => console.error('leads: could not record status', e));
   return { saved: unique.length, bySource: summary, scanned: { ...scanned } };
 }
