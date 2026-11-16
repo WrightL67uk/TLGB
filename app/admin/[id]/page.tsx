@@ -1,4 +1,5 @@
 import { vacanciesUsed } from '@/lib/vacancies';
+import RenameForm from '@/app/admin/RenameForm';
 import DeleteForm from '@/app/admin/DeleteForm';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -28,9 +29,9 @@ const DOC_LABEL: Record<string, string> = {
 
 export default async function AdminDetail({
   params, searchParams,
-}: { params: Promise<{ id: string }>; searchParams: Promise<{ done?: string; login_link?: string; error?: string; delete_error?: string }> }) {
+}: { params: Promise<{ id: string }>; searchParams: Promise<{ renamed?: string; rename_error?: string; done?: string; login_link?: string; error?: string; delete_error?: string }> }) {
   const { id } = await params;
-  const { done, login_link, error: formError, delete_error: deleteError } = await searchParams;
+  const { renamed, rename_error: renameError, done, login_link, error: formError, delete_error: deleteError } = await searchParams;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 
   const { data: b } = await db().from('businesses').select('*').eq('id', id).maybeSingle();
@@ -103,6 +104,9 @@ export default async function AdminDetail({
 
       <h1>{b.trading_name} <span className={`status ${b.status}`}>{b.status.replace('_', ' ')}</span></h1>
       <p className="muted">Submitted {new Date(b.created_at).toLocaleString('en-GB')}</p>
+      {renamed && <p className="ok-box">Name saved.</p>}
+      {renameError && <p className="err big">{renameError}</p>}
+      <RenameForm kind="business" id={b.id} name={b.trading_name} from={`/admin/${b.id}`} />
 
       <div className="grid2">
         <section className="panel">

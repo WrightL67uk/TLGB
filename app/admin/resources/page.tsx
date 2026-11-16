@@ -1,4 +1,5 @@
 import DeleteForm from '@/app/admin/DeleteForm';
+import RenameForm from '@/app/admin/RenameForm';
 import Link from 'next/link';
 import { db } from '@/lib/supabase';
 import { supplierCategoryLabel, helpKindLabel } from '@/lib/resources';
@@ -20,7 +21,7 @@ function Act({ table, id, action, label }: { table: string; id: string; action: 
   );
 }
 
-export default async function AdminResources({ searchParams }: { searchParams: Promise<{ supplier_error?: string; deleted?: string; delete_error?: string }> }) {
+export default async function AdminResources({ searchParams }: { searchParams: Promise<{ supplier_error?: string; renamed?: string; rename_error?: string; deleted?: string; delete_error?: string }> }) {
   const sp = await searchParams;
   const [{ data: pendingNew }, { data: enquiries }, { data: help }, { data: approved }, { data: requests }] = await Promise.all([
     db().from('suppliers').select('*').eq('status', 'pending').order('created_at'),
@@ -39,6 +40,8 @@ export default async function AdminResources({ searchParams }: { searchParams: P
       <h1>Suppliers, enquiries and Help Hub</h1>
       {sp.deleted && <p className="ok-box">Deleted {sp.deleted}.</p>}
       {sp.delete_error && <p className="err big">{sp.delete_error}</p>}
+      {sp.renamed && <p className="ok-box">Name saved.</p>}
+      {sp.rename_error && <p className="err big">{sp.rename_error}</p>}
 
       <h2 id="suppliers">Suppliers waiting for a check ({pending?.length ?? 0})</h2>
       {sp.supplier_error && <p className="err big">{sp.supplier_error}</p>}
@@ -82,6 +85,7 @@ export default async function AdminResources({ searchParams }: { searchParams: P
           <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
             <Act table="suppliers" id={s.id} action="approve" label="Approve" />
             <Act table="suppliers" id={s.id} action="reject" label="Reject" />
+            <RenameForm kind="supplier" id={s.id} name={s.name} from="/admin/resources" />
             <DeleteForm kind="supplier" id={s.id} name={s.name} from="/admin/resources" what="their listing" />
           </div>
         </div>
@@ -100,7 +104,7 @@ export default async function AdminResources({ searchParams }: { searchParams: P
         <tbody>
           {approved?.map((s) => (
             <tr key={s.id}>
-              <td><strong>{s.name}</strong>{s.town ? `, ${s.town}` : ''}{s.tier && <> <span className="status approved">{TIER_INFO[s.tier as 'appear' | 'match'].label}{['active', 'trialing', 'past_due'].includes(s.subscription_status) ? '' : ' (lapsed)'}</span></>}<br /><span className="muted small">{s.categories.map(supplierCategoryLabel).join(', ')}</span>{s.wants_requests && !s.quote_requests && <><br /><strong className="small">Asked for estimate requests</strong></>}</td>
+              <td><strong>{s.name}</strong> <RenameForm kind="supplier" id={s.id} name={s.name} from="/admin/resources" />{s.town ? `, ${s.town}` : ''}{s.tier && <> <span className="status approved">{TIER_INFO[s.tier as 'appear' | 'match'].label}{['active', 'trialing', 'past_due'].includes(s.subscription_status) ? '' : ' (lapsed)'}</span></>}<br /><span className="muted small">{s.categories.map(supplierCategoryLabel).join(', ')}</span>{s.wants_requests && !s.quote_requests && <><br /><strong className="small">Asked for estimate requests</strong></>}</td>
               <td colSpan={4}>
                 <form method="post" action="/api/admin/suppliers" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                   <input type="hidden" name="id" value={s.id} />
