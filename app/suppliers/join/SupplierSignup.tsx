@@ -10,6 +10,7 @@ export default function SupplierSignup({ tier }: { tier: 'appear' | 'match' }) {
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[]>([]);
   const [searching, setSearching] = useState(false);
+  const [searched, setSearched] = useState('');
   const [company, setCompany] = useState<Hit | null>(null);
   const [name, setName] = useState('');
   const [contact, setContact] = useState('');
@@ -32,14 +33,14 @@ export default function SupplierSignup({ tier }: { tier: 'appear' | 'match' }) {
       try {
         const r = await fetch(`/api/companies-house?q=${encodeURIComponent(q.trim())}`).then((x) => x.json());
         setHits(r.results ?? []);
-      } catch { setHits([]); } finally { setSearching(false); }
+      } catch { setHits([]); } finally { setSearching(false); setSearched(q.trim()); }
     }, 350);
   }, [q, type, company]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    if (type === 'ltd' && !company) return setError('Search for your company and pick it from the list.');
+    if (type === 'ltd' && !company) return setError(hits.length ? 'Pick your company from the list under the company name box.' : 'We could not find that company. Type your company name or number in the box at the top and pick it from the list. Not a limited company? Choose sole trader or partnership.');
     if (!vat) return setError('Tell us whether you are VAT registered.');
     if (pw !== pw2) return setError('The two passwords do not match.');
     setBusy(true);
@@ -92,6 +93,12 @@ export default function SupplierSignup({ tier }: { tier: 'appear' | 'match' }) {
           <label>Company name or number
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Start typing your company name" autoComplete="organization" />
             {searching && <span className="hint">Searching Companies House...</span>}
+            {!searching && hits.length === 0 && q.trim().length >= 2 && searched === q.trim() && (
+              <span className="err" style={{ display: 'block', marginTop: 6 }}>
+                No company found on Companies House for &ldquo;{q.trim()}&rdquo;. Check the spelling or try your company number.{' '}
+                <button type="button" className="linkish" onClick={() => setType('sole_trader')}>Not a limited company? Continue as a sole trader or partnership</button>
+              </span>
+            )}
             {hits.length > 0 && (
               <ul className="ch-hits">
                 {hits.map((h) => (
