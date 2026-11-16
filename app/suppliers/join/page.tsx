@@ -56,6 +56,15 @@ export default async function SupplierJoin({ searchParams }: { searchParams: Pro
           No insurance certificates or accreditations are needed to join. We check your company details, then your profile, before it goes live.
           Secure card payment through Stripe. We are not VAT registered, so there is no VAT to pay on top of these prices. If that changes we will give you at least 30 days&rsquo; notice.
         </p>
+        {!offer && (
+          <form method="get" action="/suppliers/join" style={{ display: 'flex', gap: 8, alignItems: 'end', flexWrap: 'wrap', margin: '10px 0' }}>
+            <label className="small">Have a code?
+              <input name="code" maxLength={20} pattern="[A-Za-z0-9]{3,20}" style={{ textTransform: 'uppercase', width: 180 }} />
+            </label>
+            <button type="submit">Use code</button>
+          </form>
+        )}
+        {sp.code && !offer && <p className="err">That code cannot be used on a supplier plan. Check it and try again.</p>}
         <p className="small">Already signed up? <Link href="/login">Log in</Link>. Looking for a trade listing? <Link href="/join">Join as a trade</Link>.</p>
       </div>
     );

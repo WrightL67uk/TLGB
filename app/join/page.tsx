@@ -101,6 +101,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
             <button type="submit">Use code</button>
           </form>
         )}
+        {sp.code && !offer && <p className="err">That code is not valid. Check it and try again.</p>}
         <p className="small">Already signed up? <Link href="/login">Log in</Link>. Supply the trade? <Link href="/suppliers/join">See supplier plans</Link>. <Link href="/join">Back</Link>.</p>
       </div>
     );
