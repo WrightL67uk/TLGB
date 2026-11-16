@@ -354,6 +354,18 @@ export async function emailSupplierLive(to: string, name: string, slug: string |
   );
 }
 
+/** Tells a soil supplier the result of the check on their soil details. */
+export async function emailSoilResult(to: string, name: string, approved: boolean, note: string | null) {
+  await send(
+    to,
+    approved ? 'Your soil tests are checked on The Little Green Book' : 'About your soil details on The Little Green Book',
+    approved
+      ? `<p>We have checked the soil details and test certificates for ${esc(name)}. Your listing now shows a "soil tests checked" badge with your answers.</p><p>If you change your answers or upload new results, we check them again before buyers see the changes.</p>`
+      : `<p>We could not approve the soil details for ${esc(name)} yet.</p>${note ? `<p>${esc(note)}</p>` : ''}<p>You can update your answers or upload more results from <a href="${siteUrl()}/login?next=/account">your account</a> and send them again.</p>`,
+    'soil-result'
+  );
+}
+
 /** Tells a supplier their application was not approved. */
 export async function emailSupplierRejected(to: string, name: string, reason: string) {
   await send(

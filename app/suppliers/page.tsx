@@ -60,6 +60,12 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
     profile: hasProfile({ status: 'approved', tier: s.tier ?? null, subscription_status: s.subscription_status ?? 'none', slug: s.slug ?? null }),
   }));
   const ratings = await ratingsFor(rows.map((r) => r.id));
+  // Soil suppliers whose test certificates we have checked. Ignored if the column is not there yet.
+  const soilChecked = new Set<string>();
+  {
+    const { data: sc } = await db().from('suppliers').select('id').eq('soil_status', 'approved').in('id', rows.map((r) => r.id));
+    for (const x of sc ?? []) soilChecked.add(x.id as string);
+  }
   if (where?.ok) {
     // Nearest first; national suppliers without a location go after the local ones
     rows = rows.sort((a, b) => rank(a) - rank(b) || (a.dist ?? 9999) - (b.dist ?? 9999));
@@ -103,6 +109,7 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
             <div className="badges">
               {s.categories.map((c) => <span key={c} className="badge ok">{supplierCategoryLabel(c)}</span>)}
               {s.delivers_nationally && <span className="badge">delivers nationally</span>}
+              {soilChecked.has(s.id) && <span className="badge ok" title="We have checked their soil test certificates">Soil tests checked</span>}
               {s.tier === 'match' && <span className="badge ok">Match supplier</span>}
               {takesRequests(s) && <span className="badge ok">takes estimate requests</span>}
               {ratings[s.id] && <span className="badge" title="Rated by members after real orders"><span style={{ color: '#c98a00' }}>★</span> {ratings[s.id].avg.toFixed(1)} from {ratings[s.id].count} order{ratings[s.id].count === 1 ? '' : 's'}</span>}

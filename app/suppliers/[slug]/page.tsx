@@ -6,6 +6,7 @@ import { supplierCategoryLabel, shortUrl } from '@/lib/resources';
 import { hasProfile, photosFor, standardLabel, type Supplier } from '@/lib/supplierAccount';
 import { DELIVERY_OPTIONS } from '@/lib/supplierOptions';
 import { ratingsFor } from '@/lib/quotes';
+import SoilPanel from '../SoilPanel';
 import '../../resources.css';
 import '../supplier.css';
 
@@ -29,6 +30,13 @@ export default async function SupplierProfile({ params }: { params: Promise<{ sl
   if (!s) notFound();
   const [photos, ratings] = await Promise.all([photosFor(s.id), ratingsFor([s.id])]);
   const rating = ratings[s.id];
+  const sx = s as Supplier & { soil?: unknown; soil_status?: string; soil_checked_at?: string | null };
+  const soilOk = sx.soil_status === 'approved';
+  let lastTest: string | null = null;
+  if (soilOk) {
+    const { data: t } = await db().from('supplier_docs').select('tested_on').eq('supplier_id', s.id).not('tested_on', 'is', null).order('tested_on', { ascending: false }).limit(1);
+    lastTest = (t?.[0]?.tested_on as string | undefined) ?? null;
+  }
   const mail = s.public_email || s.email;
   const facts: [string, string][] = [
     ...(s.year_established ? [['Established', String(s.year_established)] as [string, string]] : []),
@@ -50,6 +58,7 @@ export default async function SupplierProfile({ params }: { params: Promise<{ sl
           <div className="badges">
             {s.categories.map((c) => <span key={c} className="badge ok">{supplierCategoryLabel(c)}</span>)}
             {s.ch_company_name && <span className="badge ok" title="Checked on Companies House">Company checked</span>}
+            {soilOk && <span className="badge ok" title="We have checked their soil test certificates">Soil tests checked</span>}
             {s.quote_requests && <span className="badge ok">takes estimate requests</span>}
             {rating && <span className="badge"><span style={{ color: '#c98a00' }}>★</span> {rating.avg.toFixed(1)} from {rating.count} order{rating.count === 1 ? '' : 's'}</span>}
           </div>
@@ -71,6 +80,7 @@ export default async function SupplierProfile({ params }: { params: Promise<{ sl
       <div className="sup-cols">
         <div>
           {s.about && <><h2>About {s.name}</h2><p style={{ whiteSpace: 'pre-line' }}>{s.about}</p></>}
+          {soilOk && <SoilPanel soil={sx.soil} checkedAt={sx.soil_checked_at ?? null} lastTest={lastTest} name={s.name} />}
           {standards.length > 0 && <><h2>Standards and assurance</h2><ul>{standards.map((x) => <li key={x}>{x}</li>)}</ul></>}
         </div>
         <aside className="panel sup-contact">

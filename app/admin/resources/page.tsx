@@ -1,5 +1,6 @@
 import DeleteForm from '@/app/admin/DeleteForm';
 import RenameForm from '@/app/admin/RenameForm';
+import { cleanSoil, soilLines, docKindLabel } from '@/lib/soil';
 import Link from 'next/link';
 import { db } from '@/lib/supabase';
 import { supplierCategoryLabel, helpKindLabel } from '@/lib/resources';
@@ -32,6 +33,15 @@ export default async function AdminResources({ searchParams }: { searchParams: P
   ]);
   const { data: started } = await db().from('suppliers').select('id, created_at, name, email, tier, subscription_status').eq('status', 'started').order('created_at', { ascending: false });
   const { data: sites } = await db().from('member_sites').select('slug, status, views, enquiries, business_id, updated_at').order('updated_at', { ascending: false }).limit(200);
+  // Soil details waiting for a check, with signed links to the uploaded test results
+  const { data: soilRows } = await db().from('suppliers').select('id, name, email, town, soil, soil_status, soil_checked_at').in('soil_status', ['pending', 'approved']).order('soil_status', { ascending: false }).order('name');
+  const soilIds = (soilRows ?? []).map((x) => x.id as string);
+  const { data: soilDocs } = soilIds.length ? await db().from('supplier_docs').select('id, supplier_id, kind, title, tested_on, file_name, storage_path').in('supplier_id', soilIds).order('created_at') : { data: [] as { id: string; supplier_id: string; kind: string; title: string | null; tested_on: string | null; file_name: string | null; storage_path: string }[] };
+  const docUrls = new Map<string, string>();
+  if (soilDocs?.length) {
+    const { data: urls } = await db().storage.from('documents').createSignedUrls(soilDocs.map((d) => d.storage_path), 1800);
+    for (const u of urls ?? []) if (u.path && u.signedUrl) docUrls.set(u.path, u.signedUrl);
+  }
   const pending = pendingNew ?? (await db().from('suppliers').select('id, created_at, name, categories, description, website, phone, town, postcode, email').eq('status', 'pending').order('created_at')).data?.map((x) => ({ ...x, wants_requests: false }));
 
   return (
@@ -42,6 +52,39 @@ export default async function AdminResources({ searchParams }: { searchParams: P
       {sp.delete_error && <p className="err big">{sp.delete_error}</p>}
       {sp.renamed && <p className="ok-box">Name saved.</p>}
       {sp.rename_error && <p className="err big">{sp.rename_error}</p>}
+
+      <h2 id="soil">Soil checks ({(soilRows ?? []).filter((x) => x.soil_status === 'pending').length} waiting)</h2>
+      {!soilRows?.length && <p className="muted">No soil suppliers have sent details yet.</p>}
+      {soilRows?.map((x) => {
+        const docs = (soilDocs ?? []).filter((d) => d.supplier_id === x.id);
+        const old = docs.length > 0 && docs.every((d) => d.tested_on && Date.now() - new Date(d.tested_on).getTime() > 365 * 86_400_000);
+        return (
+          <div key={x.id} className="ok-box" style={{ marginBottom: 12, background: '#fff', border: '1px solid #ddd' }}>
+            <strong>{x.name}</strong> <span className={x.soil_status === 'approved' ? 'status approved' : 'status'}>{x.soil_status === 'approved' ? 'checked and showing' : 'waiting'}</span> <span className="muted small">{x.town} &middot; {x.email}</span>
+            <ul className="small" style={{ margin: '6px 0 6px 18px' }}>{soilLines(cleanSoil(x.soil)).map(([k, v]) => <li key={k}><strong>{k}:</strong> {v}</li>)}</ul>
+            <p className="small" style={{ margin: '0 0 6px' }}>
+              <strong>Uploaded files ({docs.length}):</strong>{' '}
+              {docs.length === 0 ? <span className="err">none</span> : docs.map((d) => (
+                <span key={d.id} style={{ marginRight: 10 }}><a href={docUrls.get(d.storage_path)} target="_blank" rel="noopener">{docKindLabel(d.kind)}{d.title ? `: ${d.title}` : ''}</a>{d.tested_on ? ` (tested ${ukDate(d.tested_on)})` : ' (no test date)'}</span>
+              ))}
+            </p>
+            {old && <p className="err small" style={{ margin: '0 0 6px' }}>Every test date is more than 12 months old.</p>}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              {x.soil_status === 'pending' && (
+                <form method="post" action="/api/admin/soil-decision" style={{ display: 'inline' }}>
+                  <input type="hidden" name="id" value={x.id} /><input type="hidden" name="action" value="approve" />
+                  <button type="submit">Approve soil details</button>
+                </form>
+              )}
+              <form method="post" action="/api/admin/soil-decision" style={{ display: 'flex', gap: 6 }}>
+                <input type="hidden" name="id" value={x.id} /><input type="hidden" name="action" value={x.soil_status === 'approved' ? 'withdraw' : 'reject'} />
+                <input name="reason" placeholder="Reason (sent to them)" required style={{ minWidth: 220 }} />
+                <button type="submit">{x.soil_status === 'approved' ? 'Withdraw badge' : 'Turn down'}</button>
+              </form>
+            </div>
+          </div>
+        );
+      })}
 
       <h2 id="suppliers">Suppliers waiting for a check ({pending?.length ?? 0})</h2>
       {sp.supplier_error && <p className="err big">{sp.supplier_error}</p>}

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { ownedSupplier, isSubscribed, hasProfile } from '@/lib/supplierAccount';
+import { isSoilSupplier } from '@/lib/soil';
 import { getSupplierPricing, TIER_INFO, SUPPLIER_TIERS } from '@/lib/supplierPricing';
 import { stripeEnabled } from '@/lib/stripe';
 import '../../resources.css';
@@ -91,6 +92,18 @@ export default async function SupplierAccount({ params, searchParams }: { params
           </>
         )}
       </div>
+
+      {s.status !== 'rejected' && isSoilSupplier(s.categories) && (() => {
+        const st = (s as unknown as { soil_status?: string }).soil_status ?? 'none';
+        const label = ({ none: 'Not sent for checking yet', pending: 'Waiting for us to check it', approved: 'Checked: showing on your listing', rejected: 'Not approved' } as Record<string, string>)[st] ?? st;
+        return (
+          <div className="panel">
+            <h2 style={{ marginTop: 0 }}>Soil quality</h2>
+            <p style={{ margin: '0 0 6px' }}>Tell buyers how your soil is tested and upload your stockpile results. Checked suppliers get a &ldquo;soil tests checked&rdquo; badge. <strong>{label}.</strong></p>
+            <p style={{ margin: 0 }}><Link href={`/supplier/${s.id}/soil`} className="sq sq-rust">{st === 'none' ? 'Add soil details' : 'Edit soil details'}</Link></p>
+          </div>
+        );
+      })()}
 
       {s.status !== 'rejected' && (
         <div className="panel">
