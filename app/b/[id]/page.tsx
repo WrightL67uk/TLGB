@@ -56,9 +56,9 @@ export default async function BusinessPage({ params, searchParams }: { params: P
             {b.business_type === 'ltd' ? `Ltd company ${b.company_number}, Companies House checked` : 'Sole trader, checked'}
           </span>
           <span className="badge ok">Public liability {gbp(b.pl_cover_amount)} to {new Date(b.pl_expiry).toLocaleDateString('en-GB')}</span>
-          {b.el_cover_amount && <span className="badge">Employers liability {gbp(b.el_cover_amount)}</span>}
+          {b.el_cover_amount && <span className="badge ok">Employers liability {gbp(b.el_cover_amount)}</span>}
           {liveAccreditations(b.accreditations, b.accreditation_expiries).map((a) => (
-            <span className="badge" key={a}>{accreditationLabel(a)}{b.accreditation_expiries?.[a] ? ` to ${fmtDate(b.accreditation_expiries[a])}` : ''}</span>
+            <span className="badge ok" key={a}>{accreditationLabel(a)}{b.accreditation_expiries?.[a] ? ` to ${fmtDate(b.accreditation_expiries[a])}` : ''}</span>
           ))}
         </p>
       ) : (

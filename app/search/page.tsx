@@ -123,9 +123,9 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
                     <p className="badges">
                       <span className="badge ok">Verified member</span>
                       <span className="badge ok">{r.business_type === 'ltd' ? 'Companies House checked' : 'Sole trader, checked'}</span>
-                      <span className="badge">PL {gbp(r.pl_cover_amount)}</span>
-                      {badgeOrder(r.accreditations).slice(0, 4).map((a) => <span className="badge" key={a}>{accreditationLabel(a)}</span>)}
-                      {r.accreditations.length > 4 && <span className="badge">+{r.accreditations.length - 4} more</span>}
+                      <span className="badge ok">PL {gbp(r.pl_cover_amount)}</span>
+                      {badgeOrder(r.accreditations).slice(0, 4).map((a) => <span className="badge ok" key={a}>{accreditationLabel(a)}</span>)}
+                      {r.accreditations.length > 4 && <span className="badge ok">+{r.accreditations.length - 4} more</span>}
                     </p>
                   ) : (
                     <p className="badges">
