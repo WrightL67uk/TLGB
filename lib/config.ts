@@ -111,6 +111,8 @@ export const TRADES: { slug: string; label: string }[] = [
   { slug: 'supplier', label: 'Materials Supplier' },
   { slug: 'plant-hire', label: 'Machine / Plant Hire' },
   { slug: 'training', label: 'Training Provider' },
+  { slug: 'virtual-assistant', label: 'Virtual Assistant / Admin Support' },
+  { slug: 'business-development', label: 'Business Development / Tendering' },
 ];
 
 export const tradeLabel = (slug: string) =>
