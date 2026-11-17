@@ -11,7 +11,7 @@ import './supplier.css';
 export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'Suppliers | The Little Green Book',
-  description: 'Landscaping suppliers: topsoil, turf, trees and hedging, fencing, paving, tree pits, artificial grass and more. Free to search.',
+  description: 'Landscaping suppliers: topsoil, turf, trees and hedging, fencing, paving, tree pits, artificial grass, plus virtual assistants and business development support. Free to search.',
 };
 
 type Supplier = {
@@ -75,7 +75,7 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
     <div>
       <h1>Suppliers</h1>
       <p className="lead">
-        Topsoil, turf, trees and hedging, fencing, paving and everything else a landscaping job needs. Free for everyone to search.
+        Topsoil, turf, trees and hedging, fencing, paving and everything else a landscaping job needs. Need help in the office? Virtual assistants, bid and tender writers and business development support are here too. Free for everyone to search.
       </p>
       <p className="ok-box" style={{ marginTop: -8 }}>
         <strong>Members:</strong> send one plant or materials list to several of these suppliers and compare their prices side by side. {me.loggedIn
