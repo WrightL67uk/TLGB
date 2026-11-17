@@ -32,7 +32,8 @@ const Schema = z.object({
   terms: z.literal('on', { message: 'Please tick to agree to the terms' }),
 });
 
-const back = (req: NextRequest, path: string) => NextResponse.redirect(new URL(path, req.url), 303);
+const back = (req: NextRequest, path: string) =>
+  req.headers.get('x-tlgb-fetch') ? NextResponse.json({ redirect: path }) : NextResponse.redirect(new URL(path, req.url), 303);
 const err = (req: NextRequest, m: string) => back(req, `/agencies/join?error=${encodeURIComponent(m)}`);
 
 export async function POST(req: NextRequest) {

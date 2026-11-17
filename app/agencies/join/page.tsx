@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAgency, PLACEMENT_TYPES, AGENCY_BODIES, getAgencyPlan } from '@/lib/agencies';
 import { LEVELS } from '@/lib/seekerTypes';
+import KeepForm from './KeepForm';
 import AgencyExplainer from '../Explainer';
 import '../../resources.css';
 
@@ -18,8 +19,8 @@ export default async function AgencyJoin({ searchParams }: { searchParams: Promi
       <p className="lead">Post landscaping and external works vacancies, search people looking for work, and bring your own candidates to the Book. We check every agency before it can post, usually within one working day.</p>
       <AgencyExplainer plan={plan} />
       <h2>Sign up</h2>
-      <form className="res-form" method="post" action="/api/agency/join">
-        {error && <p className="err big">{error}</p>}
+      <form id="agency-join" className="res-form" method="post" action="/api/agency/join">
+        <KeepForm formId="agency-join" initialError={error} />
         <input type="text" name="tlgb_hp_zq" className="hp" tabIndex={-1} autoComplete="off" aria-hidden="true" />
         <label>Agency name<input name="name" required maxLength={120} autoComplete="organization" /></label>
         <div className="row">
