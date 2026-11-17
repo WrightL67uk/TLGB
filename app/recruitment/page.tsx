@@ -1,3 +1,4 @@
+import { approvedAgencyByEmail } from '@/lib/agencies';
 import Link from 'next/link';
 import { db } from '@/lib/supabase';
 import { getSessionEmail } from '@/lib/session';
@@ -23,7 +24,7 @@ type SP = Promise<{ tab?: string; work?: string; within?: string; alert_on?: str
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-type VacRow = Vacancy & { businesses: { trading_name: string } | null };
+type VacRow = Vacancy & { businesses: { trading_name: string } | null; agencies: { name: string } | null };
 const RADII = [10, 20, 30, 50, 100];
 
 export default async function RecruitmentPage({ searchParams }: { searchParams: SP }) {
@@ -35,6 +36,7 @@ export default async function RecruitmentPage({ searchParams }: { searchParams: 
     ? await db().from('businesses').select('id, status, founding_member, subscription_status').eq('email', email).eq('status', 'approved')
     : { data: null };
   const member = (myBiz ?? []).find(isPaid) ?? null;
+  const agency = email ? await approvedAgencyByEmail(email) : null;
   const { data: meSeeker } = email ? await db().from('job_seekers').select('id').eq('email', email).neq('status', 'removed').maybeSingle() : { data: null };
 
   let where: { lat: number; lng: number; postcode: string } | null = null;
@@ -45,7 +47,7 @@ export default async function RecruitmentPage({ searchParams }: { searchParams: 
   }
 
   // Vacancies: anyone can browse and search; employer names and how to apply need a free login
-  const { data: vData } = await db().from('vacancies').select('*, businesses(trading_name)').eq('status', 'live').gt('expires_at', new Date().toISOString())
+  const { data: vData } = await db().from('vacancies').select('*, businesses(trading_name), agencies(name)').eq('status', 'live').gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false }).limit(1000);
   let vacs = ((vData ?? []) as VacRow[]).filter(vacancyLive);
   const vacTotal = vacs.length;
@@ -101,6 +103,12 @@ export default async function RecruitmentPage({ searchParams }: { searchParams: 
             ? <Link href={`/account/${member.id}/vacancies`} className="wk-btn go">Post a vacancy</Link>
             : <Link href="/join" className="wk-btn go">Become a member</Link>}
         </div>
+        <div>
+          <p className="tender-tag">Hiring?</p>
+          <h2>For recruitment agencies</h2>
+          <p>Verified agencies can post vacancies for their clients on a monthly plan, and earn free credits for every job seeker they bring to TLGB.</p>
+          <Link href={agency ? '/recruiter' : '/agencies/join'} className="wk-btn go">{agency ? 'Agency dashboard' : 'Agency sign up'}</Link>
+        </div>
       </div>
 
       <nav className="rc-tabs">
@@ -142,7 +150,7 @@ export default async function RecruitmentPage({ searchParams }: { searchParams: 
                 <Link key={v.id} href={`/recruitment/vacancies/${v.id}`} className="wk-card">
                   <h2>{v.title}</h2>
                   <div className="wk-meta">
-                    <b>{email ? (v.businesses?.trading_name ?? 'TLGB member') : 'Employer shown when you sign in'}</b>
+                    <b>{email ? (v.businesses?.trading_name ?? v.agencies?.name ?? 'TLGB member') : 'Employer shown when you sign in'}</b>
                     <span>{v.area}{d != null ? `, ${Math.round(d)} miles away` : ''}</span>
                     {pay && <span>{pay}</span>}
                     {v.level && <span>{label(LEVELS, v.level)}</span>}
@@ -161,7 +169,7 @@ export default async function RecruitmentPage({ searchParams }: { searchParams: 
         </>
       ) : (
         <>
-          <p className="muted">{access.ok ? 'You can see names and contact details.' : 'Anyone can browse. Paying members and checked main contractors see names and contact details.'}</p>
+          <p className="muted">{access.ok ? 'You can see names and contact details.' : 'Anyone can browse. Paying members, approved agencies and checked main contractors see names and contact details.'}</p>
           {!access.ok && (
             <p className="panel small">
               {access.who === 'unpaid' ? <>Start your membership to see names and contact details. <Link href="/account">Go to my listing</Link>.</>

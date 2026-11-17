@@ -10,11 +10,11 @@ import '../../../workers.css';
 
 export const dynamic = 'force-dynamic';
 
-type Row = Vacancy & { businesses: { id: string; trading_name: string; status: string } | null };
+type Row = Vacancy & { businesses: { id: string; trading_name: string; status: string } | null; agencies: { name: string } | null };
 
 async function load(vid: string) {
   if (!/^[0-9a-f-]{36}$/i.test(vid)) return null;
-  const { data } = await db().from('vacancies').select('*, businesses(id, trading_name, status)').eq('id', vid).neq('status', 'removed').maybeSingle();
+  const { data } = await db().from('vacancies').select('*, businesses(id, trading_name, status), agencies(name)').eq('id', vid).neq('status', 'removed').maybeSingle();
   return (data as Row | null) ?? null;
 }
 
@@ -46,7 +46,7 @@ export default async function VacancyPage({ params }: { params: Promise<{ vid: s
           <section>
             <h1 style={{ margin: '0 0 6px' }}>{v.title}</h1>
             <div className="wk-meta">
-              <b>{!signedIn ? 'Employer shown when you sign in' : biz && biz.status === 'approved' ? <Link href={`/b/${biz.id}`}>{biz.trading_name}</Link> : biz?.trading_name ?? 'TLGB member'}</b>
+              <b>{!signedIn ? 'Employer shown when you sign in' : biz && biz.status === 'approved' ? <Link href={`/b/${biz.id}`}>{biz.trading_name}</Link> : biz?.trading_name ?? (v.agencies ? `${v.agencies.name} (recruitment agency)` : 'TLGB member')}</b>
               <span>{v.area}</span>
               {pay && <span>{pay}</span>}
               <span>{v.start_date && v.start_date > new Date().toISOString().slice(0, 10) ? `Starts ${ukDate(v.start_date)}` : 'Start as soon as possible'}</span>
@@ -83,7 +83,7 @@ export default async function VacancyPage({ params }: { params: Promise<{ vid: s
           {live && signedIn && (
             <div className="rc-apply">
               <h2 style={{ margin: '0 0 4px', color: 'var(--forest)', fontSize: '1.1rem' }}>How to apply</h2>
-              <p className="small muted" style={{ margin: 0 }}>Contact {biz?.trading_name ?? 'the employer'} directly.</p>
+              <p className="small muted" style={{ margin: 0 }}>Contact {biz?.trading_name ?? v.agencies?.name ?? 'the employer'} directly.</p>
               {v.apply_url && <a href={v.apply_url} target="_blank" rel="noopener nofollow" className="wk-btn go">Apply online</a>}
               {v.apply_email && <a href={`mailto:${v.apply_email}?subject=${subject}`} className={`wk-btn ${v.apply_url ? '' : 'go'}`}>Email {v.apply_email}</a>}
               {v.apply_phone && <a href={`tel:${v.apply_phone.replace(/\s/g, '')}`} className="wk-btn">Call {v.apply_phone}</a>}
@@ -96,7 +96,7 @@ export default async function VacancyPage({ params }: { params: Promise<{ vid: s
           </div>}
         </aside>
       </div>
-      <p className="muted small" style={{ marginTop: 18 }}>Vacancies are posted by TLGB members. We check member businesses, but not each vacancy, so make your own checks before you accept a job. Something wrong with this vacancy? <a href={`mailto:admin@tlgb.co.uk?subject=${encodeURIComponent(`Vacancy ${v.id}`)}`}>Tell us</a>.</p>
+      <p className="muted small" style={{ marginTop: 18 }}>Vacancies are posted by TLGB members and recruitment agencies. We check the businesses and agencies that post, but not every employer behind an advert, so make your own checks before you accept a job. Something wrong with this vacancy? <a href={`mailto:admin@tlgb.co.uk?subject=${encodeURIComponent(`Vacancy ${v.id}`)}`}>Tell us</a>.</p>
     </div>
   );
 }

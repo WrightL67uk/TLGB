@@ -9,8 +9,8 @@ export const VACANCY_LIVE_DAYS = 60;
 export const DEFAULT_VACANCY_LIMIT = 5;
 
 export type Vacancy = {
-  id: string; business_id: string; created_at: string; updated_at: string;
-  status: 'live' | 'closed' | 'removed'; expires_at: string;
+  id: string; business_id: string | null; agency_id: string | null; client_name: string | null; rejection_reason: string | null; approved_at: string | null; created_at: string; updated_at: string;
+  status: 'pending' | 'live' | 'closed' | 'removed' | 'rejected'; expires_at: string;
   title: string; level: string | null; skills: string[]; cards: string[]; work_types: string[];
   description: string; postcode: string; area: string | null; lat: number | null; lng: number | null;
   pay_min: number | null; pay_max: number | null; pay_period: string | null; start_date: string | null;

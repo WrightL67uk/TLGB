@@ -5,6 +5,7 @@ import { createLoginToken, recentLoginRequests, sameOrigin } from '@/lib/session
 import { emailSeekerWelcome } from '@/lib/email';
 import { tooMany, visitor, TOO_MANY } from '@/lib/rateLimit';
 import { siteUrl } from '@/lib/config';
+import { REF_COOKIE } from '@/lib/agencies';
 
 export const runtime = 'nodejs';
 
@@ -36,7 +37,12 @@ export async function POST(req: NextRequest) {
   if (!existing) {
     const { data: removed } = await db().from('job_seekers').select('id').eq('email', d.email).eq('status', 'removed').limit(1);
     if (removed?.length) return back(req, 'error=' + encodeURIComponent('We cannot create a profile for this email address. Contact us if you think this is a mistake.'), next);
-    const { error } = await db().from('job_seekers').insert({ email: d.email, first_name: d.first_name, last_name: d.last_name });
+    // Came through a recruitment agency's link? Remember which, for the agency's credits.
+    const refCode = req.cookies.get(REF_COOKIE)?.value ?? '';
+    const { data: refAgency } = /^[a-z0-9]{6,16}$/.test(refCode)
+      ? await db().from('agencies').select('id').eq('referral_code', refCode).eq('status', 'approved').maybeSingle()
+      : { data: null };
+    const { error } = await db().from('job_seekers').insert({ email: d.email, first_name: d.first_name, last_name: d.last_name, ...(refAgency ? { referred_by_agency: refAgency.id } : {}) });
     if (error) {
       console.error('seeker insert failed', error);
       return back(req, 'error=' + encodeURIComponent('Something went wrong. Please try again.'), next);

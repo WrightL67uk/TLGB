@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
 import { stripe, verifyWebhook, mapStatus, periodEnd } from '@/lib/stripe';
 import { emailAdminBilling, emailMemberPaymentFailed, emailAdminSupplier } from '@/lib/email';
+import { addCredits, getAgencyPlan } from '@/lib/agencies';
 import { PAID_STATUSES } from '@/lib/membership';
 
 export const runtime = 'nodejs';
@@ -23,6 +24,30 @@ async function findSupplier(by: { id?: string | null; sub?: string | null; custo
   if (by.sub) { const { data } = await q().eq('stripe_subscription_id', by.sub).maybeSingle(); if (data) return data; }
   if (by.customer) { const { data } = await q().eq('stripe_customer_id', by.customer).limit(1).maybeSingle(); if (data) return data; }
   return null;
+}
+
+async function findAgency(by: { id?: string | null; sub?: string | null; customer?: string | null }) {
+  const q = () => db().from('agencies').select('id, name, email, subscription_status');
+  if (by.id) { const { data } = await q().eq('id', by.id).maybeSingle(); if (data) return data; }
+  if (by.sub) { const { data } = await q().eq('stripe_subscription_id', by.sub).maybeSingle(); if (data) return data; }
+  if (by.customer) { const { data } = await q().eq('stripe_customer_id', by.customer).limit(1).maybeSingle(); if (data) return data; }
+  return null;
+}
+
+/** A recruitment agency's monthly plan. Credits are added when each invoice is paid (see invoice.paid). */
+async function applyAgencySubscription(sub: Json) {
+  const a = await findAgency({ id: sub.metadata?.agency_id, sub: sub.id, customer: sub.customer });
+  if (!a) { console.warn('webhook: no agency for subscription', sub.id); return; }
+  const status = mapStatus(sub.status);
+  await db().from('agencies').update({
+    stripe_subscription_id: sub.id,
+    stripe_customer_id: typeof sub.customer === 'string' ? sub.customer : sub.customer?.id,
+    subscription_status: status,
+    paid_until: periodEnd(sub),
+  }).eq('id', a.id);
+  if (status !== a.subscription_status && status === 'active' && (a.subscription_status === 'none' || a.subscription_status === 'cancelled')) {
+    await emailAdminBilling(`New paying agency: ${a.name}`, `${a.name} has started the recruitment agency plan.`).catch(() => null);
+  }
 }
 
 /** A supplier's yearly plan. Match also switches on estimate requests for as long as it is paid up. */
@@ -60,6 +85,7 @@ async function applySupplierSubscription(sub: Json) {
 }
 
 async function applySubscription(sub: Json) {
+  if (sub.metadata?.agency_id) return applyAgencySubscription(sub);
   if (sub.metadata?.supplier_id) return applySupplierSubscription(sub);
   const b = await findBusiness({ id: sub.metadata?.business_id, sub: sub.id, customer: sub.customer });
   if (!b) { console.warn('webhook: no listing for subscription', sub.id); return; }
@@ -122,7 +148,9 @@ export async function POST(req: NextRequest) {
       case 'checkout.session.completed': {
         if (obj.mode === 'subscription' && obj.subscription) {
           const sub = await stripe('GET', `subscriptions/${obj.subscription}`);
-          sub.metadata = obj.metadata?.supplier_id
+          sub.metadata = obj.metadata?.agency_id
+            ? { agency_id: obj.metadata.agency_id, ...(sub.metadata ?? {}) }
+            : obj.metadata?.supplier_id
             ? { supplier_id: obj.metadata.supplier_id, ...(sub.metadata ?? {}) }
             : { business_id: obj.metadata?.business_id ?? obj.client_reference_id, ...(sub.metadata ?? {}) };
           await applySubscription(sub);
@@ -137,10 +165,24 @@ export async function POST(req: NextRequest) {
         break;
       case 'invoice.paid': {
         const subId = obj.subscription ?? obj.parent?.subscription_details?.subscription;
-        if (subId) await applySubscription(await stripe('GET', `subscriptions/${subId}`));
+        if (subId) {
+          const sub = await stripe('GET', `subscriptions/${subId}`);
+          await applySubscription(sub);
+          // Each paid month gives an agency its credits, once per invoice. Unused credits roll over.
+          if (sub.metadata?.agency_id) {
+            const plan = await getAgencyPlan();
+            await addCredits(sub.metadata.agency_id, Number(sub.metadata.credits) || plan.credits, 'plan', String(obj.id), 'Monthly plan');
+          }
+        }
         break;
       }
       case 'invoice.payment_failed': {
+        const ag = await findAgency({ customer: obj.customer });
+        if (ag) {
+          await emailMemberPaymentFailed(ag.email, ag.name);
+          await emailAdminBilling(`Payment failed: ${ag.name}`, `A recruitment agency plan payment for ${ag.name} failed. Stripe will retry it automatically.`).catch(() => null);
+          break;
+        }
         const sup = await findSupplier({ customer: obj.customer });
         if (sup) {
           if (sup.email) await emailMemberPaymentFailed(sup.email, sup.name);

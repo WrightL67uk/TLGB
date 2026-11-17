@@ -41,7 +41,7 @@ export const seekerName = (s: Pick<Seeker, 'first_name' | 'last_name' | 'show_fu
  * Who may see names and contact details: paying members and people at approved main
  * contractors. Everyone else sees the anonymised profile.
  */
-export async function employerAccess(email: string | null): Promise<{ ok: boolean; who: 'member' | 'contractor' | 'unpaid' | 'none' }> {
+export async function employerAccess(email: string | null): Promise<{ ok: boolean; who: 'member' | 'contractor' | 'agency' | 'unpaid' | 'none' }> {
   if (!email) return { ok: false, who: 'none' };
   const { data: biz } = await db().from('businesses').select('status, founding_member, subscription_status').eq('email', email).eq('status', 'approved');
   if ((biz ?? []).some(isPaid)) return { ok: true, who: 'member' };
@@ -50,5 +50,7 @@ export async function employerAccess(email: string | null): Promise<{ ok: boolea
     const { data: co } = await db().from('contractor_companies').select('status').eq('id', user.company_id).maybeSingle();
     if (co?.status === 'approved') return { ok: true, who: 'contractor' };
   }
+  const { data: agency } = await db().from('agencies').select('id').eq('email', email).eq('status', 'approved').maybeSingle();
+  if (agency) return { ok: true, who: 'agency' };
   return { ok: false, who: biz?.length ? 'unpaid' : 'none' };
 }

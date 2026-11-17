@@ -8,8 +8,8 @@ const day = (s: string) => new Date(s).toLocaleDateString('en-GB', { day: 'numer
 
 export default async function AdminVacancies({ searchParams }: { searchParams: Promise<{ done?: string; error?: string }> }) {
   const sp = await searchParams;
-  const { data, error } = await db().from('vacancies').select('*, businesses(id, trading_name)').order('created_at', { ascending: false }).limit(500);
-  const rows = (data ?? []) as (Vacancy & { businesses: { id: string; trading_name: string } | null })[];
+  const { data, error } = await db().from('vacancies').select('*, businesses(id, trading_name), agencies(name)').order('created_at', { ascending: false }).limit(500);
+  const rows = (data ?? []) as (Vacancy & { businesses: { id: string; trading_name: string } | null; agencies: { name: string } | null })[];
   const { count: alerts } = await db().from('recruit_alerts').select('id', { count: 'exact', head: true });
   const { count: seekersOn } = await db().from('job_seekers').select('id', { count: 'exact', head: true }).eq('status', 'live').eq('vacancy_alerts', true);
 
@@ -28,7 +28,7 @@ export default async function AdminVacancies({ searchParams }: { searchParams: P
               <tr key={v.id}>
                 <td>{day(v.created_at)}</td>
                 <td><Link href={`/recruitment/vacancies/${v.id}`}>{v.title}</Link><br /><span className="muted small">{v.area}</span></td>
-                <td>{v.businesses ? <Link href={`/admin/${v.businesses.id}`}>{v.businesses.trading_name}</Link> : ''}</td>
+                <td>{v.businesses ? <Link href={`/admin/${v.businesses.id}`}>{v.businesses.trading_name}</Link> : v.agencies ? `${v.agencies.name} (agency)` : ''}</td>
                 <td>{v.status === 'removed' ? 'Removed by admin' : vacancyLive(v) ? `Live until ${day(v.expires_at)}` : v.status === 'closed' ? 'Closed' : 'Ended'}</td>
                 <td>{v.view_count}</td>
                 <td>

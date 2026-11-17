@@ -33,7 +33,11 @@ export async function POST(req: NextRequest) {
       if (!js) {
         // And suppliers
         const { count: sp } = await db().from('suppliers').select('id', { count: 'exact', head: true }).eq('email', email).neq('status', 'rejected');
-        if (!sp) return done;
+        if (!sp) {
+          // And recruitment agencies
+          const { count: ag } = await db().from('agencies').select('id', { count: 'exact', head: true }).eq('email', email).neq('status', 'rejected');
+          if (!ag) return done;
+        }
       }
     }
   }

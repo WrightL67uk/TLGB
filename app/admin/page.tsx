@@ -121,6 +121,8 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
     db().from('service_enquiries').select('id', { count: 'exact', head: true }).eq('handled', false),
   ]);
   const waiting = (newSuppliers ?? 0) + (newEnquiries ?? 0);
+  const { count: agenciesWaiting = 0 } = await db().from('agencies').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+  const { count: agencyVacsWaiting = 0 } = await db().from('vacancies').select('id', { count: 'exact', head: true }).eq('status', 'pending').not('agency_id', 'is', null);
   const { count: contractorsWaiting = 0 } = await db().from('contractor_companies').select('id', { count: 'exact', head: true }).eq('status', 'pending');
 
   // Compliance pack certificates waiting for a check, grouped by listing
@@ -159,6 +161,10 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
         <Link href="/admin/contractors">
           Main contractors
           {(contractorsWaiting ?? 0) > 0 && <span className="count"> {contractorsWaiting} waiting</span>}
+        </Link>
+        <Link href="/admin/agencies">
+          Recruitment agencies
+          {((agenciesWaiting ?? 0) + (agencyVacsWaiting ?? 0)) > 0 && <span className="count"> {(agenciesWaiting ?? 0) + (agencyVacsWaiting ?? 0)} waiting</span>}
         </Link>
         <Link href="/admin/workers">Job seekers</Link>
         <Link href="/admin/waitlist">Waiting list</Link>

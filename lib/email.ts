@@ -1046,3 +1046,74 @@ export async function emailAdminJobFailures(failures: { job: string; error: stri
     'job-failure'
   );
 }
+
+// ---------------------------------------------------------------
+// Recruitment agencies
+// ---------------------------------------------------------------
+export async function emailAdminNewAgency(a: { id: string; name: string; companyNumber: string | null; website: string | null; contact: string; email: string; domainNote: string }) {
+  await send(
+    adminList(),
+    `Recruitment agency to approve: ${a.name}`,
+    `<p>A recruitment agency has asked to join.</p>
+<p><strong>${esc(a.name)}</strong>${a.companyNumber ? ` (company ${esc(a.companyNumber)})` : ''}<br>
+${esc(a.contact)} (${esc(a.email)})<br>
+${a.website ? `Website: ${esc(a.website)}<br>` : ''}${esc(a.domainNote)}</p>
+<p>${button(`${siteUrl()}/admin/agencies`, 'Review in admin')}</p>`,
+    'admin-agency'
+  );
+}
+
+export async function emailAgencyReceived(to: string, name: string, company: string) {
+  await send(
+    to,
+    'We have your recruitment agency request',
+    `<p>Hi ${esc(name)},</p>
+<p>Thanks for registering <strong>${esc(company)}</strong> on The Little Green Book.</p>
+<p>We check every agency before it can post vacancies, usually within one working day. You can log in now to see your dashboard and your own link for job seekers.</p>
+<p>${button(`${siteUrl()}/login?next=/recruiter`, 'Log in')}</p>`,
+    'agency-received'
+  );
+}
+
+export async function emailAgencyDecision(to: string, name: string, company: string, approved: boolean, reason?: string | null) {
+  await send(
+    to,
+    approved ? `${company} is approved on The Little Green Book` : `Your recruitment agency request for ${company}`,
+    approved
+      ? `<p>Hi ${esc(name)},</p>
+<p>Good news: <strong>${esc(company)}</strong> is approved. You can now post vacancies, search people looking for work, and share your own link so job seekers you bring to the Book earn you free vacancy credits.</p>
+<p>${button(`${siteUrl()}/login?next=/recruiter`, 'Go to my dashboard')}</p>`
+      : `<p>Hi ${esc(name)},</p>
+<p>We could not approve the recruitment agency account for <strong>${esc(company)}</strong>.</p>
+${reason ? `<p>Reason: ${para(reason)}</p>` : ''}
+<p>If you think this is a mistake, reply to this email.</p>`,
+    approved ? 'agency-approved' : 'agency-rejected'
+  );
+}
+
+export async function emailAdminAgencyVacancy(agency: string, title: string) {
+  await send(
+    adminList(),
+    `Agency vacancy to approve: ${title}`,
+    `<p><strong>${esc(agency)}</strong> has submitted a vacancy for approval: ${esc(title)}.</p>
+<p>${button(`${siteUrl()}/admin/agencies#vacancies`, 'Review in admin')}</p>`,
+    'admin-agency-vacancy'
+  );
+}
+
+export async function emailAgencyVacancyDecision(to: string, name: string, title: string, approved: boolean, vacancyId: string, reason?: string | null) {
+  await send(
+    to,
+    approved ? `Your vacancy is live: ${title}` : `Your vacancy was not approved: ${title}`,
+    approved
+      ? `<p>Hi ${esc(name)},</p>
+<p>Your vacancy <strong>${esc(title)}</strong> is approved and live. Matching job seekers are being emailed now.</p>
+<p>${button(`${siteUrl()}/recruitment/vacancies/${vacancyId}`, 'See the vacancy')}</p>`
+      : `<p>Hi ${esc(name)},</p>
+<p>We could not approve your vacancy <strong>${esc(title)}</strong>, and the credit has been returned to your account.</p>
+${reason ? `<p>Reason: ${para(reason)}</p>` : ''}
+<p>You can edit it and send it again.</p>
+<p>${button(`${siteUrl()}/recruiter/vacancies`, 'Open my vacancies')}</p>`,
+    approved ? 'agency-vacancy-approved' : 'agency-vacancy-rejected'
+  );
+}

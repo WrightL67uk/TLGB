@@ -20,16 +20,16 @@ async function liveSeekers() {
 
 /** Emails every job seeker whose profile suits this vacancy. Run when it is posted. */
 export async function alertSeekersAboutVacancy(vacancyId: string) {
-  const { data: v } = await db().from('vacancies').select('*, businesses(trading_name)').eq('id', vacancyId).maybeSingle();
+  const { data: v } = await db().from('vacancies').select('*, businesses(trading_name), agencies(name)').eq('id', vacancyId).maybeSingle();
   if (!v || v.status !== 'live') return 0;
-  const vac = v as Vacancy & { businesses: { trading_name: string } | null };
+  const vac = v as Vacancy & { businesses: { trading_name: string } | null; agencies: { name: string } | null };
   let sent = 0;
   for (const s of await liveSeekers()) {
     if (s.vacancy_alerts === false || !seekerSuitsVacancy(s, vac)) continue;
     if (!(await claim('vacancy', s.email, vac.id))) continue;
     await emailSeekerVacancy(s.email, s.first_name, {
       title: vac.title,
-      business: vac.businesses?.trading_name ?? 'A TLGB member',
+      business: vac.businesses?.trading_name ?? vac.agencies?.name ?? 'A TLGB member',
       area: vac.area ?? '',
       pay: payText(vac),
       url: `${siteUrl()}/recruitment/vacancies/${vac.id}`,
