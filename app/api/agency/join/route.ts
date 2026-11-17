@@ -88,7 +88,10 @@ export async function POST(req: NextRequest) {
       try {
         const url = await agencyCheckoutUrl(resume, '/agencies/join/thanks?unpaid=1');
         if (url) return go(req.headers.get('x-tlgb-fetch') ? NextResponse.json({ redirect: url }) : NextResponse.redirect(url, 303));
-      } catch (e) { console.error('agency resume checkout failed', e); }
+      } catch (e) {
+        console.error('agency resume checkout failed', e);
+        await db().from('agencies').update({ admin_notes: `Payment page failed to open on retry: ${e instanceof Error ? e.message : String(e)}`.slice(0, 500) }).eq('id', resume.id);
+      }
       return go(back(req, '/agencies/join/thanks?unpaid=1') as NextResponse);
     }
     return err(req, 'That email already has an agency account. If you started signing up earlier, type the same password you chose then to carry on. Otherwise log in.');
@@ -135,6 +138,7 @@ export async function POST(req: NextRequest) {
     if (url) return withSession(req.headers.get('x-tlgb-fetch') ? NextResponse.json({ redirect: url }) : NextResponse.redirect(url, 303));
   } catch (e) {
     console.error('agency checkout at sign-up failed', e);
+    await db().from('agencies').update({ admin_notes: `Payment page failed to open at sign-up: ${e instanceof Error ? e.message : String(e)}`.slice(0, 500) }).eq('id', agency.id);
   }
   return withSession(back(req, '/agencies/join/thanks?unpaid=1') as NextResponse);
 }
