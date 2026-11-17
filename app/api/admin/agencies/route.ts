@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
 import { sameOrigin } from '@/lib/session';
-import { addCredits, cleanAgencyPlan, saveAgencyPlan } from '@/lib/agencies';
+import { addCredits, cleanAgencyPlan, creditBalance, saveAgencyPlan } from '@/lib/agencies';
+import { agencyPaid, refundAgency } from '@/lib/agencyCheckout';
 import { VACANCY_LIVE_DAYS } from '@/lib/vacancies';
 import { alertSeekersAboutVacancy } from '@/lib/recruitJob';
 import { emailAgencyDecision, emailAgencyVacancyDecision } from '@/lib/email';
@@ -31,14 +32,21 @@ export async function POST(req: NextRequest) {
   if (!isId(id)) return to('error=Not+found');
 
   if (action === 'approve' || action === 'reject' || action === 'suspend') {
-    const { data: a } = await db().from('agencies').select('id, name, email, contact_name, status').eq('id', id).maybeSingle();
+    const { data: a } = await db().from('agencies').select('id, name, email, contact_name, status, subscription_status, stripe_subscription_id').eq('id', id).maybeSingle();
     if (!a) return to('error=Not+found');
+    if (action === 'approve' && !agencyPaid(a.subscription_status)) return to('error=This+agency+has+not+paid+yet');
     const status = action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'suspended';
     await db().from('agencies').update({
       status,
       rejection_reason: action === 'reject' ? reason : null,
       ...(action === 'approve' ? { approved_at: new Date().toISOString() } : {}),
     }).eq('id', id);
+    if (action === 'reject' && a.status !== 'rejected') {
+      const note = await refundAgency(a);
+      const bal = await creditBalance(id);
+      if (bal > 0) await addCredits(id, -bal, 'refund-plan', `${Date.now()}`, 'Plan refunded');
+      await db().from('agencies').update({ admin_notes: note }).eq('id', id);
+    }
     if (action !== 'suspend' && a.status !== status) await emailAgencyDecision(a.email, a.contact_name, a.name, action === 'approve', reason).catch(() => null);
     return to('done=1');
   }

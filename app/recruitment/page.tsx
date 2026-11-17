@@ -106,7 +106,7 @@ export default async function RecruitmentPage({ searchParams }: { searchParams: 
         <div>
           <p className="tender-tag">Hiring?</p>
           <h2>For recruitment agencies</h2>
-          <p>Verified agencies can post vacancies for their clients on a monthly plan, and earn free credits for every job seeker they bring to TLGB.</p>
+          <p>Verified agencies can post vacancies for their clients on an annual plan, and earn free credits for every job seeker they bring to TLGB.</p>
           <Link href={agency ? '/recruiter' : '/agencies/join'} className="wk-btn go">{agency ? 'Agency dashboard' : 'Agency sign up'}</Link>
         </div>
       </div>

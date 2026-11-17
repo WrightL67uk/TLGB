@@ -34,7 +34,7 @@ async function findAgency(by: { id?: string | null; sub?: string | null; custome
   return null;
 }
 
-/** A recruitment agency's monthly plan. Credits are added when each invoice is paid (see invoice.paid). */
+/** A recruitment agency's annual plan. Credits are added when each invoice is paid (see invoice.paid). */
 async function applyAgencySubscription(sub: Json) {
   const a = await findAgency({ id: sub.metadata?.agency_id, sub: sub.id, customer: sub.customer });
   if (!a) { console.warn('webhook: no agency for subscription', sub.id); return; }
@@ -168,10 +168,10 @@ export async function POST(req: NextRequest) {
         if (subId) {
           const sub = await stripe('GET', `subscriptions/${subId}`);
           await applySubscription(sub);
-          // Each paid month gives an agency its credits, once per invoice. Unused credits roll over.
+          // Each paid year gives an agency its credits, once per invoice. Unused credits roll over.
           if (sub.metadata?.agency_id) {
             const plan = await getAgencyPlan();
-            await addCredits(sub.metadata.agency_id, Number(sub.metadata.credits) || plan.credits, 'plan', String(obj.id), 'Monthly plan');
+            await addCredits(sub.metadata.agency_id, Number(sub.metadata.credits) || plan.credits, 'plan', String(obj.id), 'Annual plan');
           }
         }
         break;

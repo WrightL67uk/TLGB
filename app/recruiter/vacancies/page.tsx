@@ -39,7 +39,7 @@ export default async function AgencyVacancies({ searchParams }: { searchParams: 
       <p className="small"><Link href="/recruiter">Back to my dashboard</Link></p>
       <h1>My vacancies</h1>
       <p className="lead">Vacancies show on the public <Link href="/recruitment">Recruitment</Link> page for {VACANCY_LIVE_DAYS} days once we have checked them. Job seekers whose profile matches get an email the day it goes live.</p>
-      {sp.posted && <p className="ok-box">Thanks. Your vacancy is with us for checking, usually within one working day.</p>}
+      {sp.posted && <p className="ok-box">Thanks. Your vacancy is with us for checking, within 48 hours.</p>}
       {sp.saved && <p className="ok-box">Saved. It has gone back to us for checking.</p>}
       {sp.closed && <p className="ok-box">Closed. It no longer shows on the Recruitment page.</p>}
       {sp.reopened && <p className="ok-box">Sent for checking. It goes live again for {VACANCY_LIVE_DAYS} days once approved.</p>}

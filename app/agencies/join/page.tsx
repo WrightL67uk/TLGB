@@ -16,7 +16,7 @@ export default async function AgencyJoin({ searchParams }: { searchParams: Promi
   return (
     <div className="narrow">
       <h1>Recruitment agencies</h1>
-      <p className="lead">Post landscaping and external works vacancies, search people looking for work, and bring your own candidates to the Book. We check every agency before it can post, usually within one working day.</p>
+      <p className="lead">Post landscaping and external works vacancies, search people looking for work, and bring your own candidates to the Book. You pay for the year when you sign up, we check your agency within 48 hours, and then you can post. If we cannot approve you, you are refunded in full.</p>
       <AgencyExplainer plan={plan} />
       <h2>Sign up</h2>
       <form id="agency-join" className="res-form" method="post" action="/api/agency/join">
@@ -66,7 +66,8 @@ export default async function AgencyJoin({ searchParams }: { searchParams: Promi
           <input type="checkbox" name="terms" required />
           <span>I work for this agency and can sign it up. I agree to the <Link href="/legal/terms" target="_blank">website terms</Link>, and I have read the <Link href="/legal/privacy" target="_blank">privacy notice</Link>.</span>
         </label>
-        <button type="submit" className="primary">create my agency account</button>
+        <p className="muted small" style={{ margin: 0 }}>Next you go to our secure payment page: £{plan.price} for the year, with {plan.credits} vacancy credits.</p>
+        <button type="submit" className="primary">continue to payment</button>
       </form>
       <p className="muted small">Already registered? <Link href="/login?next=/recruiter">Log in</Link>. A landscaping business hiring directly? <Link href="/join">List your business</Link>.</p>
     </div>

@@ -54,8 +54,8 @@ export default async function AdminAgencies({ searchParams }: { searchParams: Pr
       <h2>Plan and credits</h2>
       <form method="post" action="/api/admin/agencies" className="panel" style={{ display: 'grid', gap: 10, maxWidth: 520 }}>
         <input type="hidden" name="action" value="settings" />
-        <label>Monthly price (£)<input name="price" type="number" min={1} defaultValue={plan.price} /></label>
-        <label>Credits each month<input name="credits" type="number" min={1} defaultValue={plan.credits} /></label>
+        <label>Annual price (£)<input name="price" type="number" min={1} defaultValue={plan.price} /></label>
+        <label>Credits with each year's plan<input name="credits" type="number" min={1} defaultValue={plan.credits} /></label>
         <label>Job seekers needed for one free credit<input name="per_referral_credit" type="number" min={1} defaultValue={plan.per_referral_credit} /></label>
         <label>Most free credits an agency can earn in a month<input name="referral_cap" type="number" min={0} defaultValue={plan.referral_cap} /></label>
         <button type="submit" className="primary">Save</button>
@@ -91,8 +91,10 @@ export default async function AdminAgencies({ searchParams }: { searchParams: Pr
             <span className={insuranceOk ? 'muted' : 'warn'}>Employers liability to {a.el_expiry ? ukDate(a.el_expiry) : '?'}, public liability to {a.pl_expiry ? ukDate(a.pl_expiry) : '?'}</span><br />
             Bodies: {a.memberships.length ? a.memberships.map(bodyLabel).join(', ') : 'none given'}{a.glaa_licence ? ` · GLAA licence ${a.glaa_licence}` : ''}<br />
             <p style={{ marginTop: 8 }}>
-              <Act id={a.id} action="approve" label="Approve" />
-              <Act id={a.id} action="reject" label="Reject" ask="Reason, sent to them" />
+              {['active', 'trialing', 'past_due'].includes(a.subscription_status)
+                ? <><span className="ok-box" style={{ marginRight: 8 }}>Paid</span><Act id={a.id} action="approve" label="Approve" /></>
+                : <span className="warn" style={{ marginRight: 8 }}>Not paid yet. You can approve once they have paid.</span>}
+              <Act id={a.id} action="reject" label="Reject and refund" ask="Reason, sent to them" />
             </p>
           </div>
         );

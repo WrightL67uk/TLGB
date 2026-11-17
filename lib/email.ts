@@ -1069,7 +1069,7 @@ export async function emailAgencyReceived(to: string, name: string, company: str
     'We have your recruitment agency request',
     `<p>Hi ${esc(name)},</p>
 <p>Thanks for registering <strong>${esc(company)}</strong> on The Little Green Book.</p>
-<p>We check every agency before it can post vacancies, usually within one working day. You can log in now to see your dashboard and your own link for job seekers.</p>
+<p>Once your annual plan is paid, we check your agency within 48 hours and email you. If we cannot approve you, we refund your payment in full. You can log in now to see your dashboard and your own link for job seekers.</p>
 <p>${button(`${siteUrl()}/login?next=/recruiter`, 'Log in')}</p>`,
     'agency-received'
   );

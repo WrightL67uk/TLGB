@@ -49,7 +49,7 @@ export async function approvedAgencyByEmail(email: string) {
 // Plan and credit settings (edited on the admin Agencies page)
 // ---------------------------------------------------------------
 export type AgencyPlan = { price: number; credits: number; per_referral_credit: number; referral_cap: number };
-export const DEFAULT_AGENCY_PLAN: AgencyPlan = { price: 25, credits: 10, per_referral_credit: 3, referral_cap: 10 };
+export const DEFAULT_AGENCY_PLAN: AgencyPlan = { price: 300, credits: 120, per_referral_credit: 3, referral_cap: 10 };
 
 const whole = (v: unknown, fallback: number, min: number, max: number) => {
   const n = Math.round(Number(v));
@@ -65,11 +65,11 @@ export function cleanAgencyPlan(raw: unknown): AgencyPlan {
   };
 }
 export async function getAgencyPlan(): Promise<AgencyPlan> {
-  const { data } = await db().from('site_settings').select('value').eq('key', 'agency_plan').maybeSingle();
+  const { data } = await db().from('site_settings').select('value').eq('key', 'agency_plan_annual').maybeSingle();
   return cleanAgencyPlan(data?.value);
 }
 export async function saveAgencyPlan(p: AgencyPlan) {
-  return db().from('site_settings').upsert({ key: 'agency_plan', value: p, updated_at: new Date().toISOString() });
+  return db().from('site_settings').upsert({ key: 'agency_plan_annual', value: p, updated_at: new Date().toISOString() });
 }
 
 // ---------------------------------------------------------------

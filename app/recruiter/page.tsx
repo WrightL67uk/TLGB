@@ -35,14 +35,14 @@ export default async function Recruiter({ searchParams }: { searchParams: Promis
       <h1>{agency.name}</h1>
       {sp.paid && <p className="ok-box">Thanks. Your credits arrive as soon as the payment is confirmed, usually within a minute.</p>}
       {sp.billing && <p className="err big">{sp.billing}</p>}
-      {agency.status === 'pending' && <p className="warn"><strong>We are checking your agency.</strong> This usually takes one working day. You will get an email when you are approved.</p>}
+      {agency.status === 'pending' && <p className="warn">{subscribed ? <><strong>Payment received. We are checking your agency.</strong> We approve within 48 hours and you get an email when you are approved.</> : <><strong>One step left: pay for the year.</strong> We check your agency within 48 hours of payment.</>}</p>}
       {agency.status === 'suspended' && <p className="err big">This account is suspended. Contact admin@tlgb.co.uk.</p>}
 
       {approved && (
         <>
           <section className="panel">
             <h2>Vacancy credits: {balance}</h2>
-            <p>One credit puts one vacancy live for 60 days. Every vacancy is checked by us before it shows, usually within one working day, and the credit comes back if we cannot approve it.</p>
+            <p>One credit puts one vacancy live for 60 days. Every vacancy is checked by us before it shows, and the credit comes back if we cannot approve it.</p>
             <p><Link href="/recruiter/vacancies?new=1#form" className="sq sq-rust">Post a vacancy</Link> <Link href="/recruiter/vacancies" style={{ marginLeft: 12 }}>My vacancies</Link> <Link href="/recruitment?tab=people" style={{ marginLeft: 12 }}>Search people looking for work</Link></p>
           </section>
 
@@ -55,23 +55,26 @@ export default async function Recruiter({ searchParams }: { searchParams: Promis
 
           <AgencyExplainer plan={plan} compact />
 
-          <section className="panel">
-            <h2>Monthly plan</h2>
-            {subscribed ? (
-              <>
-                <p>Your plan is active: {plan.credits} credits every month, and unused credits roll over.</p>
-                <form method="post" action="/api/agency/portal"><button type="submit">Manage billing</button></form>
-              </>
-            ) : (
-              <>
-                <p>£{plan.price} a month for {plan.credits} credits. Unused credits roll over, so a busy season is covered. Cancel any time.</p>
-                {stripeEnabled()
-                  ? <form method="post" action="/api/agency/checkout"><button type="submit" className="primary">Start the plan</button></form>
-                  : <p className="muted">Online payment is not switched on yet.</p>}
-              </>
-            )}
-          </section>
         </>
+      )}
+
+      {(agency.status === 'pending' || approved) && (
+        <section className="panel">
+          <h2>Annual plan</h2>
+          {subscribed ? (
+            <>
+              <p>Your annual plan is active. It renews each year and adds {plan.credits} credits then.</p>
+              <form method="post" action="/api/agency/portal"><button type="submit">Manage billing</button></form>
+            </>
+          ) : (
+            <>
+              <p>£{plan.price} for the year, with {plan.credits} credits to use when you need them. {agency.status === 'pending' ? 'We can only check your agency once this is paid.' : ''}</p>
+              {stripeEnabled()
+                ? <form method="post" action="/api/agency/checkout"><button type="submit" className="primary">Pay for the year</button></form>
+                : <p className="muted">Online payment is not switched on yet.</p>}
+            </>
+          )}
+        </section>
       )}
     </div>
   );

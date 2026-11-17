@@ -8,6 +8,7 @@ import { FREE_MAIL, domainOf } from '@/lib/contractorPlans';
 import { tooMany, visitor, TOO_MANY } from '@/lib/rateLimit';
 import { LEVELS } from '@/lib/seekerTypes';
 import { PLACEMENT_TYPES, AGENCY_BODIES, newReferralCode } from '@/lib/agencies';
+import { agencyCheckoutUrl } from '@/lib/agencyCheckout';
 import { emailAdminNewAgency, emailAgencyReceived } from '@/lib/email';
 
 export const runtime = 'nodejs';
@@ -100,5 +101,12 @@ export async function POST(req: NextRequest) {
     emailAdminNewAgency({ id: agency.id, name: d.name, companyNumber: ch.companyNumber, website, contact: d.contact_name, email: d.email, domainNote }),
     emailAgencyReceived(d.email, d.contact_name, d.name),
   ]);
-  return back(req, '/agencies/join/thanks');
+  // Straight on to the payment page. We approve once they have paid.
+  try {
+    const url = await agencyCheckoutUrl({ id: agency.id, name: d.name, email: d.email, stripe_customer_id: null }, '/agencies/join/thanks?unpaid=1');
+    if (url) return req.headers.get('x-tlgb-fetch') ? NextResponse.json({ redirect: url }) : NextResponse.redirect(url, 303);
+  } catch (e) {
+    console.error('agency checkout at sign-up failed', e);
+  }
+  return back(req, '/agencies/join/thanks?unpaid=1');
 }
