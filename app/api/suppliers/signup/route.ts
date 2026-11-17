@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { db } from '@/lib/supabase';
 import { checkCompany } from '@/lib/companiesHouse';
 import { cleanCode, CODE_COOKIE } from '@/lib/discounts';
-import { canLogIn, passwordProblem, setPassword } from '@/lib/passwords';
+import { canLogIn, checkPassword, passwordProblem, setPassword } from '@/lib/passwords';
 import { createSession, sameOrigin, sessionCookieOptions, SESSION_COOKIE } from '@/lib/session';
 import { stripeEnabled } from '@/lib/stripe';
 import { getSupplierPricing } from '@/lib/supplierPricing';
@@ -44,7 +44,17 @@ export async function POST(req: NextRequest) {
 
   const pwProblem = passwordProblem(d.password);
   if (pwProblem) return fail(`Password: ${pwProblem}`);
-  if (await canLogIn(d.email)) return fail('There is already an account with this email. Log in instead, or use a different email.');
+  if (await canLogIn(d.email)) {
+    // Came back to the form after already submitting it (Back button, wrong phone number, closed the payment page).
+    // Same email and password as the sign-up that is still unfinished: carry on with the corrected details.
+    const { data: resume } = await db().from('suppliers').select('*').eq('email', d.email).eq('status', 'started').maybeSingle();
+    if (resume && (await checkPassword(d.email, d.password, visitor(req)))) {
+      const fixes = { phone: d.phone, contact_name: d.contact_name, tier: d.tier === 'basic' ? null : d.tier };
+      await db().from('suppliers').update(fixes).eq('id', resume.id);
+      return finish({ ...resume, ...fixes } as Supplier, d);
+    }
+    return fail('There is already an account with this email. If you started signing up earlier, type the same password you chose then to carry on. Otherwise log in, or use a different email.');
+  }
   const { count: already } = await db().from('suppliers').select('id', { count: 'exact', head: true }).eq('email', d.email).neq('status', 'rejected');
   if (already) return fail('There is already a supplier with this email. Log in instead, or use a different email.');
 
@@ -98,6 +108,10 @@ export async function POST(req: NextRequest) {
   if (pwErr) console.error('supplier signup password failed', pwErr);
   await emailAdminSupplier(`New supplier sign-up: ${name}`, `${name} (${d.email}) has chosen ${d.tier === 'basic' ? 'the free Basic listing' : `${d.tier === 'match' ? 'Match' : 'Appear'} and is going to payment`}. Their details are not sent yet.`, row.id).catch(() => null);
 
+  return finish(row as Supplier, d);
+}
+
+async function finish(row: Supplier, d: z.infer<typeof Body>) {
   let next = `/supplier/${row.id}`;
   if (d.tier === 'basic') {
     next = `/supplier/${row.id}/details`; // free: nothing to pay, straight to their details
