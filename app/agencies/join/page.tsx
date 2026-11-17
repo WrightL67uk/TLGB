@@ -36,6 +36,11 @@ export default async function AgencyJoin({ searchParams }: { searchParams: Promi
           <label>Phone<input name="phone" required maxLength={30} autoComplete="tel" /></label>
         </div>
         <p className="muted small" style={{ margin: 0 }}>Use your agency email address, on the same domain as your website. Gmail, Hotmail and similar take longer to check.</p>
+        <div className="row">
+          <label>Choose a password<input name="password" type="password" required minLength={8} autoComplete="new-password" /></label>
+          <label>Type it again<input name="password2" type="password" required minLength={8} autoComplete="new-password" /></label>
+        </div>
+        <p className="muted small" style={{ margin: 0 }}>You log in with your email and this password. At least 8 characters.</p>
 
         <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
           <legend><b>Roles you place</b></legend>

@@ -8,6 +8,8 @@ import { FREE_MAIL, domainOf } from '@/lib/contractorPlans';
 import { tooMany, visitor, TOO_MANY } from '@/lib/rateLimit';
 import { LEVELS } from '@/lib/seekerTypes';
 import { PLACEMENT_TYPES, AGENCY_BODIES, newReferralCode } from '@/lib/agencies';
+import { createSession, sessionCookieOptions, SESSION_COOKIE } from '@/lib/session';
+import { checkPassword, passwordProblem, setPassword } from '@/lib/passwords';
 import { agencyCheckoutUrl } from '@/lib/agencyCheckout';
 import { emailAdminNewAgency, emailAgencyReceived } from '@/lib/email';
 
@@ -31,6 +33,8 @@ const Schema = z.object({
   glaa_licence: z.string().trim().max(40).optional(),
   rtw: z.literal('on', { message: 'Please tick to confirm you carry out right to work checks' }),
   terms: z.literal('on', { message: 'Please tick to agree to the terms' }),
+  password: z.string(),
+  password2: z.string(),
 });
 
 const back = (req: NextRequest, path: string) =>
@@ -51,9 +55,13 @@ export async function POST(req: NextRequest) {
     roles: fd.getAll('roles').map(String), placement_types: fd.getAll('placement_types').map(String), covers: get('covers'),
     el_expiry: get('el_expiry'), pl_expiry: get('pl_expiry'), memberships: fd.getAll('memberships').map(String),
     glaa_licence: get('glaa_licence') || undefined, rtw: get('rtw'), terms: get('terms'),
+    password: get('password') ?? '', password2: get('password2') ?? '',
   });
   if (!parsed.success) return err(req, parsed.error.issues[0]?.message ?? 'Please check the form.');
   const d = parsed.data;
+  const pwProblem = passwordProblem(d.password);
+  if (pwProblem) return err(req, `Password: ${pwProblem}`);
+  if (d.password !== d.password2) return err(req, 'The two passwords do not match.');
 
   const today = new Date().toISOString().slice(0, 10);
   if (d.el_expiry < today || d.pl_expiry < today) return err(req, 'Your insurance must be in date. Check the expiry dates.');
@@ -69,7 +77,22 @@ export async function POST(req: NextRequest) {
   ]);
   if ((b.count ?? 0) + (c.count ?? 0) + (s.count ?? 0) + (j.count ?? 0) > 0) return err(req, 'That email is already used for another kind of account. Please use a different work email for your agency.');
   const { count: mine } = await db().from('agencies').select('id', { count: 'exact', head: true }).eq('email', d.email).neq('status', 'rejected');
-  if (mine) return err(req, 'That email already has an agency account. Log in instead.');
+  if (mine) {
+    // Came back after submitting (Back button, wrong detail, closed the payment page) and has not paid yet:
+    // same email and password carries on to payment with the corrected details.
+    const { data: resume } = await db().from('agencies').select('id, name, email, stripe_customer_id').eq('email', d.email).eq('status', 'pending').eq('subscription_status', 'none').maybeSingle();
+    if (resume && (await checkPassword(d.email, d.password, visitor(req)))) {
+      await db().from('agencies').update({ phone: d.phone, contact_name: d.contact_name, job_title: d.job_title ?? null, covers: d.covers, el_expiry: d.el_expiry, pl_expiry: d.pl_expiry }).eq('id', resume.id);
+      const { raw, expires } = await createSession(d.email);
+      const go = (res: NextResponse) => { res.cookies.set(SESSION_COOKIE, raw, sessionCookieOptions(expires)); return res; };
+      try {
+        const url = await agencyCheckoutUrl(resume, '/agencies/join/thanks?unpaid=1');
+        if (url) return go(req.headers.get('x-tlgb-fetch') ? NextResponse.json({ redirect: url }) : NextResponse.redirect(url, 303));
+      } catch (e) { console.error('agency resume checkout failed', e); }
+      return go(back(req, '/agencies/join/thanks?unpaid=1') as NextResponse);
+    }
+    return err(req, 'That email already has an agency account. If you started signing up earlier, type the same password you chose then to carry on. Otherwise log in.');
+  }
 
   const ch = await checkCompany(d.company_number);
   if (!ch.ok) return err(req, ch.reason);
@@ -97,6 +120,11 @@ export async function POST(req: NextRequest) {
     return err(req, 'Something went wrong saving your details. Please try again.');
   }
 
+  const pwSet = await setPassword(d.email, d.password);
+  if (pwSet.error) console.error('agency password failed', pwSet.error);
+  const { raw, expires } = await createSession(d.email);
+  const withSession = (res: NextResponse) => { res.cookies.set(SESSION_COOKIE, raw, sessionCookieOptions(expires)); return res; };
+
   await Promise.all([
     emailAdminNewAgency({ id: agency.id, name: d.name, companyNumber: ch.companyNumber, website, contact: d.contact_name, email: d.email, domainNote }),
     emailAgencyReceived(d.email, d.contact_name, d.name),
@@ -104,9 +132,9 @@ export async function POST(req: NextRequest) {
   // Straight on to the payment page. We approve once they have paid.
   try {
     const url = await agencyCheckoutUrl({ id: agency.id, name: d.name, email: d.email, stripe_customer_id: null }, '/agencies/join/thanks?unpaid=1');
-    if (url) return req.headers.get('x-tlgb-fetch') ? NextResponse.json({ redirect: url }) : NextResponse.redirect(url, 303);
+    if (url) return withSession(req.headers.get('x-tlgb-fetch') ? NextResponse.json({ redirect: url }) : NextResponse.redirect(url, 303));
   } catch (e) {
     console.error('agency checkout at sign-up failed', e);
   }
-  return back(req, '/agencies/join/thanks?unpaid=1');
+  return withSession(back(req, '/agencies/join/thanks?unpaid=1') as NextResponse);
 }
