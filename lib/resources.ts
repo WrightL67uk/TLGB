@@ -11,6 +11,8 @@ export const SUPPLIER_CATEGORIES: { key: string; label: string }[] = [
   { key: 'tools-machinery', label: 'Tools, machinery and PPE' },
   { key: 'plant-hire', label: 'Plant and tool hire' },
   { key: 'merchant', label: 'Builders and landscape merchants' },
+  { key: 'virtual-assistant', label: 'Virtual assistants and admin support' },
+  { key: 'business-development', label: 'Business development and tendering' },
 ];
 export const supplierCategoryLabel = (k: string) => SUPPLIER_CATEGORIES.find((c) => c.key === k)?.label ?? k;
 
