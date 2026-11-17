@@ -1,3 +1,4 @@
+import AgencyExplainer from '../agencies/Explainer';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSessionEmail } from '@/lib/session';
@@ -51,6 +52,8 @@ export default async function Recruiter({ searchParams }: { searchParams: Promis
             <p><input readOnly value={link} style={{ width: '100%' }} aria-label="Your link" /></p>
             <p className="muted small">{refs.total} job seekers so far. {refs.toNext} more for your next credit. Your own staff do not count.</p>
           </section>
+
+          <AgencyExplainer plan={plan} compact />
 
           <section className="panel">
             <h2>Monthly plan</h2>

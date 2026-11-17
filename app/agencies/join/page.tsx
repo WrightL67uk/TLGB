@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAgency, PLACEMENT_TYPES, AGENCY_BODIES, getAgencyPlan } from '@/lib/agencies';
 import { LEVELS } from '@/lib/seekerTypes';
+import AgencyExplainer from '../Explainer';
 import '../../resources.css';
 
 export const dynamic = 'force-dynamic';
@@ -15,7 +16,8 @@ export default async function AgencyJoin({ searchParams }: { searchParams: Promi
     <div className="narrow">
       <h1>Recruitment agencies</h1>
       <p className="lead">Post landscaping and external works vacancies, search people looking for work, and bring your own candidates to the Book. We check every agency before it can post, usually within one working day.</p>
-      <p className="muted">Plan: £{plan.price} a month for {plan.credits} vacancy credits, and unused credits roll over. Or earn free credits: every {plan.per_referral_credit} job seekers who join through your own link and publish a profile earns you one. One credit puts one vacancy live for 60 days.</p>
+      <AgencyExplainer plan={plan} />
+      <h2>Sign up</h2>
       <form className="res-form" method="post" action="/api/agency/join">
         {error && <p className="err big">{error}</p>}
         <input type="text" name="tlgb_hp_zq" className="hp" tabIndex={-1} autoComplete="off" aria-hidden="true" />
