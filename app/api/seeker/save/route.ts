@@ -7,8 +7,7 @@ import { lookupPostcode } from '@/lib/postcodes';
 import { LEVELS, SKILLS, LICENCES, VEHICLE, TOOLS, WORK_TYPES, PAY_PERIODS, SEEKER_LIVE_DAYS } from '@/lib/seekerTypes';
 import { QUAL_TYPES } from '@/lib/teamTypes';
 import { emailAdminNewSeeker } from '@/lib/email';
-import { settleReferralCredits } from '@/lib/agencies';
-import { FREE_MAIL, domainOf } from '@/lib/contractorPlans';
+import { countAgencyReferral } from '@/lib/seekerApproval';
 
 export const runtime = 'nodejs';
 
@@ -98,7 +97,8 @@ export async function POST(req: NextRequest) {
   }
 
   const publish = fd.get('publish') === 'yes';
-  const goingLive = publish && me.status !== 'live';
+  const approved = !!me.approved_at;
+  const goingLive = publish && me.status !== 'live' && me.status !== 'pending';
   const now = new Date();
   const row = {
     ...d, ...loc,
@@ -109,27 +109,16 @@ export async function POST(req: NextRequest) {
     pay_min: d.pay_min ?? null, pay_max: d.pay_max ?? null, pay_period: d.pay_period ?? null,
     past_employers: d.past_employers ?? null, phone: d.phone ?? null,
     updated_at: now.toISOString(),
-    ...(publish ? { status: 'live', published_at: me.published_at ?? now.toISOString(), expires_at: new Date(now.getTime() + SEEKER_LIVE_DAYS * 86_400_000).toISOString(), expiry_warned_at: null } : {}),
+    ...(publish ? (approved
+      ? { status: 'live', published_at: me.published_at ?? now.toISOString(), expires_at: new Date(now.getTime() + SEEKER_LIVE_DAYS * 86_400_000).toISOString(), expiry_warned_at: null }
+      : { status: 'pending', published_at: me.published_at ?? now.toISOString() }) : {}),
   };
   const { error } = await db().from('job_seekers').update(row).eq('id', me.id);
   if (error) {
     console.error('seeker save failed', error);
     return go('error=' + encodeURIComponent('Something went wrong saving your profile. Please try again.'));
   }
-  if (goingLive) await countAgencyReferral(me.id, me.email).catch((e) => console.error('agency referral failed', e));
-  if (goingLive) await emailAdminNewSeeker({ id: me.id, name: seekerName({ ...d }), headline: d.headline, area: loc.area });
-  return go(goingLive ? 'published=1' : 'saved=1');
-}
-
-/** A job seeker who came through an agency's link and has published a profile counts towards the agency's credits. */
-async function countAgencyReferral(seekerId: string, seekerEmail: string) {
-  const { data: s } = await db().from('job_seekers').select('referred_by_agency').eq('id', seekerId).maybeSingle();
-  if (!s?.referred_by_agency) return;
-  const { data: a } = await db().from('agencies').select('id, status, email_domain, referrals_per_credit, referral_monthly_cap').eq('id', s.referred_by_agency).maybeSingle();
-  if (!a || a.status !== 'approved') return;
-  // The agency's own staff do not count
-  const seekerDomain = domainOf(seekerEmail);
-  if (seekerDomain && !FREE_MAIL.test(seekerEmail) && a.email_domain && seekerDomain === a.email_domain) return;
-  await db().from('agency_referrals').upsert({ agency_id: a.id, seeker_id: seekerId }, { onConflict: 'seeker_id', ignoreDuplicates: true });
-  await settleReferralCredits(a);
+  if (goingLive && approved) await countAgencyReferral(me.id, me.email).catch((e) => console.error('agency referral failed', e));
+  if (goingLive) await emailAdminNewSeeker({ id: me.id, name: seekerName({ ...d }), headline: d.headline, area: loc.area, needsApproval: !approved });
+  return go(goingLive ? (approved ? 'published=1' : 'submitted=1') : 'saved=1');
 }

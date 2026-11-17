@@ -5,7 +5,7 @@ import { isPaid } from './membership';
 
 export type Seeker = {
   id: string; email: string; created_at: string; updated_at: string;
-  status: 'draft' | 'live' | 'paused' | 'removed';
+  status: 'draft' | 'pending' | 'live' | 'paused' | 'removed'; approved_at?: string | null;
   published_at: string | null; expires_at: string | null; removed_reason: string | null;
   first_name: string; last_name: string; show_full_name: boolean;
   headline: string | null; about: string | null;

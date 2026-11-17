@@ -30,7 +30,7 @@ function Pick({ name, opts, value, empty }: { name: string; opts: Opt[]; value: 
   );
 }
 
-type SP = Promise<{ error?: string; saved?: string; published?: string; paused?: string }>;
+type SP = Promise<{ error?: string; saved?: string; published?: string; submitted?: string; paused?: string }>;
 
 export default async function SeekerPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
@@ -53,6 +53,7 @@ export default async function SeekerPage({ searchParams }: { searchParams: SP })
 
       {sp.error && <p className="err big">{sp.error}</p>}
       {sp.published && <p className="ok-box">Your profile is live. Employers can now find you on our <Link href="/recruitment">Recruitment</Link> page.</p>}
+      {sp.submitted && <p className="ok-box">Thank you. Your profile is with us for a quick check, usually within 48 hours. We will email you as soon as it is on the board.</p>}
       {sp.saved && <p className="ok-box">Saved.</p>}
       {sp.paused && <p className="ok-box">Your profile is paused and hidden from employers.</p>}
 
@@ -60,12 +61,13 @@ export default async function SeekerPage({ searchParams }: { searchParams: SP })
         <p>
           {live ? <><strong>Live</strong> until {ukDate(s.expires_at)}. Viewed by employers {s.view_count} time{s.view_count === 1 ? '' : 's'}.</>
             : expired ? <><strong>Expired</strong> on {ukDate(s.expires_at)}. Press keep it live to show it again.</>
+            : s.status === 'pending' ? <><strong>Waiting for approval.</strong> We check every profile before it goes on the board, usually within 48 hours. We will email you.</>
             : s.status === 'paused' ? <><strong>Paused.</strong> Employers cannot see it.</>
             : <><strong>Not published yet.</strong> Fill in the form below and press save and publish.</>}
         </p>
         <div className="wk-actions">
           {live && <Link href={`/recruitment/${s.id}`} className="wk-btn">View my profile</Link>}
-          {complete && !live && (
+          {complete && !live && s.status !== 'pending' && (
             <form method="post" action="/api/seeker/action"><input type="hidden" name="action" value="renew" /><button type="submit" className="wk-btn go">{expired ? 'Keep it live' : 'Publish'}</button></form>
           )}
           {live && (

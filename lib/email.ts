@@ -696,14 +696,39 @@ export async function emailSeekerWelcome(to: string, firstName: string, link: st
 }
 
 /** Admin: a job seeker profile has just gone live. */
-export async function emailAdminNewSeeker(s: { id: string; name: string; headline: string | null; area: string | null }) {
+export async function emailAdminNewSeeker(s: { id: string; name: string; headline: string | null; area: string | null; needsApproval?: boolean }) {
   await send(
     adminList(),
-    `New job seeker profile: ${s.name}`,
-    `<p><strong>${esc(s.name)}</strong>${s.area ? ` (${esc(s.area)})` : ''} published a job seeker profile.</p>
+    s.needsApproval ? `Job seeker profile to approve: ${s.name}` : `New job seeker profile: ${s.name}`,
+    `<p><strong>${esc(s.name)}</strong>${s.area ? ` (${esc(s.area)})` : ''} ${s.needsApproval ? 'has sent a job seeker profile for approval. It is not on the board until you approve it.' : 'published a job seeker profile.'}</p>
 ${s.headline ? `<p>${esc(s.headline)}</p>` : ''}
-<p><a href="${siteUrl()}/recruitment/${s.id}">View the profile</a> or <a href="${siteUrl()}/admin/workers">manage profiles in admin</a>.</p>`,
+<p><a href="${siteUrl()}/admin/workers">${s.needsApproval ? 'Review and approve it in admin' : 'Manage profiles in admin'}</a>.</p>`,
     'seeker-admin'
+  );
+}
+
+/** Admin approved the profile: it is on the board. */
+export async function emailSeekerApproved(to: string, firstName: string, days: number) {
+  await send(
+    to,
+    'Your job seeker profile is live',
+    `<p>Hi ${esc(firstName)},</p>
+<p>Your profile has been checked and is now live on our <a href="${siteUrl()}/recruitment">Recruitment</a> page. Employers can find you for the next ${days} days, and you can keep it live from your account.</p>
+<p><a href="${siteUrl()}/seeker">Open my profile</a></p>`,
+    'seeker-approved'
+  );
+}
+
+/** Admin did not approve the profile. */
+export async function emailSeekerNotApproved(to: string, firstName: string, reason: string | null) {
+  await send(
+    to,
+    'Your job seeker profile was not approved',
+    `<p>Hi ${esc(firstName)},</p>
+<p>Sorry, we could not approve your job seeker profile this time.</p>
+${reason ? `<p>${esc(reason)}</p>` : ''}
+<p>If you think this is a mistake, reply to this email and we will take another look.</p>`,
+    'seeker-rejected'
   );
 }
 

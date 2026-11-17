@@ -121,6 +121,7 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
     db().from('service_enquiries').select('id', { count: 'exact', head: true }).eq('handled', false),
   ]);
   const waiting = (newSuppliers ?? 0) + (newEnquiries ?? 0);
+  const { count: seekersWaiting = 0 } = await db().from('job_seekers').select('id', { count: 'exact', head: true }).eq('status', 'pending');
   const { count: agenciesWaiting = 0 } = await db().from('agencies').select('id', { count: 'exact', head: true }).eq('status', 'pending');
   const { count: agencyVacsWaiting = 0 } = await db().from('vacancies').select('id', { count: 'exact', head: true }).eq('status', 'pending').not('agency_id', 'is', null);
   const { count: contractorsWaiting = 0 } = await db().from('contractor_companies').select('id', { count: 'exact', head: true }).eq('status', 'pending');
@@ -166,7 +167,10 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
           Recruitment agencies
           {((agenciesWaiting ?? 0) + (agencyVacsWaiting ?? 0)) > 0 && <span className="count"> {(agenciesWaiting ?? 0) + (agencyVacsWaiting ?? 0)} waiting</span>}
         </Link>
-        <Link href="/admin/workers">Job seekers</Link>
+        <Link href="/admin/workers">
+          Job seekers
+          {(seekersWaiting ?? 0) > 0 && <span className="count"> {seekersWaiting} waiting</span>}
+        </Link>
         <Link href="/admin/waitlist">Waiting list</Link>
         <Link href="/admin/vacancies">Vacancies</Link>
         <Link href="/admin/admins">Admins</Link>

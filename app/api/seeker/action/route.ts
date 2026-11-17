@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/supabase';
 import { sameOrigin, destroySession, SESSION_COOKIE } from '@/lib/session';
-import { getSeeker } from '@/lib/seekers';
+import { getSeeker, seekerName } from '@/lib/seekers';
+import { emailAdminNewSeeker } from '@/lib/email';
 import { SEEKER_LIVE_DAYS } from '@/lib/seekerTypes';
 
 export const runtime = 'nodejs';
@@ -22,6 +23,14 @@ export async function POST(req: NextRequest) {
   }
   if (action === 'renew') {
     if (!me.headline || !me.postcode) return go('error=' + encodeURIComponent('Finish your profile first, then publish it.'));
+    if (!me.approved_at) {
+      // Never approved yet: send it to admin rather than straight onto the board
+      if (me.status !== 'pending') {
+        await db().from('job_seekers').update({ status: 'pending', published_at: me.published_at ?? now.toISOString(), updated_at: now.toISOString() }).eq('id', me.id);
+        await emailAdminNewSeeker({ id: me.id, name: seekerName(me), headline: me.headline, area: me.area, needsApproval: true }).catch(() => null);
+      }
+      return go('submitted=1');
+    }
     await db().from('job_seekers').update({
       status: 'live', published_at: me.published_at ?? now.toISOString(),
       expires_at: new Date(now.getTime() + SEEKER_LIVE_DAYS * 86_400_000).toISOString(), expiry_warned_at: null, updated_at: now.toISOString(),
