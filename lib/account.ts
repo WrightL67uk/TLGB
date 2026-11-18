@@ -28,6 +28,7 @@ export type Business = {
   accreditations: string[];
   accreditation_expiries: Record<string, string> | null;
   turnover_band: string | null;
+  does_domestic: boolean;
   pl_cover_amount: number | null;
   pl_expiry: string | null;
   el_cover_amount: number | null;

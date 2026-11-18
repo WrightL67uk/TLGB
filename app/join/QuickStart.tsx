@@ -15,6 +15,7 @@ export default function QuickStart({ bands, plan, priceLine }: { bands: Band[]; 
   const [company, setCompany] = useState<Hit | null>(null);
   const [name, setName] = useState('');
   const [band, setBand] = useState('');
+  const [domestic, setDomestic] = useState<'yes' | 'no' | null>(null);
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
   const [pw2, setPw2] = useState('');
@@ -39,6 +40,7 @@ export default function QuickStart({ bands, plan, priceLine }: { bands: Band[]; 
     e.preventDefault();
     setError(null);
     if (type === 'ltd' && !company) return setError(hits.length ? 'Pick your company from the list under the company name box.' : 'We could not find that company. Type your company name or number in the box at the top and pick it from the list. Not a limited company? Choose sole trader or partnership.');
+    if (!domestic) return setError('Tell us whether you do domestic work.');
     if (pw !== pw2) return setError('The two passwords do not match.');
     setBusy(true);
     try {
@@ -48,7 +50,7 @@ export default function QuickStart({ bands, plan, priceLine }: { bands: Band[]; 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           business_type: type, company_number: company?.companyNumber, trading_name: type === 'ltd' ? company?.name : name,
-          turnover_band: band, email, password: pw, terms, hp, ...(plan ? { plan } : {}),
+          turnover_band: band, does_domestic: domestic, email, password: pw, terms, hp, ...(plan ? { plan } : {}),
         }),
       });
       const json = await res.json();
@@ -125,6 +127,18 @@ export default function QuickStart({ bands, plan, priceLine }: { bands: Band[]; 
               {bands.map((b) => <option key={b.key} value={b.key}>{b.label}</option>)}
             </select>
           </label>
+          <p className="hint" style={{ marginBottom: 6 }}>Do you do domestic work (for homeowners)?</p>
+          <div className="choice-row">
+            <label className={`choice ${domestic === 'yes' ? 'on' : ''}`}>
+              <input type="radio" name="domestic" required checked={domestic === 'yes'} onChange={() => setDomestic('yes')} />
+              <strong>Yes</strong>
+            </label>
+            <label className={`choice ${domestic === 'no' ? 'on' : ''}`}>
+              <input type="radio" name="domestic" required checked={domestic === 'no'} onChange={() => setDomestic('no')} />
+              <strong>No</strong>
+            </label>
+          </div>
+          <p className="hint" style={{ marginTop: -2 }}>Homeowners can search TLGB for free. They only see businesses that say yes. You can change this any time.</p>
           <label>Email
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" placeholder="name@company.co.uk" />
           </label>

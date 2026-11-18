@@ -25,6 +25,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
   const accreds = ([] as string[]).concat(sp.accred ?? []).filter((a) => (ACCREDITATIONS as readonly string[]).includes(a));
   // "Verified members only" is ticked unless the search form was sent with it unticked
   const verifiedOnly = sp.v ? sp.verified === '1' : true;
+  const homeOnly = sp.home === '1';
 
   // Link that drops one filter but keeps the rest of the search
   const withoutParam = (key: string, value: string) => {
@@ -35,6 +36,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
     for (const a of accreds) if (!(key === 'accred' && a === value)) q.append('accred', a);
     q.set('v', '1');
     if (verifiedOnly) q.set('verified', '1');
+    if (homeOnly) q.set('home', '1');
     return `/search?${q.toString()}`;
   };
   // On result cards, show the filters asked for first, then that trade's own qualifications
@@ -45,6 +47,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
   let results: Result[] | null = null;
   let thumbs = new Map<string, string>();
   const logos = new Map<string, string>();
+  const domestic = new Set<string>();
   let searchError: string | null = null;
 
   if (postcode) {
@@ -64,6 +67,11 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
         searchError = 'Search failed. Please try again.';
       } else {
         results = data as Result[];
+        if (results.length) {
+          const { data: dom } = await db().from('businesses').select('id').in('id', results.map((r) => r.id)).eq('does_domestic', true);
+          for (const d of dom ?? []) domestic.add(d.id as string);
+          if (homeOnly) results = results.filter((r) => domestic.has(r.id));
+        }
         if (results.length) {
           const { data: photos } = await db()
             .from('business_photos')
@@ -88,7 +96,8 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
         <h1>Find vetted trades for your job</h1>
         <p className="lead">Landscapers, arborists, groundworkers and more. Insurance and accreditations checked before they are listed.</p>
 
-        <SearchForm postcode={postcode} trade={trade} minPl={minPl} accreds={accreds} verifiedOnly={verifiedOnly} />
+        <SearchForm postcode={postcode} trade={trade} minPl={minPl} accreds={accreds} verifiedOnly={verifiedOnly} homeOnly={homeOnly} />
+        <p className="muted small" style={{ marginTop: 8 }}>Looking for someone to do your own garden? Tick <strong>Homeowner jobs</strong>, or see our <Link href="/homeowners">guide for homeowners</Link>.</p>
       </section>
 
       {searchError && <p className="err big">{searchError}</p>}
@@ -101,7 +110,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
 
       {results && (
         <section>
-          <h2>{results.length} {results.length === 1 ? 'business covers' : 'businesses cover'} {postcode.toUpperCase()}{trade ? ` for ${tradeLabel(trade)}` : ''}</h2>
+          <h2>{results.length} {results.length === 1 ? 'business covers' : 'businesses cover'} {postcode.toUpperCase()}{trade ? ` for ${tradeLabel(trade)}` : ''}{homeOnly ? ', working for homeowners' : ''}</h2>
           {(accreds.length > 0 || minPl) && (
             <p className="active-filters">
               <span className="muted small">Must have:</span>
@@ -119,6 +128,7 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
                 <div className="card-body">
                   <h3>{logos.get(r.id) && <img src={logos.get(r.id)} alt="" className="card-logo" />}{r.trading_name}</h3>
                   <p className="muted">{r.trades.map(tradeLabel).join(', ')}</p>
+                  {domestic.has(r.id) && <p className="badges"><span className="badge ok">Homeowners welcome</span></p>}
                   {r.verified ? (
                     <p className="badges">
                       <span className="badge ok">Verified member</span>

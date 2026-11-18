@@ -17,6 +17,7 @@ export default function SupplierSignup({ tier }: { tier: 'basic' | 'appear' | 'm
   const [contact, setContact] = useState('');
   const [phone, setPhone] = useState('');
   const [vat, setVat] = useState<'yes' | 'no' | null>(null);
+  const [domestic, setDomestic] = useState<'yes' | 'no' | null>(null);
   const [vatNo, setVatNo] = useState('');
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
@@ -43,6 +44,7 @@ export default function SupplierSignup({ tier }: { tier: 'basic' | 'appear' | 'm
     setError(null);
     if (type === 'ltd' && !company) return setError(hits.length ? 'Pick your company from the list under the company name box.' : 'We could not find that company. Type your company name or number in the box at the top and pick it from the list. Not a limited company? Choose sole trader or partnership.');
     if (!vat) return setError('Tell us whether you are VAT registered.');
+    if (!domestic) return setError('Tell us whether you supply homeowners.');
     if (pw !== pw2) return setError('The two passwords do not match.');
     setBusy(true);
     try {
@@ -52,7 +54,7 @@ export default function SupplierSignup({ tier }: { tier: 'basic' | 'appear' | 'm
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tier, business_type: type, company_number: company?.companyNumber, trading_name: type === 'ltd' ? company?.name : name,
-          contact_name: contact, phone, vat_registered: vat, vat_number: vat === 'yes' ? vatNo : undefined,
+          contact_name: contact, phone, does_domestic: domestic, vat_registered: vat, vat_number: vat === 'yes' ? vatNo : undefined,
           email, password: pw, terms, hp,
         }),
       });
@@ -132,6 +134,19 @@ export default function SupplierSignup({ tier }: { tier: 'basic' | 'appear' | 'm
               <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required autoComplete="tel" />
             </label>
           </div>
+
+          <p className="hint" style={{ marginBottom: 6 }}>Do you sell to homeowners (the general public)?</p>
+          <div className="choice-row">
+            <label className={`choice ${domestic === 'yes' ? 'on' : ''}`}>
+              <input type="radio" name="domestic" required checked={domestic === 'yes'} onChange={() => setDomestic('yes')} />
+              <strong>Yes</strong>
+            </label>
+            <label className={`choice ${domestic === 'no' ? 'on' : ''}`}>
+              <input type="radio" name="domestic" required checked={domestic === 'no'} onChange={() => setDomestic('no')} />
+              <strong>No</strong>
+            </label>
+          </div>
+          <p className="hint" style={{ marginTop: -2 }}>Homeowners can search TLGB for free. They only see businesses that say yes. You can change this any time.</p>
 
           <p className="hint" style={{ marginBottom: 6 }}>Is your business VAT registered?</p>
           <div className="choice-row">

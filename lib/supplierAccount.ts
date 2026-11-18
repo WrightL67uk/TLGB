@@ -42,6 +42,7 @@ export type Supplier = {
   min_order: string | null;
   trade_accounts: boolean;
   trade_only: boolean;
+  does_domestic: boolean;
   standards: string[];
   standards_other: string | null;
   product_liability: boolean | null;

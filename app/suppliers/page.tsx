@@ -18,25 +18,27 @@ type Supplier = {
   id: string; name: string; categories: string[]; description: string | null; website: string | null; phone: string | null;
   town: string | null; postcode: string | null; lat: number | null; lng: number | null; delivers_nationally: boolean;
   email: string | null; logo_path: string | null; quote_requests: boolean; quote_plan: string | null; quote_paid_until: string | null;
-  status?: 'approved'; tier?: 'appear' | 'match' | null; subscription_status?: string; slug?: string | null; public_email?: string | null;
+  status?: 'approved'; tier?: 'appear' | 'match' | null; subscription_status?: string; slug?: string | null; public_email?: string | null; does_domestic?: boolean;
 };
-type SP = Promise<{ q?: string; category?: string; postcode?: string }>;
+type SP = Promise<{ q?: string; category?: string; postcode?: string; home?: string }>;
 
 export default async function SuppliersPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;
   const me = await getMembership();
   const q = (sp.q ?? '').trim().slice(0, 80);
   const category = SUPPLIER_CATEGORIES.some((c) => c.key === sp.category) ? sp.category! : '';
+  const homeOnly = sp.home === '1';
   const pcIn = (sp.postcode ?? '').trim().slice(0, 10);
   const where = pcIn ? await lookupPostcode(pcIn) : null;
 
   let query = db()
     .from('suppliers')
-    .select('id, name, categories, description, website, phone, town, postcode, lat, lng, delivers_nationally, email, logo_path, quote_requests, quote_plan, quote_paid_until, status, tier, subscription_status, slug, public_email')
+    .select('id, name, categories, description, website, phone, town, postcode, lat, lng, delivers_nationally, email, logo_path, quote_requests, quote_plan, quote_paid_until, status, tier, subscription_status, slug, public_email, does_domestic')
     .eq('status', 'approved')
     .order('name')
     .limit(500);
   if (category) query = query.contains('categories', [category]);
+  if (homeOnly) query = query.eq('does_domestic', true);
   if (q) {
     const term = q.replace(/[%_,()]/g, ' ');
     query = query.or(`name.ilike.%${term}%,description.ilike.%${term}%,town.ilike.%${term}%`);
@@ -96,8 +98,9 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
         <label>Name or product
           <input type="search" name="q" defaultValue={q} placeholder="e.g. hedging, mesh, topsoil" />
         </label>
+        <label className="chk"><input type="checkbox" name="home" value="1" defaultChecked={homeOnly} /> Sells to homeowners</label>
         <button type="submit" className="sq sq-rust">search</button>
-        {(q || category || pcIn) && <Link href="/suppliers">clear</Link>}
+        {(q || category || pcIn || homeOnly) && <Link href="/suppliers">clear</Link>}
       </form>
       {where && !where.ok && <p className="err">{where.reason}</p>}
 
@@ -108,6 +111,7 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
             <h2>{s.profile && s.logo_path && <img src={photoUrl(s.logo_path)} alt="" className="card-logo" />}{s.profile ? <Link href={`/suppliers/${s.slug}`}>{s.name}</Link> : s.name}</h2>
             <div className="badges">
               {s.categories.map((c) => <span key={c} className="badge ok">{supplierCategoryLabel(c)}</span>)}
+              {s.does_domestic && <span className="badge ok">Homeowners welcome</span>}
               {s.delivers_nationally && <span className="badge">delivers nationally</span>}
               {soilChecked.has(s.id) && <span className="badge ok" title="We have checked their soil test certificates">Soil tests checked</span>}
               {s.tier === 'match' && <span className="badge ok">Match supplier</span>}
