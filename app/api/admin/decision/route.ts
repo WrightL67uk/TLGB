@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   if (!/^[0-9a-f-]{36}$/i.test(id)) return new NextResponse('Bad id', { status: 400 });
 
-  const { data: b } = await db().from('businesses').select('id, status, email, contact_name, trading_name, free_listing, subscription_status, stripe_subscription_id').eq('id', id).maybeSingle();
+  const { data: b } = await db().from('businesses').select('id, status, email, contact_name, trading_name, free_listing, subscription_status, stripe_subscription_id, founding_member').eq('id', id).maybeSingle();
   if (!b) return new NextResponse('Not found', { status: 404 });
 
   const now = new Date().toISOString();
@@ -33,12 +33,13 @@ export async function POST(req: NextRequest) {
     await db().from('businesses').update({
       status: 'approved', reviewed_at: now, reviewed_by: actor, rejection_reason: null,
       recheck_required: false, recheck_reason: null,
-      founding_member: fd.get('founding_member') === 'on',
+      // Approving must not switch off a free (founding) membership they already have
+      founding_member: fd.get('founding_member') === 'on' || !!b.founding_member,
       admin_notes: notes || null,
     }).eq('id', id);
     await db().from('review_events').insert({ business_id: id, action: 'approved', actor, detail: notes || null });
     const chosen = ['active', 'trialing', 'past_due'].includes(b.subscription_status) ? 'paid' : b.free_listing ? 'free' : null;
-    await emailApplicantApproved(b.email, b.contact_name, b.trading_name, fd.get('founding_member') === 'on', chosen, b.id);
+    await emailApplicantApproved(b.email, b.contact_name, b.trading_name, fd.get('founding_member') === 'on' || !!b.founding_member, chosen, b.id);
   } else if (action === 'reject') {
     if (b.status !== 'pending_review') return new NextResponse('Only pending applications can be rejected', { status: 409 });
     if (!reason) return new NextResponse('A reason is required', { status: 400 });
