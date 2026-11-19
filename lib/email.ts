@@ -319,7 +319,7 @@ Email: <a href="mailto:${esc(m.email)}">${esc(m.email)}</a></p>
     m.email,
     'We have your message',
     `<p>Hello ${esc(m.name.split(' ')[0])},</p>
-<p>Thanks for getting in touch. We have your message and will reply within two working days. Here is what you sent us:</p>
+<p>Thanks for getting in touch. We have your message and will be in touch as soon as we can. Here is what you sent us:</p>
 <p style="border-left:3px solid #ccc;padding-left:10px;color:#444">${esc(m.message).replace(/\n/g, '<br>')}</p>
 <p>The Little Green Book</p>`,
     'contact-customer'
