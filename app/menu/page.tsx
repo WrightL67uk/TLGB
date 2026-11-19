@@ -56,6 +56,7 @@ export default async function MenuPage() {
     {
       title: 'Guides and help',
       items: [
+        { label: 'Contact us', href: '/contact', note: 'Job seekers, trades, suppliers, agencies and contractors: send us a message and we reply within two working days.', k: 'contact email message enquiry support help get in touch' },
         { label: 'The retention ban', href: '/guides/retention-ban', note: 'Where the Commercial Payments Bill has got to, when the ban could start, and what to do now.', k: 'retention ban commercial payments bill retentions bond defects 60 day payment terms law change' },
         { label: 'All guides', href: '/guides', note: 'Every how-to and know-how guide in one list.' },
         ...HOW_TOS.map((h) => ({ label: `How to: ${h.title}`, href: `/guides/${h.slug}`, note: h.summary, k: 'how to guide help instructions' })),

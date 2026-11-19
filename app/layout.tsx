@@ -27,10 +27,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div className="util">
           <div className="util-in">
             {loggedIn
-              ? <Link href="/account" className="util-b util-green">my account</Link>
+              ? <>
+                  <Link href="/account" className="util-b util-green">my account</Link>
+                  <Link href="/contact" className="util-b util-teal">contact</Link>
+                </>
               : <>
                   <Link href="/contractors" className="util-b util-teal">main contractors</Link>
                   <Link href="/join" className="util-b util-rust">list your business</Link>
+                  <Link href="/contact" className="util-b util-teal">contact</Link>
                   <Link href="/login" className="util-b util-green">log in</Link>
                 </>}
           </div>
@@ -89,6 +93,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <div>
                 <h3>Account</h3>
                 <Link href="/login">Log in</Link>
+                <Link href="/contact">Contact us</Link>
                 <Link href="/menu">Everything on TLGB</Link>
               </div>
             </nav>
@@ -101,6 +106,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Link href="/legal/cookies">Cookies</Link>
             <Link href="/legal/acceptable-use">Acceptable use</Link>
             <Link href="/legal/complaints">Complaints</Link>
+            <Link href="/contact">Contact</Link>
           </nav>
           <p className="foot-small">&copy; {new Date().getFullYear()} The Little Green Book</p>
         </footer>

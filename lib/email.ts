@@ -3,6 +3,7 @@ import 'server-only';
 import { getPricing, WAITLIST_OFFER } from './pricing';
 import sgMail from '@sendgrid/mail';
 import { env, siteUrl, TLGB_EMAIL } from './config';
+import { CONTACT_RECIPIENTS } from './contact';
 
 let ready = false;
 function init() {
@@ -297,6 +298,30 @@ ${e.message ? `<p>${esc(e.message).replace(/\n/g, '<br>')}</p>` : ''}`,
 <p>Thanks for getting in touch about ${esc(e.schemes.join(', ') || 'your accreditation applications')}. We will be in touch within two working days to talk it through and give you a fixed price.</p>
 <p>The Little Green Book</p>`,
     'enquiry-customer'
+  );
+}
+
+/** Contact form: to Ed, Trudy and admin (Reply-To is the sender), plus a copy back to the sender. */
+export async function emailContactMessage(m: { who: string; name: string; email: string; business: string | null; message: string }) {
+  await send(
+    CONTACT_RECIPIENTS,
+    `Contact form (${m.who}): ${m.business || m.name}`,
+    `<p><strong>${esc(m.name)}</strong>${m.business ? ` from ${esc(m.business)}` : ''} wrote in through the contact form.</p>
+<p>Who they are: ${esc(m.who)}<br>
+Email: <a href="mailto:${esc(m.email)}">${esc(m.email)}</a></p>
+<p>${esc(m.message).replace(/\n/g, '<br>')}</p>
+<p>Reply to this email to answer them directly. A copy is also saved in admin under Resources.</p>`,
+    'contact-admin',
+    m.email
+  );
+  await send(
+    m.email,
+    'We have your message',
+    `<p>Hello ${esc(m.name.split(' ')[0])},</p>
+<p>Thanks for getting in touch. We have your message and will reply within two working days. Here is what you sent us:</p>
+<p style="border-left:3px solid #ccc;padding-left:10px;color:#444">${esc(m.message).replace(/\n/g, '<br>')}</p>
+<p>The Little Green Book</p>`,
+    'contact-customer'
   );
 }
 

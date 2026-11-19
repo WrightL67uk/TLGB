@@ -90,6 +90,7 @@ export default async function SupplierJoin({ searchParams }: { searchParams: Pro
       </div>
       {offerBox}
       <SupplierSignup tier={tier} />
+      <p className="muted small">Questions before you sign up? <Link href="/contact?who=supplier">Contact us</Link>.</p>
     </div>
   );
 }

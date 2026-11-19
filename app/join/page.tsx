@@ -126,6 +126,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
       </div>
       {offerBox}
       <QuickStart bands={bands} plan={plan} priceLine={priceLine} />
+      <p className="muted small">Questions before you sign up? <Link href="/contact?who=trade">Contact us</Link>.</p>
     </div>
   );
 }

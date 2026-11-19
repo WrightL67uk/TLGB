@@ -205,17 +205,17 @@ export default async function AdminResources({ searchParams }: { searchParams: P
         </p>
       ))}
 
-      <h2>Accreditation help enquiries</h2>
+      <h2>Enquiries and contact messages</h2>
       {!enquiries?.length && <p className="muted">None yet.</p>}
       {!!enquiries?.length && (
         <table className="table">
-          <thead><tr><th>Date</th><th>Who</th><th>Schemes</th><th>Message</th><th></th></tr></thead>
+          <thead><tr><th>Date</th><th>Who</th><th>Type</th><th>Message</th><th></th></tr></thead>
           <tbody>
             {enquiries.map((e) => (
               <tr key={e.id} style={{ opacity: e.handled ? 0.5 : 1 }}>
                 <td>{ukDate(e.created_at)}</td>
                 <td>{e.name}{e.business_name ? `, ${e.business_name}` : ''}<br /><a href={`mailto:${e.email}`}>{e.email}</a><br />{e.phone}</td>
-                <td>{e.schemes.join(', ')}</td>
+                <td>{e.service === 'contact' ? 'Contact form: ' : e.service === 'retention' ? 'Retention: ' : ''}{e.schemes.join(', ')}</td>
                 <td style={{ whiteSpace: 'pre-line' }}>{e.message}</td>
                 <td>{!e.handled && <Act table="service_enquiries" id={e.id} action="handled" label="Mark handled" />}</td>
               </tr>

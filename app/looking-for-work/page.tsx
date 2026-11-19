@@ -58,7 +58,7 @@ export default async function LookingForWork({ searchParams }: { searchParams: P
             <p className="muted small" style={{ margin: 0 }}>Already have a profile? <Link href={`/login?next=${encodeURIComponent(next || '/seeker')}`}>Log in</Link>.</p>
           </form>
         )}
-        <p className="muted small" style={{ marginTop: 16 }}>Hiring? <Link href="/recruitment">See people looking for work</Link>.</p>
+        <p className="muted small" style={{ marginTop: 16 }}>Hiring? <Link href="/recruitment">See people looking for work</Link>. Questions? <Link href="/contact?who=job-seeker">Contact us</Link>.</p>
       </div>
     </div>
   );

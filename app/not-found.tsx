@@ -14,7 +14,7 @@ export default function NotFound() {
         <li><Link href="/recruitment">Recruitment</Link></li>
         <li><Link href="/menu">Everything on TLGB</Link></li>
       </ul>
-      <p className="muted small">Think something is missing? Email <a href="mailto:admin@tlgb.co.uk">admin@tlgb.co.uk</a>.</p>
+      <p className="muted small">Think something is missing? <a href="/contact">Contact us</a>.</p>
     </div>
   );
 }

@@ -74,7 +74,7 @@ export default async function AgencyJoin({ searchParams }: { searchParams: Promi
         <p className="muted small" style={{ margin: 0 }}>Next you go to our secure payment page: £{plan.price} for the year, with {plan.credits} vacancy credits.</p>
         <button type="submit" className="primary">continue to payment</button>
       </form>
-      <p className="muted small">Already registered? <Link href="/login?next=/recruiter">Log in</Link>. A landscaping business hiring directly? <Link href="/join">List your business</Link>.</p>
+      <p className="muted small">Already registered? <Link href="/login?next=/recruiter">Log in</Link>. Questions? <Link href="/contact?who=recruitment-agency">Contact us</Link>. A landscaping business hiring directly? <Link href="/join">List your business</Link>.</p>
     </div>
   );
 }

@@ -9,7 +9,7 @@ export const revalidate = 3600;
 const STATIC = [
   '/', '/search', '/tenders', '/leads', '/jobs', '/recruitment', '/looking-for-work', '/suppliers', '/suppliers/join',
   '/help-hub', '/guides', '/guides/finding-leads', '/guides/retention-ban', '/guides/winning-tenders',
-  '/accreditation-help', '/supply-chains', '/contractors', '/contractors/join', '/join', '/tour', '/tools/payment-dates', '/legal',
+  '/accreditation-help', '/contact', '/supply-chains', '/contractors', '/contractors/join', '/join', '/tour', '/tools/payment-dates', '/legal',
 ];
 
 /** Tells Google which pages exist: public pages, guides, approved listings and live vacancies. */
