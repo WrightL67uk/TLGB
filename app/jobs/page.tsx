@@ -3,7 +3,7 @@ import { getPricing, upgradeHref, upgradeLabel } from '@/lib/pricing';
 import { db } from '@/lib/supabase';
 import { getSessionEmail } from '@/lib/session';
 import { isPaid } from '@/lib/membership';
-import { meetsJob, openJobs, type Candidate, type Job } from '@/lib/contractors';
+import { meetsJob, openJobs, sectorLabel, type Candidate, type Job } from '@/lib/contractors';
 import { tradeLabel, TRADES } from '@/lib/config';
 import { valueBandLabel } from '@/lib/contractorPlans';
 import '../contractor.css';
@@ -25,6 +25,11 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
   const member = mine.length > 0;
   const unpaid = ((rows ?? []) as Candidate[]).find((b) => b.status === 'approved' && !isPaid(b))?.id ?? null;
   const pricing = await getPricing();
+  const postHref = (() => {
+    const ok = ((rows ?? []) as Candidate[]).find((b) => b.status === 'approved');
+    if (ok) return `/account/${ok.id}/tenders/new`;
+    return email ? '/account' : '/login?next=/jobs';
+  })();
 
   let jobs = await openJobs();
   const trade = TRADES.some((t) => t.slug === sp.trade) ? sp.trade! : '';
@@ -37,6 +42,11 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
     <div className="ct-page">
       <h1>TLGB Tenders</h1>
       <p className="lead">Packages posted directly by main contractors, housebuilders and developers. {member ? 'Jobs that match your trade, area and paperwork are emailed to you the day they are posted.' : 'Members see the contractor, full details and drawings, and reply with their compliance pack attached.'}</p>
+
+      <p style={{ margin: '0 0 14px' }}>
+        <Link href={postHref} className="ct-btn" style={{ background: 'var(--green)', borderColor: 'var(--green)', color: '#fff', fontWeight: 700 }}>Post your own tender</Link>
+        <span className="muted small" style={{ marginLeft: 10 }}>Free for every member. We check it, then email the members who match.</span>
+      </p>
 
       <form method="get" className="ct-inline" style={{ marginBottom: 16 }}>
         {member && (
@@ -68,6 +78,7 @@ export default async function JobsBoard({ searchParams }: { searchParams: Promis
             <h2><Link href={`/jobs/${j.id}`}>{member ? j.title : `${j.trades.map(tradeLabel).join(', ')} package`}</Link></h2>
             <div className="ct-meta">
               <span><b>{member ? j.company : 'Main contractor'}</b></span>
+              <span>{sectorLabel(j.sector)}</span>
               <span>{j.trades.map(tradeLabel).join(', ')}</span>
               <span>{j.town ? `${j.town}, ` : ''}{j.postcode.split(' ')[0]}</span>
               {valueBandLabel(j.value_band) && <span>{valueBandLabel(j.value_band)}</span>}
