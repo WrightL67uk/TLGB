@@ -149,3 +149,7 @@ export const siteUrl = () => process.env.SITE_URL ?? 'http://localhost:3000';
 
 export const gbp = (n: number | null | undefined) =>
   n == null ? 'Not given' : `£${(n / 1_000_000).toLocaleString('en-GB')}m`;
+
+/** "Covers the whole UK" is stored as a very large coverage radius, so every distance check includes it. */
+export const NATIONWIDE_MILES = 2000;
+export const isNationwide = (miles: number | null | undefined) => (miles ?? 0) >= 1000;

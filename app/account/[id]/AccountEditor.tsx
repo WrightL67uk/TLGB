@@ -26,6 +26,7 @@ const PHOTO_ACCEPT = 'image/jpeg,image/png,image/webp';
 
 export default function AccountEditor({ b, docs, photos, bands }: Props) {
   const router = useRouter();
+  const [nationwide, setNationwide] = useState(b.radius_miles >= 1000);
   const [msg, setMsg] = useState<Msg>(null);
   const [saving, setSaving] = useState(false);
   const [busyField, setBusyField] = useState<string | null>(null);
@@ -51,7 +52,7 @@ export default function AccountEditor({ b, docs, photos, bands }: Props) {
       business_address: fd.get('business_address'),
       description: fd.get('description'),
       base_postcode: fd.get('base_postcode'),
-      radius_miles: fd.get('radius_miles'),
+      radius_miles: fd.get('covers_nationwide') === 'on' ? 2000 : fd.get('radius_miles'),
       trades: fd.getAll('trades'),
       accreditations: fd.getAll('accreditations'),
       accreditation_expiries: readAccreditationExpiries(fd),
@@ -172,11 +173,14 @@ export default function AccountEditor({ b, docs, photos, bands }: Props) {
           <div className="two">
             <label htmlFor="base_postcode">Base postcode<input id="base_postcode" name="base_postcode" defaultValue={b.base_postcode} required /></label>
             <label htmlFor="radius_miles">Will travel up to
-              <select id="radius_miles" name="radius_miles" defaultValue={String(b.radius_miles)}>
+              <select id="radius_miles" name="radius_miles" disabled={nationwide} defaultValue={b.radius_miles >= 1000 ? '30' : String(b.radius_miles)}>
                 {[10, 20, 30, 50, 75, 100, 150, 300].map((m) => <option key={m} value={m}>{m} miles</option>)}
               </select>
             </label>
           </div>
+          <label className="check" htmlFor="covers_nationwide">
+            <input id="covers_nationwide" type="checkbox" name="covers_nationwide" checked={nationwide} onChange={(e) => setNationwide(e.target.checked)} /> We cover the whole UK (we still need your base postcode)
+          </label>
         </fieldset>
 
         <fieldset disabled={locked}>

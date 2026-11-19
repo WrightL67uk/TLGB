@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { db, photoUrl } from '@/lib/supabase';
-import { gbp, tradeLabel, accreditationLabel } from '@/lib/config';
+import { isNationwide, gbp, tradeLabel, accreditationLabel } from '@/lib/config';
 import { unverifiedReason } from '@/lib/membership';
 import '../../contractor.css';
 import { liveAccreditations, fmtDate } from '@/lib/expiries';
@@ -70,7 +70,7 @@ export default async function BusinessPage({ params, searchParams }: { params: P
       )}
 
       {b.description && <p style={{ whiteSpace: 'pre-line' }}>{b.description}</p>}
-      <p className="muted">Based in {b.base_postcode}, covers up to {b.radius_miles} miles.</p>
+      <p className="muted">Based in {b.base_postcode}, {isNationwide(b.radius_miles) ? 'covers the whole UK.' : `covers up to ${b.radius_miles} miles.`}</p>
 
       <div className="contact">
         <h2>Contact</h2>

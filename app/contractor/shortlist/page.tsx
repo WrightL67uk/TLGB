@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { db } from '@/lib/supabase';
 import { getContractor, isUuid } from '@/lib/contractors';
 import { tradeWarnings, type StatusRow } from '@/lib/tradeStatus';
-import { tradeLabel, gbp } from '@/lib/config';
+import { isNationwide, tradeLabel, gbp } from '@/lib/config';
 import ContractorNav from '../ContractorNav';
 import '../../contractor.css';
 
@@ -123,7 +123,7 @@ export default async function Shortlist({ searchParams }: { searchParams: SP }) 
                 <h3><Link href={`/b/${b!.id}`}>{b!.trading_name}</Link></h3>
                 <div className="ct-meta">
                   <span>{(b!.trades as string[]).map(tradeLabel).join(', ')}</span>
-                  <span>{b!.base_postcode}, covers {b!.radius_miles} miles</span>
+                  <span>{b!.base_postcode}, covers {isNationwide(b!.radius_miles) ? 'the whole UK' : `${b!.radius_miles} miles`}</span>
                   <span>Public liability {gbp(b!.pl_cover_amount)}</span>
                 </div>
                 <div className="ct-meta"><a href={`tel:${b!.phone}`}>{b!.phone}</a><a href={`mailto:${b!.email}`}>{b!.email}</a></div>

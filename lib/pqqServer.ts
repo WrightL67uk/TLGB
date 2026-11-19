@@ -1,7 +1,7 @@
 import 'server-only';
 import { loadTeam, teamSummary } from './team';
 import { db } from './supabase';
-import { tradeLabel, gbp, accreditationLabel } from './config';
+import { isNationwide, tradeLabel, gbp, accreditationLabel } from './config';
 import { currentDocs } from './compliance';
 import { daysTo, ukDate } from './complianceTypes';
 import type { Business } from './account';
@@ -43,7 +43,7 @@ export async function autoAnswers(b: Business): Promise<Record<string, string>> 
       b.business_type === 'ltd' && b.company_number ? `Company number ${b.company_number}` : 'Sole trader',
       b.business_address ? `Address: ${b.business_address}` : null,
     ].filter(Boolean).join('\n'),
-    co_trades: `${b.trades.map(tradeLabel).join(', ')}. Based in ${area}, covering up to ${b.radius_miles} miles.`,
+    co_trades: `${b.trades.map(tradeLabel).join(', ')}. Based in ${area}, ${isNationwide(b.radius_miles) ? 'covering the whole UK' : `covering up to ${b.radius_miles} miles`}.`,
     ins_cover: [
       ins('Public liability', 'pl', b.pl_cover_amount),
       ins('Employers liability', 'el', b.el_cover_amount),

@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { openPack, logPackEvent, type PackDoc } from '@/lib/compliance';
 import { getSessionEmail } from '@/lib/session';
 import { unverifiedReason } from '@/lib/membership';
-import { tradeLabel } from '@/lib/config';
+import { isNationwide, tradeLabel } from '@/lib/config';
 import { CATEGORIES, docType, shownStatus, ukDate } from '@/lib/complianceTypes';
 import DownloadAll from './DownloadAll';
 import { loadTeam } from '@/lib/team';
@@ -69,7 +69,7 @@ export default async function PackPage({ params }: { params: Promise<{ token: st
           <h1>{b.trading_name}</h1>
           <p>
             {b.trades.slice(0, 4).map(tradeLabel).join(', ')}
-            {area && <> · Based in {area}, covers {b.radius_miles} miles</>}
+            {area && <> · Based in {area}, covers {isNationwide(b.radius_miles) ? 'the whole UK' : `${b.radius_miles} miles`}</>}
             {b.business_type === 'ltd' && b.company_number && <> · Company {b.company_number}</>}
           </p>
         </div>

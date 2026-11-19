@@ -4,7 +4,7 @@ import DeleteForm from '@/app/admin/DeleteForm';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db, photoUrl } from '@/lib/supabase';
-import { gbp, tradeLabel, turnoverBand, accreditationLabel } from '@/lib/config';
+import { isNationwide, gbp, tradeLabel, turnoverBand, accreditationLabel } from '@/lib/config';
 import { getPricing, bandPrice } from '@/lib/pricing';
 import { daysUntil, fmtDate } from '@/lib/expiries';
 import { unverifiedReason, type Pending } from '@/lib/membership';
@@ -135,7 +135,7 @@ export default async function AdminDetail({
         <section className="panel">
           <h2>Contact</h2>
           <p>{b.contact_name}<br />{b.email}<br />{b.phone}<br />{b.website && <a href={b.website} target="_blank" rel="noopener">{b.website}</a>}</p>
-          <p>Base {b.base_postcode}, travels {b.radius_miles} miles</p>
+          <p>Base {b.base_postcode}, {isNationwide(b.radius_miles) ? 'covers the whole UK' : `travels ${b.radius_miles} miles`}</p>
           <p>{b.trades.map(tradeLabel).join(', ')}</p>
           <p>Turnover: {turnoverBand(b.turnover_band)?.label ?? 'not given'}
             {pricing.mode === 'bands' && bandPrice(pricing, b.turnover_band) && <span className="muted"> (listing £{bandPrice(pricing, b.turnover_band)!.price}/yr)</span>}

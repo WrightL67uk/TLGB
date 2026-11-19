@@ -26,6 +26,7 @@ export default function DetailsForm({ id, businessType, company, email, saved }:
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
+  const [nationwide, setNationwide] = useState(Number(str(saved.radius_miles)) >= 1000);
 
   function collect(fd: FormData): Saved {
     return {
@@ -37,7 +38,7 @@ export default function DetailsForm({ id, businessType, company, email, saved }:
       website: String(fd.get('website') ?? ''),
       trades: fd.getAll('trades').map(String),
       base_postcode: String(fd.get('base_postcode') ?? ''),
-      radius_miles: String(fd.get('radius_miles') ?? ''),
+      radius_miles: fd.get('covers_nationwide') === 'on' ? '2000' : String(fd.get('radius_miles') ?? ''),
       pl_cover_amount: String(fd.get('pl_cover_amount') ?? ''),
       pl_expiry: String(fd.get('pl_expiry') ?? ''),
       el_cover_amount: String(fd.get('el_cover_amount') ?? ''),
@@ -165,11 +166,14 @@ export default function DetailsForm({ id, businessType, company, email, saved }:
         <div className="two">
           <label>Base postcode<input name="base_postcode" required placeholder="e.g. SG1 2AB" defaultValue={str(saved.base_postcode)} /></label>
           <label>Will travel up to
-            <select name="radius_miles" defaultValue={str(saved.radius_miles) || '30'}>
+            <select name="radius_miles" disabled={nationwide} defaultValue={Number(str(saved.radius_miles)) >= 1000 ? '30' : str(saved.radius_miles) || '30'}>
               {[10, 20, 30, 50, 75, 100, 150, 300].map((m) => <option key={m} value={m}>{m} miles</option>)}
             </select>
           </label>
         </div>
+        <label className="check">
+          <input type="checkbox" name="covers_nationwide" checked={nationwide} onChange={(e) => setNationwide(e.target.checked)} /> We cover the whole UK (we still need your base postcode)
+        </label>
       </fieldset>
 
       <fieldset>

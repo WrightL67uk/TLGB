@@ -1,5 +1,5 @@
 import 'server-only';
-import { tradeLabel } from './config';
+import { isNationwide, tradeLabel } from './config';
 import { pounds, sinceYear, type SiteBusiness, type Service } from './memberSites';
 
 export type SiteCopy = { headline: string; intro: string; about: string; services: Service[]; reasons: string[]; areas: string; written_by: string };
@@ -47,7 +47,7 @@ export function writeFromListing(b: SiteBusiness): SiteCopy {
   const trades = b.trades.length ? b.trades : ['landscaper'];
   const main = tradeLabel(trades[0]).toLowerCase().replace(/ \/ .*/, '');
   const since = sinceYear(b);
-  const area = b.radius_miles ? `within about ${b.radius_miles} miles of ${b.base_postcode.split(' ')[0]}` : `around ${b.base_postcode.split(' ')[0]}`;
+  const area = isNationwide(b.radius_miles) ? `across the UK, from ${b.base_postcode.split(' ')[0]}` : b.radius_miles ? `within about ${b.radius_miles} miles of ${b.base_postcode.split(' ')[0]}` : `around ${b.base_postcode.split(' ')[0]}`;
   const services: Service[] = [];
   for (const t of trades) for (const s of TRADE_SERVICES[t] ?? []) if (services.length < 6 && !services.some((x) => x.title === s.title)) services.push(s);
   if (!services.length) services.push({ title: tradeLabel(trades[0]), text: `${tradeLabel(trades[0])} services for commercial and residential clients.` });

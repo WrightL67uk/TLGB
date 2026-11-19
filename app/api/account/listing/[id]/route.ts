@@ -24,7 +24,7 @@ const Schema = z.object({
   business_address: z.preprocess(blank, z.string().trim().max(300).optional()),
   description: z.preprocess(blank, z.string().trim().max(2000).optional()),
   base_postcode: z.string().trim().min(5).max(10),
-  radius_miles: z.coerce.number().int().min(5).max(300),
+  radius_miles: z.coerce.number().int().refine((v) => (v >= 5 && v <= 300) || v === 2000, 'Choose how far you cover'),
   trades: z.array(z.enum(tradeSlugs)).min(1, 'Pick at least one trade'),
   accreditations: z.array(z.enum(ACCREDITATIONS)).default([]),
   accreditation_expiries: z.record(z.string(), z.string()).default({}),
