@@ -23,6 +23,7 @@ export type ContractorCompany = {
   founding: boolean;
   rejection_reason: string | null;
   approved_at: string | null;
+  business_id: string | null;
 };
 
 export type ContractorUser = {
@@ -41,7 +42,9 @@ export type Job = {
   posted_by: string;
   created_at: string;
   published_at: string | null;
-  status: 'draft' | 'open' | 'closed' | 'removed';
+  status: 'draft' | 'pending' | 'open' | 'closed' | 'removed';
+  sector: 'commercial' | 'domestic' | 'both';
+  rejection_reason: string | null;
   title: string;
   description: string;
   trades: string[];
@@ -98,14 +101,15 @@ export type Candidate = {
   id: string; trading_name: string; email: string; contact_name: string; trades: string[];
   lat: number | null; lng: number | null; radius_miles: number; pl_cover_amount: number | null; pl_expiry: string | null;
   accreditations: string[]; accreditation_expiries: Record<string, string> | null; job_alerts: boolean;
-  status: string; founding_member: boolean; subscription_status: string;
+  status: string; founding_member: boolean; subscription_status: string; does_domestic: boolean;
 };
 
-const CANDIDATE_COLS = 'id, trading_name, email, contact_name, trades, lat, lng, radius_miles, pl_cover_amount, pl_expiry, accreditations, accreditation_expiries, job_alerts, status, founding_member, subscription_status';
+const CANDIDATE_COLS = 'id, trading_name, email, contact_name, trades, lat, lng, radius_miles, pl_cover_amount, pl_expiry, accreditations, accreditation_expiries, job_alerts, status, founding_member, subscription_status, does_domestic';
 
 /** Does this listing meet what the job asks for? Area, trade, insurance and accreditations. */
-export function meetsJob(b: Candidate, j: Pick<Job, 'trades' | 'lat' | 'lng' | 'min_pl' | 'accreditations'>) {
+export function meetsJob(b: Candidate, j: Pick<Job, 'trades' | 'lat' | 'lng' | 'min_pl' | 'accreditations'> & { sector?: Job['sector'] }) {
   const today = new Date().toISOString().slice(0, 10);
+  if (j.sector === 'domestic' && !b.does_domestic) return false;
   if (!b.trades.some((t) => j.trades.includes(t))) return false;
   if (j.lat != null && j.lng != null && b.lat != null && b.lng != null && miles(b.lat, b.lng, j.lat, j.lng) > b.radius_miles) return false;
   if (!b.pl_expiry || b.pl_expiry < today) return false;
@@ -115,7 +119,7 @@ export function meetsJob(b: Candidate, j: Pick<Job, 'trades' | 'lat' | 'lng' | '
 }
 
 /** Paying members who match the job (for the alert email and the "who will see this" count). */
-export async function matchingMembers(j: Pick<Job, 'trades' | 'lat' | 'lng' | 'min_pl' | 'accreditations'>) {
+export async function matchingMembers(j: Pick<Job, 'trades' | 'lat' | 'lng' | 'min_pl' | 'accreditations'> & { sector?: Job['sector'] }) {
   const { data } = await db().from('businesses').select(CANDIDATE_COLS).eq('status', 'approved').overlaps('trades', j.trades).limit(5000);
   return ((data ?? []) as Candidate[]).filter((b) => isPaid(b) && meetsJob(b, j));
 }
@@ -137,7 +141,40 @@ export async function memberAccess(email: string | null, jobId: string) {
 /** Everyone at the company who should hear about replies. */
 export async function companyEmails(companyId: string) {
   const { data } = await db().from('contractor_users').select('email').eq('company_id', companyId).is('removed_at', null);
-  return (data ?? []).map((u) => u.email as string);
+  const list = (data ?? []).map((u) => u.email as string);
+  if (list.length) return list;
+  // A member company has no contractor users: tell the member who posted it
+  const { data: co } = await db().from('contractor_companies').select('business_id').eq('id', companyId).maybeSingle();
+  if (!co?.business_id) return list;
+  const { data: b } = await db().from('businesses').select('email').eq('id', co.business_id).maybeSingle();
+  return b?.email ? [b.email as string] : list;
+}
+
+export const SECTORS = [
+  { key: 'commercial', label: 'Commercial' },
+  { key: 'domestic', label: 'Domestic' },
+  { key: 'both', label: 'Commercial and domestic' },
+] as const;
+export const sectorLabel = (k: string | null | undefined) => SECTORS.find((s) => s.key === k)?.label ?? 'Commercial';
+
+/** A member can post tenders if their listing is approved (free or paid). Returns a contractor-style Me for it. */
+export async function memberMe(businessId: string, email: string): Promise<Me | null> {
+  if (!isUuid(businessId)) return null;
+  const { data: b } = await db().from('businesses').select('id, trading_name, contact_name, email, phone, status').eq('id', businessId).maybeSingle();
+  if (!b || b.email !== email || b.status !== 'approved') return null;
+  let { data: company } = await db().from('contractor_companies').select('*').eq('business_id', b.id).maybeSingle();
+  if (!company) {
+    const { data: created, error } = await db().from('contractor_companies').insert({
+      name: b.trading_name, status: 'approved', approved_at: new Date().toISOString(), plan: 'free', founding: false, business_id: b.id, phone: b.phone ?? null,
+    }).select('*').single();
+    if (error) {
+      const { data: again } = await db().from('contractor_companies').select('*').eq('business_id', b.id).maybeSingle();
+      company = again;
+    } else company = created;
+  }
+  if (!company) return null;
+  const user = { id: '', company_id: company.id, email: b.email, name: b.contact_name, job_title: null, role: 'owner', created_at: company.created_at } as ContractorUser;
+  return { user, company: company as ContractorCompany, can: entitlements(company) };
 }
 
 /** Open jobs from approved contractors, newest first. Used here and on the leads page. */

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { db } from '@/lib/supabase';
 import { getSessionEmail } from '@/lib/session';
 import { isPaid } from '@/lib/membership';
-import { contractorByEmail, isUuid, memberAccess, meetsJob, jobIsOpen, type Candidate, type Job } from '@/lib/contractors';
+import { sectorLabel, contractorByEmail, isUuid, memberAccess, meetsJob, jobIsOpen, type Candidate, type Job } from '@/lib/contractors';
 import { tradeLabel, accreditationLabel, gbp } from '@/lib/config';
 import { valueBandLabel } from '@/lib/contractorPlans';
 import '../../contractor.css';
@@ -21,13 +21,14 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const sp = await searchParams;
   const { data } = await db().from('contractor_jobs').select('*').eq('id', id).maybeSingle();
   const job = data as Job | null;
-  if (!job || job.status === 'draft' || job.status === 'removed') notFound();
-  const { data: company } = await db().from('contractor_companies').select('id, name, website, status').eq('id', job.company_id).maybeSingle();
+  if (!job || job.status === 'draft' || job.status === 'pending' || job.status === 'removed') notFound();
+  const { data: company } = await db().from('contractor_companies').select('id, name, website, status, business_id').eq('id', job.company_id).maybeSingle();
   if (!company || company.status !== 'approved') notFound();
 
   const email = await getSessionEmail();
   const contractor = email ? await contractorByEmail(email) : null;
-  const ownCompany = contractor?.company.id === job.company_id;
+  const ownMember = !!company.business_id && !!email && (await db().from('businesses').select('id', { count: 'exact', head: true }).eq('id', company.business_id).eq('email', email)).count === 1;
+  const ownCompany = contractor?.company.id === job.company_id || ownMember;
   const { paidListing, invitedListing } = await memberAccess(email, job.id);
   const canSee = ownCompany || !!paidListing || !!invitedListing;
   const replyAs = paidListing ?? invitedListing;
@@ -53,7 +54,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
 
       <h1>{canSee ? job.title : `${job.trades.map(tradeLabel).join(', ')} package`}</h1>
       <div className="ct-meta">
-        <span><b>{canSee ? company.name : 'Main contractor (shown to members)'}</b></span>
+        <span><b>{canSee ? company.name : company.business_id ? 'A member (shown to members)' : 'Main contractor (shown to members)'}</b></span>
+        <span className="ct-tag">{sectorLabel(job.sector)}</span>
         {!open && <span className="ct-tag">Closed</span>}
         {invitedListing && !ownCompany && <span className="ct-tag ok">You were invited to price</span>}
       </div>
@@ -88,7 +90,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         )}
       </section>
 
-      {ownCompany && <p><Link href={`/contractor/jobs/${job.id}`} className="ct-btn go">Manage this job and see replies</Link></p>}
+      {ownCompany && <p><Link href={ownMember ? `/account/${company.business_id}/tenders/${job.id}` : `/contractor/jobs/${job.id}`} className="ct-btn go">Manage this job and see replies</Link></p>}
 
       {replyAs && !ownCompany && (
         <section className="ct-box">

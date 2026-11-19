@@ -567,7 +567,7 @@ export async function emailContractorUserAdded(to: string, name: string, company
   );
 }
 
-export type JobAlert = { id: string; title: string; company: string; town: string | null; postcode: string; trades: string; value: string | null; returnDate: string | null; startDate: string | null };
+export type JobAlert = { sector?: string; id: string; title: string; company: string; town: string | null; postcode: string; trades: string; value: string | null; returnDate: string | null; startDate: string | null };
 
 /** To a matching member, or a trade the contractor invited. */
 export async function emailJobAlert(to: string, contactName: string, tradingName: string, j: JobAlert, invited: boolean) {
@@ -597,6 +597,30 @@ export async function emailAdminNewJob(j: { id: string; title: string; company: 
 <p><strong>${esc(j.title)}</strong></p>
 <p>${button(`${siteUrl()}/admin/contractors`, 'Open contractor admin')}</p>`,
     'admin-job'
+  );
+}
+
+export async function emailAdminTenderToApprove(j: { title: string; poster: string; sector: string }) {
+  await send(
+    adminList(),
+    `Tender to approve: ${j.title}`,
+    `<p><strong>${esc(j.poster)}</strong> (a member) has sent a ${esc(j.sector.toLowerCase())} tender for approval.</p>
+<p><strong>${esc(j.title)}</strong></p>
+<p>${button(`${siteUrl()}/admin/tenders`, 'Review tenders')}</p>`,
+    'admin-tender'
+  );
+}
+
+export async function emailTenderDecision(to: string, name: string, j: { id: string; title: string; businessId: string }, approved: boolean, matched: number, reason: string | null) {
+  await send(
+    to,
+    approved ? `Your tender is live: ${j.title}` : `Your tender was not approved: ${j.title}`,
+    approved
+      ? `<p>Hi ${esc(name)},</p><p>Your tender <strong>${esc(j.title)}</strong> has been approved and sent to ${matched} matching member${matched === 1 ? '' : 's'}. We email you when someone replies.</p>
+<p>${button(`${siteUrl()}/account/${j.businessId}/tenders/${j.id}`, 'See your tender')}</p>`
+      : `<p>Hi ${esc(name)},</p><p>We could not approve your tender <strong>${esc(j.title)}</strong>${reason ? `: ${esc(reason)}` : '.'}</p>
+<p>You can edit it and send it again.</p><p>${button(`${siteUrl()}/account/${j.businessId}/tenders/${j.id}`, 'Edit your tender')}</p>`,
+    approved ? 'tender-approved' : 'tender-rejected'
   );
 }
 

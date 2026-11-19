@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
   if (!as) return go('error=Only+members+and+invited+trades+can+reply.');
 
   const message = String(fd.get('message') ?? '').trim().slice(0, 2000) || null;
-  const { data: company } = await db().from('contractor_companies').select('name').eq('id', job.company_id).maybeSingle();
+  const { data: company } = await db().from('contractor_companies').select('name, business_id').eq('id', job.company_id).maybeSingle();
+  if (company?.business_id && company.business_id === as.id) return go('error=You+cannot+reply+to+your+own+tender.');
 
   // Attach the pack: a share link the member can see and switch off on their pack page
   let packLinkId: string | null = null;

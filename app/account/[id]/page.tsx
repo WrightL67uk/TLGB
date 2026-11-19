@@ -359,6 +359,7 @@ export default async function ListingPage({ params, searchParams }: { params: Pr
           ) : (
             <p className="muted">Main contractors post work packages here. Members get matching jobs by email and reply with their compliance pack attached.</p>
           )}
+          <p style={{ marginTop: 12 }}>Need work priced? <Link href={`/account/${b.id}/tenders`}><strong>Post a tender</strong></Link> for other members to reply to, commercial, domestic or both. <span className="muted small">Free for every member.</span></p>
         </section>
       )}
 

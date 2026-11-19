@@ -22,7 +22,7 @@ function Act({ id, action, label, extra }: { id: string; action: string; label: 
 export default async function AdminContractors({ searchParams }: { searchParams: Promise<{ deleted?: string; delete_error?: string }> }) {
   const sp = await searchParams;
   const [{ data: companies }, { data: users }, { data: jobs }, { data: reports }] = await Promise.all([
-    db().from('contractor_companies').select('*').order('created_at', { ascending: false }).limit(500),
+    db().from('contractor_companies').select('*').is('business_id', null).order('created_at', { ascending: false }).limit(500),
     db().from('contractor_users').select('company_id, name, email, job_title, role').is('removed_at', null),
     db().from('contractor_jobs').select('id, company_id, title, status, published_at, notified_count, created_at').neq('status', 'draft').order('created_at', { ascending: false }).limit(200),
     db().from('contractor_job_reports').select('job_id, email, reason, created_at').order('created_at', { ascending: false }).limit(100),

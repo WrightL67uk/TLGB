@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/supabase';
 import { sameOrigin } from '@/lib/session';
-import { getContractor, ownJob } from '@/lib/contractors';
+import { getContractor, ownJob, memberMe } from '@/lib/contractors';
+import { getSessionEmail } from '@/lib/session';
 import { lookupPostcode } from '@/lib/postcodes';
 import { TRADES, ACCREDITATIONS, PL_COVER_OPTIONS } from '@/lib/config';
 import { VALUE_BANDS } from '@/lib/contractorPlans';
@@ -16,6 +17,7 @@ const blank = (v: unknown) => (v === '' || v == null ? undefined : v);
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
 const Schema = z.object({
+  sector: z.enum(['commercial', 'domestic', 'both']).default('commercial'),
   title: z.string().trim().min(5, 'Add a job title').max(140),
   description: z.string().trim().min(30, 'Add a bit more about the package').max(6000),
   trades: z.array(z.enum(slugs)).min(1, 'Pick at least one trade').max(15),
@@ -35,16 +37,23 @@ const Schema = z.object({
 export async function POST(req: NextRequest) {
   const fd = await req.formData().catch(() => null);
   const id = String(fd?.get('id') ?? '');
-  const formPath = id && /^[0-9a-f-]{36}$/i.test(id) ? `/contractor/jobs/${id}/edit` : '/contractor/jobs/new';
+  const bid = String(fd?.get('business_id') ?? ''); // set when a member (not a main contractor) is posting
+  const base = bid ? `/account/${bid}/tenders` : '/contractor/jobs';
+  const formPath = id && /^[0-9a-f-]{36}$/i.test(id) ? `${base}/${id}/edit` : `${base}/new`;
   const err = (m: string) => NextResponse.redirect(new URL(`${formPath}?error=${encodeURIComponent(m)}`, req.url), 303);
   if (!sameOrigin(req) || !fd) return err('Please send the form from our website.');
-  const me = await getContractor();
+  let me;
+  if (bid) {
+    const email = await getSessionEmail();
+    me = email ? await memberMe(bid, email) : null;
+    if (!me) return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(base)}`, req.url), 303);
+  } else me = await getContractor();
   if (!me) return NextResponse.redirect(new URL('/login?next=/contractor', req.url), 303);
   if (me.company.status === 'suspended') return err('This account cannot post jobs.');
 
   const g = (k: string) => (fd.get(k) == null ? undefined : String(fd.get(k)));
   const parsed = Schema.safeParse({
-    title: g('title'), description: g('description'), trades: fd.getAll('trades').map(String), postcode: g('postcode'),
+    sector: g('sector') || undefined, title: g('title'), description: g('description'), trades: fd.getAll('trades').map(String), postcode: g('postcode'),
     town: g('town'), value_band: g('value_band'), start_date: g('start_date'), return_date: g('return_date'), min_pl: g('min_pl'),
     accreditations: fd.getAll('accreditations').map(String), docs_url: g('docs_url'), contact_name: g('contact_name'), contact_email: g('contact_email'),
   });
@@ -64,7 +73,7 @@ export async function POST(req: NextRequest) {
   } catch { /* region is only a label */ }
 
   const row = {
-    title: d.title, description: d.description, trades: d.trades, postcode: pc.postcode, lat: pc.lat, lng: pc.lng,
+    sector: d.sector, title: d.title, description: d.description, trades: d.trades, postcode: pc.postcode, lat: pc.lat, lng: pc.lng,
     town: d.town ?? null, region, value_band: d.value_band ?? null, start_date: d.start_date ?? null, return_date: d.return_date ?? null,
     min_pl: d.min_pl ?? null, accreditations: d.accreditations, docs_url: docs, contact_name: d.contact_name, contact_email: d.contact_email,
     updated_at: new Date().toISOString(),
@@ -73,9 +82,10 @@ export async function POST(req: NextRequest) {
   if (id) {
     const job = await ownJob(me, id);
     if (!job) return err('That job could not be found.');
+    if (bid && job.status !== 'draft') return err('A tender that has been sent cannot be edited. Close it and post a new one.');
     const { error } = await db().from('contractor_jobs').update(row).eq('id', job.id);
     if (error) return err('Could not save. Try again.');
-    return NextResponse.redirect(new URL(`/contractor/jobs/${job.id}?saved=1`, req.url), 303);
+    return NextResponse.redirect(new URL(`${base}/${job.id}?saved=1`, req.url), 303);
   }
   const { count } = await db().from('contractor_jobs').select('id', { count: 'exact', head: true }).eq('company_id', me.company.id).eq('status', 'draft');
   if ((count ?? 0) >= 20) return err('You have 20 draft jobs. Send or delete some first.');
@@ -84,5 +94,5 @@ export async function POST(req: NextRequest) {
     console.error('job insert failed', error);
     return err('Could not save. Try again.');
   }
-  return NextResponse.redirect(new URL(`/contractor/jobs/${data.id}`, req.url), 303);
+  return NextResponse.redirect(new URL(`${base}/${data.id}`, req.url), 303);
 }

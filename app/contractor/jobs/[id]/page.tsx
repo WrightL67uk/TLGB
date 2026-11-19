@@ -25,7 +25,7 @@ function Act({ action, back, fields, label, cls }: { action: string; back: strin
   );
 }
 
-const CANDIDATE_COLS = 'id, trading_name, email, contact_name, trades, lat, lng, radius_miles, pl_cover_amount, pl_expiry, el_expiry, el_cover_amount, accreditations, accreditation_expiries, job_alerts, status, founding_member, subscription_status, phone';
+const CANDIDATE_COLS = 'id, trading_name, email, contact_name, trades, lat, lng, radius_miles, pl_cover_amount, pl_expiry, el_expiry, el_cover_amount, accreditations, accreditation_expiries, job_alerts, status, founding_member, subscription_status, phone, does_domestic';
 
 export default async function ContractorJob({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; saved?: string }> }) {
   const me = await getContractor();

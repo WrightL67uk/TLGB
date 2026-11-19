@@ -136,6 +136,7 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
   const { count: seekersWaiting = 0 } = await db().from('job_seekers').select('id', { count: 'exact', head: true }).eq('status', 'pending');
   const { count: agenciesWaiting = 0 } = await db().from('agencies').select('id', { count: 'exact', head: true }).eq('status', 'pending');
   const { count: agencyVacsWaiting = 0 } = await db().from('vacancies').select('id', { count: 'exact', head: true }).eq('status', 'pending').not('agency_id', 'is', null);
+  const { count: tendersWaiting = 0 } = await db().from('contractor_jobs').select('id', { count: 'exact', head: true }).eq('status', 'pending');
   const { count: contractorsWaiting = 0 } = await db().from('contractor_companies').select('id', { count: 'exact', head: true }).eq('status', 'pending');
 
   // Compliance pack certificates waiting for a check, grouped by listing
@@ -171,6 +172,10 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
           <input type="hidden" name="days" value="14" />
           <button type="submit">Fetch leads now (last 14 days)</button>
         </form>
+        <Link href="/admin/tenders">
+          Member tenders
+          {(tendersWaiting ?? 0) > 0 && <span className="count"> {tendersWaiting} waiting</span>}
+        </Link>
         <Link href="/admin/contractors">
           Main contractors
           {(contractorsWaiting ?? 0) > 0 && <span className="count"> {contractorsWaiting} waiting</span>}

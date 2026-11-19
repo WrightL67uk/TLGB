@@ -1,14 +1,21 @@
 import { TRADES, ACCREDITATION_LIST, PL_COVER_OPTIONS } from '@/lib/config';
 import { VALUE_BANDS } from '@/lib/contractorPlans';
-import type { Job } from '@/lib/contractors';
+import { SECTORS, type Job } from '@/lib/contractors';
 
 /** The post and edit form for a job. Plain HTML form, posted to /api/contractor/job. */
-export default function JobForm({ job, contact, error }: { job?: Job; contact: { name: string; email: string }; error?: string }) {
+export default function JobForm({ job, contact, error, businessId }: { job?: Job; contact: { name: string; email: string }; error?: string; businessId?: string }) {
   const j = job;
   return (
     <form className="res-form" method="post" action="/api/contractor/job">
       {error && <p className="err big">{error}</p>}
       {j && <input type="hidden" name="id" value={j.id} />}
+      {businessId && <input type="hidden" name="business_id" value={businessId} />}
+      <label>Type of work
+        <select name="sector" defaultValue={j?.sector ?? 'commercial'}>
+          {SECTORS.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+        </select>
+        <span className="muted small">Domestic tenders only go to members who have ticked that they do domestic work.</span>
+      </label>
       <label>Job title<input name="title" required maxLength={140} defaultValue={j?.title} placeholder="e.g. Soft landscaping package, 120 homes, Hitchin" /></label>
       <label>What the package includes
         <textarea name="description" required maxLength={6000} defaultValue={j?.description} style={{ minHeight: 160 }}
@@ -57,7 +64,7 @@ export default function JobForm({ job, contact, error }: { job?: Job; contact: {
         <label>Contact name<input name="contact_name" required maxLength={120} defaultValue={j?.contact_name ?? contact.name} /></label>
         <label>Contact email<input name="contact_email" type="email" required maxLength={200} defaultValue={j?.contact_email ?? contact.email} /></label>
       </div>
-      <p className="muted small" style={{ margin: 0 }}>You can upload drawings on the next page. Nothing is sent to trades until you press &ldquo;Send to matching trades&rdquo;.</p>
+      <p className="muted small" style={{ margin: 0 }}>You can upload drawings on the next page. Nothing is sent to trades until you send it.</p>
       <button type="submit" className="primary">{j ? 'save changes' : 'save and continue'}</button>
     </form>
   );
