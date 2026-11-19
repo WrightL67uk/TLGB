@@ -71,6 +71,18 @@ const TABS = [
   { key: 'suspended', label: 'Suspended' },
 ];
 
+/** Paid or free, in plain words, for the admin list. */
+function memberLabel(r: { founding_member: boolean; subscription_status: string; free_listing: boolean | null; billing_interval: string | null }) {
+  const per = r.billing_interval === 'month' ? ' (monthly)' : r.billing_interval === 'year' ? ' (yearly)' : '';
+  if (r.founding_member) return <strong>Free (founding)</strong>;
+  if (r.subscription_status === 'active') return <strong>Paid{per}</strong>;
+  if (r.subscription_status === 'trialing') return <strong>Paid, free trial{per}</strong>;
+  if (r.subscription_status === 'past_due') return <strong className="warn">Paid, payment failed</strong>;
+  if (r.subscription_status === 'cancelled') return <span className="muted">Cancelled</span>;
+  if (r.free_listing) return 'Free listing';
+  return <span className="muted">Not chosen yet</span>;
+}
+
 export default async function AdminQueue({ searchParams }: { searchParams: Promise<{ status?: string; leads?: string; deleted?: string; delete_error?: string }> }) {
   const sp = await searchParams;
   const { status: s, leads: leadsMsg } = sp;
@@ -98,11 +110,11 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
   const scope = (q: any, key: string) =>
     key === 'recheck' ? q.eq('status', 'approved').eq('recheck_required', true) : q.eq('status', key === 'expiring' ? '__none__' : key);
 
-  const [{ data: rows }, counts]: [{ data: { id: string; created_at: string; trading_name: string; business_type: string; company_number: string | null; base_postcode: string; email: string; pl_expiry: string | null }[] | null }, Record<string, number>] = await Promise.all([
+  const [{ data: rows }, counts]: [{ data: { id: string; created_at: string; trading_name: string; business_type: string; company_number: string | null; base_postcode: string; email: string; pl_expiry: string | null; founding_member: boolean; subscription_status: string; free_listing: boolean | null; billing_interval: string | null }[] | null }, Record<string, number>] = await Promise.all([
     scope(
       db()
         .from('businesses')
-        .select('id, created_at, trading_name, business_type, company_number, base_postcode, email, pl_expiry'),
+        .select('id, created_at, trading_name, business_type, company_number, base_postcode, email, pl_expiry, founding_member, subscription_status, free_listing, billing_interval'),
       status
     )
       .order('created_at', { ascending: status === 'pending_review' || status === 'recheck' })
@@ -244,7 +256,7 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
       ) : (
         <table className="table">
           <thead>
-            <tr><th>Submitted</th><th>Business</th><th>Type</th><th>Postcode</th><th>PL expiry</th></tr>
+            <tr><th>Submitted</th><th>Business</th><th>Type</th><th>Postcode</th><th>Membership</th><th>PL expiry</th></tr>
           </thead>
           <tbody>
             {rows.map((r) => (
@@ -253,6 +265,7 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
                 <td><Link href={`/admin/${r.id}`}>{r.trading_name}</Link><br /><span className="muted small">{r.email}</span></td>
                 <td>{r.business_type === 'ltd' ? `Ltd ${r.company_number}` : 'Sole trader'}</td>
                 <td>{r.base_postcode}</td>
+                <td>{memberLabel(r)}</td>
                 <td>{r.pl_expiry ? new Date(r.pl_expiry).toLocaleDateString('en-GB') : ''}</td>
               </tr>
             ))}
