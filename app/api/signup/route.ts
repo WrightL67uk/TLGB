@@ -5,7 +5,8 @@ import { TURNOVER_BANDS } from '@/lib/config';
 import { checkCompany } from '@/lib/companiesHouse';
 import { cleanCode, CODE_COOKIE } from '@/lib/discounts';
 import { canLogIn, passwordProblem, setPassword } from '@/lib/passwords';
-import { createSession, sameOrigin, sessionCookieOptions, SESSION_COOKIE } from '@/lib/session';
+import { sameOrigin } from '@/lib/session';
+import { startSession } from '@/lib/roles';
 import { getPricing } from '@/lib/pricing';
 import { emailAdminBilling } from '@/lib/email';
 import { stripeEnabled } from '@/lib/stripe';
@@ -106,8 +107,6 @@ export async function POST(req: NextRequest) {
   }
   if (d.plan === 'free') await db().from('review_events').insert({ business_id: biz.id, action: 'billing', actor: 'member', detail: 'Chose the free listing' }).then(() => null, () => null);
 
-  const { raw, expires } = await createSession(d.email);
-  const res = NextResponse.json({ ok: true, next });
-  res.cookies.set(SESSION_COOKIE, raw, sessionCookieOptions(expires));
-  return res;
+  const sess = await startSession(req, d.email, 'trade');
+  return sess.apply(NextResponse.json({ ok: true, next }));
 }

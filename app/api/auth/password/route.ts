@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createSession, safeNext, sameOrigin, sessionCookieOptions, SESSION_COOKIE } from '@/lib/session';
+import { safeNext, sameOrigin } from '@/lib/session';
+import { startSession } from '@/lib/roles';
 import { canLogIn, checkPassword, lockedOut } from '@/lib/passwords';
+import { homeFor, pickRole, roleFromPath, roleShort } from '@/lib/roles';
 
 export const runtime = 'nodejs';
 
@@ -22,8 +24,11 @@ export async function POST(req: NextRequest) {
   const ok = await checkPassword(email.data, password, ip);
   if (!ok || !(await canLogIn(email.data))) return NextResponse.json({ ok: false, error: WRONG }, { status: 401 });
 
-  const { raw, expires } = await createSession(email.data);
-  const res = NextResponse.json({ ok: true, next: safeNext(body?.next) });
-  res.cookies.set(SESSION_COOKIE, raw, sessionCookieOptions(expires));
-  return res;
+  const requested = safeNext(body?.next);
+  const { role, missing } = await pickRole(email.data, body?.as, requested);
+  if (missing) return NextResponse.json({ ok: false, error: `That email is not registered as a ${roleShort(missing)}. Choose a different option above, or check the email address.` }, { status: 401 });
+  // Default destination is the chosen role's own home
+  const target = role && (requested === '/account' || (roleFromPath(requested) && roleFromPath(requested) !== role)) ? await homeFor(role, email.data) : requested;
+  const sess = await startSession(req, email.data, role);
+  return sess.apply(NextResponse.json({ ok: true, next: target }));
 }

@@ -4,7 +4,8 @@ import { db } from '@/lib/supabase';
 import { checkCompany } from '@/lib/companiesHouse';
 import { cleanCode, CODE_COOKIE } from '@/lib/discounts';
 import { canLogIn, checkPassword, passwordProblem, setPassword } from '@/lib/passwords';
-import { createSession, sameOrigin, sessionCookieOptions, SESSION_COOKIE } from '@/lib/session';
+import { sameOrigin } from '@/lib/session';
+import { startSession } from '@/lib/roles';
 import { stripeEnabled } from '@/lib/stripe';
 import { getSupplierPricing } from '@/lib/supplierPricing';
 import { openSupplierCheckout } from '@/lib/supplierCheckout';
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
     if (resume && (await checkPassword(d.email, d.password, visitor(req)))) {
       const fixes = { phone: d.phone, contact_name: d.contact_name, tier: d.tier === 'basic' ? null : d.tier };
       await db().from('suppliers').update(fixes).eq('id', resume.id);
-      return finish({ ...resume, ...fixes } as Supplier, d);
+      return finish(req, { ...resume, ...fixes } as Supplier, d);
     }
     return fail('There is already an account with this email. If you started signing up earlier, type the same password you chose then to carry on. Otherwise log in, or use a different email.');
   }
@@ -110,10 +111,10 @@ export async function POST(req: NextRequest) {
   if (pwErr) console.error('supplier signup password failed', pwErr);
   await emailAdminSupplier(`New supplier sign-up: ${name}`, `${name} (${d.email}) has chosen ${d.tier === 'basic' ? 'the free Basic listing' : `${d.tier === 'match' ? 'Match' : 'Appear'} and is going to payment`}. Their details are not sent yet.`, row.id).catch(() => null);
 
-  return finish(row as Supplier, d);
+  return finish(req, row as Supplier, d);
 }
 
-async function finish(row: Supplier, d: z.infer<typeof Body>) {
+async function finish(req: NextRequest, row: Supplier, d: z.infer<typeof Body>) {
   let next = `/supplier/${row.id}`;
   if (d.tier === 'basic') {
     next = `/supplier/${row.id}/details`; // free: nothing to pay, straight to their details
@@ -129,8 +130,6 @@ async function finish(row: Supplier, d: z.infer<typeof Body>) {
     next = `${next}?billing=${encodeURIComponent('Online payment is not switched on yet. We will be in touch.')}`;
   }
 
-  const { raw, expires } = await createSession(d.email);
-  const res = NextResponse.json({ ok: true, next });
-  res.cookies.set(SESSION_COOKIE, raw, sessionCookieOptions(expires));
-  return res;
+  const sess = await startSession(req, d.email, 'supplier');
+  return sess.apply(NextResponse.json({ ok: true, next }));
 }

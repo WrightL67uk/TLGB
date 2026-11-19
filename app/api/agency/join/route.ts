@@ -8,7 +8,7 @@ import { FREE_MAIL, domainOf } from '@/lib/contractorPlans';
 import { tooMany, visitor, TOO_MANY } from '@/lib/rateLimit';
 import { LEVELS } from '@/lib/seekerTypes';
 import { PLACEMENT_TYPES, AGENCY_BODIES, newReferralCode } from '@/lib/agencies';
-import { createSession, sessionCookieOptions, SESSION_COOKIE } from '@/lib/session';
+import { startSession } from '@/lib/roles';
 import { checkPassword, passwordProblem, setPassword } from '@/lib/passwords';
 import { agencyCheckoutUrl } from '@/lib/agencyCheckout';
 import { emailAdminNewAgency, emailAgencyReceived } from '@/lib/email';
@@ -83,8 +83,8 @@ export async function POST(req: NextRequest) {
     const { data: resume } = await db().from('agencies').select('id, name, email, stripe_customer_id').eq('email', d.email).eq('status', 'pending').eq('subscription_status', 'none').maybeSingle();
     if (resume && (await checkPassword(d.email, d.password, visitor(req)))) {
       await db().from('agencies').update({ phone: d.phone, contact_name: d.contact_name, job_title: d.job_title ?? null, covers: d.covers, el_expiry: d.el_expiry, pl_expiry: d.pl_expiry }).eq('id', resume.id);
-      const { raw, expires } = await createSession(d.email);
-      const go = (res: NextResponse) => { res.cookies.set(SESSION_COOKIE, raw, sessionCookieOptions(expires)); return res; };
+      const sess = await startSession(req, d.email, 'agency');
+      const go = (res: NextResponse) => sess.apply(res);
       try {
         const url = await agencyCheckoutUrl(resume, '/agencies/join/thanks?unpaid=1');
         if (url) return go(req.headers.get('x-tlgb-fetch') ? NextResponse.json({ redirect: url }) : NextResponse.redirect(url, 303));
@@ -125,8 +125,8 @@ export async function POST(req: NextRequest) {
 
   const pwSet = await setPassword(d.email, d.password);
   if (pwSet.error) console.error('agency password failed', pwSet.error);
-  const { raw, expires } = await createSession(d.email);
-  const withSession = (res: NextResponse) => { res.cookies.set(SESSION_COOKIE, raw, sessionCookieOptions(expires)); return res; };
+  const sess = await startSession(req, d.email, 'agency');
+  const withSession = (res: NextResponse) => sess.apply(res);
 
   await Promise.all([
     emailAdminNewAgency({ id: agency.id, name: d.name, companyNumber: ch.companyNumber, website, contact: d.contact_name, email: d.email, domainNote }),

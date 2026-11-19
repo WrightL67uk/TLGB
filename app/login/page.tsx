@@ -2,16 +2,32 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSessionEmail, safeNext } from '@/lib/session';
 import { contractorByEmail } from '@/lib/contractors';
+import { currentRole, isRole, roleFromPath, roleShort } from '@/lib/roles';
 import LoginForm from './LoginForm';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Log in | TLGB' };
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string; as?: string }> }) {
   const sp = await searchParams;
   const next = safeNext(sp.next);
   const email = await getSessionEmail();
+  const asked = isRole(sp.as) ? sp.as : roleFromPath(next);
   if (email) {
+    const cur = await currentRole();
+    if (cur && asked && cur !== asked) {
+      return (
+        <div className="narrow">
+          <h1>Switch sign-in?</h1>
+          <p className="lead">You are signed in as a <strong>{roleShort(cur)}</strong> ({email}). You can only be signed in as one thing at a time.</p>
+          <form action="/api/auth/logout" method="post" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <input type="hidden" name="next" value={`/login?as=${asked}&next=${encodeURIComponent(next)}`} />
+            <button type="submit" className="primary">Log out and sign in as a {roleShort(asked)}</button>
+            <Link href="/account" style={{ alignSelf: 'center' }}>Stay as I am</Link>
+          </form>
+        </div>
+      );
+    }
     // Logged in as a trade but heading for the contractor area (or the other way round):
     // offer to switch accounts rather than sending them back and forth.
     const wrongAccount = next.startsWith('/contractor') && !(await contractorByEmail(email));
@@ -36,7 +52,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       {error === 'expired' && (
         <p className="err big">That login link has expired or has already been used. Ask for a new one below.</p>
       )}
-      <LoginForm next={next} />
+      <LoginForm next={next} initialRole={asked} />
       <p className="muted" style={{ marginTop: 24 }}>Not listed yet? <Link href="/join">List your business</Link>. Looking for work? <Link href="/looking-for-work">Post a free job seeker profile</Link>.</p>
     </div>
   );

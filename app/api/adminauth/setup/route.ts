@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sameOrigin } from '@/lib/session';
 import { passwordProblem } from '@/lib/passwords';
+import { endMemberSession } from '@/lib/roles';
 import { ADMIN_COOKIE, adminCookieOptions, adminForToken, createAdminSession, setAdminPassword } from '@/lib/adminAuth';
 
 export const runtime = 'nodejs';
@@ -21,5 +22,6 @@ export async function POST(req: NextRequest) {
   const s = await createAdminSession(admin.id, admin.name);
   const res = NextResponse.redirect(new URL('/admin', req.url), 303);
   res.cookies.set(ADMIN_COOKIE, s.raw, adminCookieOptions(s.expires));
+  await endMemberSession(req, res);
   return res;
 }

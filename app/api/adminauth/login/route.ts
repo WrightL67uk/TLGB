@@ -3,6 +3,7 @@ import { db } from '@/lib/supabase';
 import { sameOrigin, safeNext } from '@/lib/session';
 import { lockedOut } from '@/lib/passwords';
 import { ADMIN_COOKIE, adminCookieOptions, checkAdminPassword, createAdminSession, isMaster } from '@/lib/adminAuth';
+import { endMemberSession } from '@/lib/roles';
 
 export const runtime = 'nodejs';
 
@@ -29,5 +30,7 @@ export async function POST(req: NextRequest) {
   }
   const res = NextResponse.redirect(new URL(next, req.url), 303);
   res.cookies.set(ADMIN_COOKIE, session.raw, adminCookieOptions(session.expires));
+  // Admin and member logins never run together in one browser
+  await endMemberSession(req, res);
   return res;
 }

@@ -4,6 +4,7 @@ import { db } from '@/lib/supabase';
 import { createLoginToken, recentLoginRequests, safeNext, sameOrigin } from '@/lib/session';
 import { emailLoginLink } from '@/lib/email';
 import { siteUrl } from '@/lib/config';
+import { homeFor, isRole } from '@/lib/roles';
 
 export const runtime = 'nodejs';
 
@@ -44,7 +45,9 @@ export async function POST(req: NextRequest) {
   if ((await recentLoginRequests(email)) >= 5) return done;
 
   const token = await createLoginToken(email, LINK_MINUTES);
-  const next = safeNext(body?.next);
+  let next = safeNext(body?.next);
+  // A chosen role sends the link to that role's own home
+  if (isRole(body?.as) && next === '/account') next = await homeFor(body.as, email);
   const back = next === '/account' ? '' : `&next=${encodeURIComponent(next)}`;
   await emailLoginLink(email, `${siteUrl()}/login/verify?token=${encodeURIComponent(token)}${back}`, LINK_MINUTES);
   return done;

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { db } from '@/lib/supabase';
 import { getSessionEmail } from '@/lib/session';
 import { tradeLabel } from '@/lib/config';
+import { currentRole, homeFor } from '@/lib/roles';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'My listing | TLGB' };
@@ -17,6 +18,9 @@ const STATUS: Record<string, string> = {
 export default async function AccountPage() {
   const email = await getSessionEmail();
   if (!email) redirect('/login');
+  // Signed in as something other than a trade: go to that role's own home
+  const role = await currentRole();
+  if (role && role !== 'trade') redirect(await homeFor(role, email));
 
   const { data: rows } = await db()
     .from('businesses')

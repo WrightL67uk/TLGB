@@ -2,7 +2,16 @@
 
 import { useState } from 'react';
 
-export default function LoginForm({ next = '/account' }: { next?: string }) {
+const ROLE_OPTIONS = [
+  ['trade', 'A trade or subcontractor'],
+  ['supplier', 'A supplier'],
+  ['agency', 'A recruitment agency'],
+  ['seeker', 'Looking for work'],
+  ['contractor', 'A main contractor or housebuilder'],
+] as const;
+
+export default function LoginForm({ next = '/account', initialRole = null }: { next?: string; initialRole?: string | null }) {
+  const [as, setAs] = useState<string>(initialRole ?? '');
   const [mode, setMode] = useState<'password' | 'link'>('password');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +35,7 @@ export default function LoginForm({ next = '/account' }: { next?: string }) {
 
   async function logIn(e: React.FormEvent) {
     e.preventDefault();
-    const json = await post('/api/auth/password', { email, password, next });
+    const json = await post('/api/auth/password', { email, password, next, as });
     if (!json) return;
     if (json.ok) window.location.assign(json.next || next);
     else setError(json.error ?? 'Something went wrong. Try again.');
@@ -34,7 +43,7 @@ export default function LoginForm({ next = '/account' }: { next?: string }) {
 
   async function sendLink(e: React.FormEvent) {
     e.preventDefault();
-    const json = await post('/api/auth/request-link', { email, next });
+    const json = await post('/api/auth/request-link', { email, next, as });
     if (!json) return;
     if (json.ok) setSent(true);
     else setError(json.error ?? 'Something went wrong. Try again.');
@@ -53,6 +62,12 @@ export default function LoginForm({ next = '/account' }: { next?: string }) {
   if (mode === 'link') {
     return (
       <form onSubmit={sendLink} className="form">
+        <label htmlFor="login-as">I am&hellip;
+          <select id="login-as" required value={as} onChange={(e) => setAs(e.target.value)}>
+            <option value="" disabled>Choose one</option>
+            {ROLE_OPTIONS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </select>
+        </label>
         <p className="muted" style={{ marginTop: 0 }}>Forgotten your password, or not set one yet? We will email you a link that logs you straight in.</p>
         <label htmlFor="login-email">Email address
           <input id="login-email" type="email" required autoComplete="email" value={email}
@@ -67,6 +82,12 @@ export default function LoginForm({ next = '/account' }: { next?: string }) {
 
   return (
     <form onSubmit={logIn} className="form">
+      <label htmlFor="login-as">I am&hellip;
+        <select id="login-as" required value={as} onChange={(e) => setAs(e.target.value)}>
+          <option value="" disabled>Choose one</option>
+          {ROLE_OPTIONS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+        </select>
+      </label>
       <label htmlFor="login-email">Email address
         <input id="login-email" type="email" required autoComplete="email" value={email}
           onChange={(e) => setEmail(e.target.value)} placeholder="name@company.co.uk" />

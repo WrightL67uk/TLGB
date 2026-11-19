@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { consumeLoginToken, createSession, safeNext, sessionCookieOptions, SESSION_COOKIE } from '@/lib/session';
+import { consumeLoginToken, safeNext } from '@/lib/session';
+import { pickRole, startSession } from '@/lib/roles';
 
 export const runtime = 'nodejs';
 
@@ -12,8 +13,8 @@ export async function POST(req: NextRequest) {
   const email = await consumeLoginToken(String(fd?.get('token') ?? ''));
   if (!email) return NextResponse.redirect(new URL('/login?error=expired', req.url), 303);
 
-  const { raw, expires } = await createSession(email);
-  const res = NextResponse.redirect(new URL(safeNext(fd?.get('next')), req.url), 303);
-  res.cookies.set(SESSION_COOKIE, raw, sessionCookieOptions(expires));
-  return res;
+  const next = safeNext(fd?.get('next'));
+  const { role } = await pickRole(email, null, next);
+  const sess = await startSession(req, email, role);
+  return sess.apply(NextResponse.redirect(new URL(next, req.url), 303));
 }
