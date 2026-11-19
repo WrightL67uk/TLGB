@@ -294,19 +294,21 @@ export const LEGAL_PAGES: LegalPage[] = [
   {
     slug: 'cookies',
     title: 'Cookie policy',
-    summary: 'The one cookie we use, and why you are not asked to accept cookies.',
+    summary: 'The login cookie we always use, and the analytics cookies we only set if you accept.',
     body: (d) => (
       <>
         <h2>The short version</h2>
-        <p>We use one cookie, and only when you log in. It is strictly necessary to keep you logged in, so the law does not require us to ask for your consent and we do not show a cookie banner. We do not use analytics, advertising or tracking cookies.</p>
+        <p>We use one strictly necessary cookie, and only when you log in, so we do not ask for consent for it. We also offer Google Analytics, which sets cookies only if you press Accept on the banner. If you decline or ignore the banner, no analytics cookies are set. We do not use advertising cookies. Analytics is not used in our admin area.</p>
 
         <h2>Cookies on tlgb.co.uk</h2>
         <table className="table">
           <thead><tr><th>Name</th><th>What it does</th><th>How long</th></tr></thead>
           <tbody>
             <tr><td><code>tlgb_session</code></td><td>Keeps you logged in after you use a login link. It holds a random code, not your details, and cannot be read by scripts on the page.</td><td>30 days, or until you log out</td></tr>
+            <tr><td><code>_ga</code> and <code>_ga_*</code></td><td>Google Analytics, only if you accept. Counts visits and which pages are used, so we can improve the site.</td><td>Up to 2 years</td></tr>
           </tbody>
         </table>
+        <p>You can change your mind by clearing this site&rsquo;s data in your browser, which brings the banner back.</p>
 
         <h2>Other services</h2>
         <p>When you pay for membership, you are taken to Stripe&rsquo;s secure payment page. Stripe sets its own cookies there for payment security and fraud prevention, under <a href="https://stripe.com/gb/legal/cookies-policy" target="_blank" rel="noopener">Stripe&rsquo;s cookie policy</a>. Links to other websites, such as tender notices and council planning pages, take you to sites with their own cookie policies.</p>

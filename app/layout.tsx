@@ -5,6 +5,7 @@ import { SESSION_COOKIE } from '@/lib/session';
 import { LOGO_SRC } from '@/lib/logo';
 import { currentRole } from '@/lib/roles';
 import SupportWidget from './SupportWidget';
+import Analytics from './Analytics';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -18,7 +19,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   if ((await headers()).get('x-tlgb-site')) {
     return (
       <html lang="en-GB">
-        <body className="msite-body">{children}</body>
+        <body className="msite-body">{children}<Analytics /></body>
       </html>
     );
   }
@@ -116,6 +117,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <p className="foot-small">&copy; {new Date().getFullYear()} The Little Green Book</p>
         </footer>
         <SupportWidget who={supportWho} />
+        <Analytics />
       </body>
     </html>
   );
