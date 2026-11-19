@@ -18,13 +18,16 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     if (cur && asked && cur !== asked) {
       return (
         <div className="narrow">
-          <h1>Switch sign-in?</h1>
-          <p className="lead">You are signed in as a <strong>{roleShort(cur)}</strong> ({email}). You can only be signed in as one thing at a time.</p>
-          <form action="/api/auth/logout" method="post" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <input type="hidden" name="next" value={`/login?as=${asked}&next=${encodeURIComponent(next)}`} />
-            <button type="submit" className="primary">Log out and sign in as a {roleShort(asked)}</button>
-            <Link href="/account" style={{ alignSelf: 'center' }}>Stay as I am</Link>
-          </form>
+          <h1>This area is for a different sign-in</h1>
+          <p className="lead">This is only for <strong>{roleShort(asked)}s</strong>. You are signed in as a <strong>{roleShort(cur)}</strong> ({email}).</p>
+          <p>If you meant to be here, log out and sign in again as a {roleShort(asked)}. Otherwise carry on as you were. You are not logged out unless you choose to be.</p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <Link href="/account" className="primary" style={{ textDecoration: 'none' }}>Back to my area</Link>
+            <form action="/api/auth/logout" method="post">
+              <input type="hidden" name="next" value={`/login?as=${asked}&next=${encodeURIComponent(next)}`} />
+              <button type="submit" className="linkish">Log out and sign in as a {roleShort(asked)}</button>
+            </form>
+          </div>
         </div>
       );
     }
