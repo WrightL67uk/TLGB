@@ -302,12 +302,13 @@ ${e.message ? `<p>${esc(e.message).replace(/\n/g, '<br>')}</p>` : ''}`,
 }
 
 /** Contact form: to Ed, Trudy and admin (Reply-To is the sender), plus a copy back to the sender. */
-export async function emailContactMessage(m: { who: string; name: string; email: string; business: string | null; message: string }) {
+export async function emailContactMessage(m: { who: string; name: string; email: string; business: string | null; message: string; page?: string | null }) {
   await send(
     CONTACT_RECIPIENTS,
-    `Contact form (${m.who}): ${m.business || m.name}`,
+    `${m.page ? 'Support request' : 'Contact form'} (${m.who}): ${m.business || m.name}`,
     `<p><strong>${esc(m.name)}</strong>${m.business ? ` from ${esc(m.business)}` : ''} wrote in through the contact form.</p>
 <p>Who they are: ${esc(m.who)}<br>
+${m.page ? `Page they were on: ${esc(m.page)}<br>\n` : ''}
 Email: <a href="mailto:${esc(m.email)}">${esc(m.email)}</a></p>
 <p>${esc(m.message).replace(/\n/g, '<br>')}</p>
 <p>Reply to this email to answer them directly. A copy is also saved in admin under Resources.</p>`,

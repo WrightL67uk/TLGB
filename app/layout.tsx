@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { cookies, headers } from 'next/headers';
 import { SESSION_COOKIE } from '@/lib/session';
 import { LOGO_SRC } from '@/lib/logo';
+import { currentRole } from '@/lib/roles';
+import SupportWidget from './SupportWidget';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -21,6 +23,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     );
   }
   const loggedIn = (await cookies()).has(SESSION_COOKIE);
+  // If they are signed in, tell support which kind of user is asking
+  const role = loggedIn ? await currentRole() : null;
+  const supportWho = ({ trade: 'trade', supplier: 'supplier', agency: 'recruitment-agency', seeker: 'job-seeker', contractor: 'main-contractor' } as Record<string, string>)[role ?? ''] ?? null;
   return (
     <html lang="en-GB">
       <body>
@@ -110,6 +115,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </nav>
           <p className="foot-small">&copy; {new Date().getFullYear()} The Little Green Book</p>
         </footer>
+        <SupportWidget who={supportWho} />
       </body>
     </html>
   );
