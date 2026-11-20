@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { uploadToSignedUrl } from '@/lib/supabaseBrowser';
 import AccreditationPicker, { readAccreditationExpiries } from '@/app/AccreditationPicker';
 import { TRADES, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
@@ -27,6 +27,23 @@ export default function DetailsForm({ id, businessType, company, email, saved }:
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
   const [nationwide, setNationwide] = useState(Number(str(saved.radius_miles)) >= 1000);
+  // Photos chosen so far. Kept here, not in the file box, so single ones can be taken out before sending.
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [photoNote, setPhotoNote] = useState<string | null>(null);
+  const previews = useMemo(() => photoFiles.map((f) => URL.createObjectURL(f)), [photoFiles]);
+  useEffect(() => () => previews.forEach((u) => URL.revokeObjectURL(u)), [previews]);
+
+  function addPhotos(list: FileList | null, input: HTMLInputElement) {
+    const chosen = Array.from(list ?? []);
+    input.value = ''; // so the same picture can be chosen again after removing it
+    if (!chosen.length) return;
+    const room = MAX_PHOTOS - photoFiles.length;
+    const take = chosen.slice(0, Math.max(room, 0));
+    setPhotoFiles([...photoFiles, ...take]);
+    setPhotoNote(chosen.length > take.length
+      ? `The limit is ${MAX_PHOTOS} photos. You chose ${chosen.length}, so we kept ${take.length ? `the first ${take.length}` : 'none'}. Remove one below to add another.`
+      : null);
+  }
 
   function collect(fd: FormData): Saved {
     return {
@@ -85,10 +102,11 @@ export default function DetailsForm({ id, businessType, company, email, saved }:
     e.preventDefault();
     setError(null);
     const fd = new FormData(e.currentTarget);
-    const fileFields: FileField[] = ['letterhead', 'pl_certificate', 'el_certificate', 'accreditation_docs', 'photos'];
+    const fileFields: FileField[] = ['letterhead', 'pl_certificate', 'el_certificate', 'accreditation_docs'];
     const files: { field: FileField; file: File }[] = [];
     for (const field of fileFields) for (const f of fd.getAll(field)) if (f instanceof File && f.size > 0) files.push({ field, file: f });
-    if (files.filter((f) => f.field === 'photos').length > MAX_PHOTOS) return setError(`Up to ${MAX_PHOTOS} photos please.`);
+    for (const file of photoFiles) files.push({ field: 'photos', file });
+    if (photoFiles.length > MAX_PHOTOS) return setError(`Up to ${MAX_PHOTOS} photos please.`);
 
     const s = collect(fd);
     const payload = {
@@ -215,9 +233,20 @@ export default function DetailsForm({ id, businessType, company, email, saved }:
         <label>About your business (optional)
           <textarea name="description" rows={4} maxLength={2000} defaultValue={str(saved.description)} placeholder="Types of jobs, typical contract sizes, who you work for" />
         </label>
-        <label>Photos of your work (up to {MAX_PHOTOS})
-          <input type="file" name="photos" multiple accept="image/jpeg,image/png,image/webp" />
+        <label>Photos of your work ({photoFiles.length} of {MAX_PHOTOS})
+          <input type="file" multiple accept="image/jpeg,image/png,image/webp" disabled={photoFiles.length >= MAX_PHOTOS} onChange={(e) => addPhotos(e.target.files, e.target)} />
         </label>
+        {photoNote && <p className="err">{photoNote}</p>}
+        {photoFiles.length > 0 && (
+          <div className="gallery">
+            {photoFiles.map((f, i) => (
+              <figure key={`${f.name}-${f.size}-${i}`} className="photo">
+                <img src={previews[i]} alt={f.name} />
+                <button type="button" onClick={() => { setPhotoFiles(photoFiles.filter((_, j) => j !== i)); setPhotoNote(null); }}>Remove</button>
+              </figure>
+            ))}
+          </div>
+        )}
         <p className="muted small">Files (certificates and photos) upload when you press Send for approval, so add them just before you send.</p>
       </fieldset>
 
