@@ -4,6 +4,8 @@ export const SUPPLIER_CATEGORIES: { key: string; label: string }[] = [
   { key: 'soil-aggregates', label: 'Soil, mulch and aggregates' },
   { key: 'turf-seed', label: 'Turf, seed and turf care' },
   { key: 'trees-plants', label: 'Trees, shrubs and hedging' },
+  { key: 'perennials', label: 'Perennials, grasses and herbaceous plants' },
+  { key: 'topiary', label: 'Topiary, specimen and architectural plants' },
   { key: 'fencing-gates', label: 'Fencing and gates' },
   { key: 'paving-stone', label: 'Paving, kerbs and stone' },
   { key: 'landscape-products', label: 'Tree pits, drainage and landscape products' },
