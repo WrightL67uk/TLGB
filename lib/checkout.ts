@@ -66,7 +66,9 @@ export async function openCheckout(b: Business, pricing: Pricing, choice: { inte
   if (fixed) Object.assign(meta, { tlgb_code_id: fixed.id });
   const params = {
     mode: 'subscription',
-    payment_method_collection: 'if_required', // a 100% code means no card is asked for
+    // Always take a card, so the free trial can turn into a paid membership. With 'if_required' Stripe
+    // skips the card whenever nothing is due today, which is every trial. Only a 100% code skips it.
+    payment_method_collection: live && live.kind === 'percent' && Number(live.value) >= 100 ? 'if_required' : 'always',
     customer,
     client_reference_id: b.id,
     line_items: [{
