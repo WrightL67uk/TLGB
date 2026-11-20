@@ -2,14 +2,14 @@ import Link from 'next/link';
 import { db } from '@/lib/supabase';
 import { expiryItems, daysUntil, fmtDate, type Expiries } from '@/lib/expiries';
 import type { LeadStatus } from '@/lib/leads';
-import { getTakings, VAT_THRESHOLD, VAT_REVIEW_AT, VAT_WARN_AT, type Takings, type Payment } from '@/lib/takings';
+import { getTakings, getForecast, VAT_THRESHOLD, VAT_REVIEW_AT, VAT_WARN_AT, type Takings, type Payment, type Forecast } from '@/lib/takings';
 
 export const dynamic = 'force-dynamic';
 
 const gbp0 = (n: number) => `£${Math.round(n).toLocaleString('en-GB')}`;
 
 /** Takings over the last 12 months against the VAT registration threshold. */
-function VatWatch({ t, who }: { t: Takings | 'error'; who: Map<string, { name: string; kind: string; href: string }> }) {
+function VatWatch({ t, who, f, split }: { t: Takings | 'error'; who: Map<string, { name: string; kind: string; href: string }>; f: Forecast | 'error'; split: { trades: number; suppliers: number; other: number } }) {
   if (t === null) return null;
   if (t === 'error') return <p className="muted small">VAT watch: could not read takings from Stripe just now.</p>;
   const pct = Math.min(100, (t.year / VAT_THRESHOLD) * 100);
@@ -25,6 +25,17 @@ function VatWatch({ t, who }: { t: Takings | 'error'; who: Map<string, { name: s
         </span>
       </div>
       <div className="vat-bar"><span style={{ width: `${pct}%`, background: colour }} /></div>
+      {f === 'error' ? (
+        <p className="muted small" style={{ margin: '8px 0 0' }}>Estimated turnover: could not read subscriptions from Stripe just now.</p>
+      ) : f ? (
+        <div className="vat-row" style={{ marginTop: 8 }}>
+          <strong>Estimated turnover</strong>
+          <span>
+            Next 12 months, if nobody leaves: <b>{gbp0(f.total)}</b> ({Math.round((f.total / VAT_THRESHOLD) * 100)}% of the threshold)
+            <span className="muted small"> · trades {gbp0(split.trades)} · suppliers {gbp0(split.suppliers)}{split.other ? ` · other ${gbp0(split.other)}` : ''} · {f.subs.length} live {f.subs.length === 1 ? 'subscription' : 'subscriptions'}</span>
+          </span>
+        </div>
+      ) : null}
       {level === 'amber' && <p className="small" style={{ color: colour, margin: '6px 0 0' }}>Halfway to the VAT threshold. Time to review registering with your accountant.</p>}
       {level === 'red' && (
         <p className="small" style={{ color: colour, margin: '6px 0 0' }}>
@@ -56,7 +67,7 @@ function VatWatch({ t, who }: { t: Takings | 'error'; who: Map<string, { name: s
           </table>
         )}
       </details>
-      <p className="muted small" style={{ margin: '4px 0 0' }}>Card payments through Stripe, less refunds. Updated hourly. Amber at {gbp0(VAT_REVIEW_AT)}, red at {gbp0(VAT_WARN_AT)}.</p>
+      <p className="muted small" style={{ margin: '4px 0 0' }}>Card payments through Stripe, less refunds. The estimate adds up what every current subscription will be charged over the next 12 months at today’s prices, free trials and discounts, with no one cancelling and no new sign-ups. Updated hourly. Amber at {gbp0(VAT_REVIEW_AT)}, red at {gbp0(VAT_WARN_AT)}.</p>
     </div>
   );
 }
@@ -146,7 +157,7 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
     ? await db().from('businesses').select('id, trading_name').in('id', packIds)
     : { data: [] as { id: string; trading_name: string }[] };
 
-  const takings = await getTakings();
+  const [takings, forecast] = await Promise.all([getTakings(), getForecast()]);
   const { data: ls } = await db().from('site_settings').select('value').eq('key', 'leads_status').maybeSingle();
   const leadStatus = (ls?.value ?? null) as LeadStatus | null;
   // Match Stripe customers to the trade or supplier they belong to
@@ -161,9 +172,26 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
     for (const x of ss ?? []) who.set(x.stripe_customer_id as string, { name: x.name as string, kind: 'supplier', href: '/admin/resources' });
   }
 
+  // Split the 12-month estimate into trades and suppliers by matching Stripe customers
+  const split = { trades: 0, suppliers: 0, other: 0 };
+  if (forecast && forecast !== 'error' && forecast.subs.length) {
+    const ids = [...new Set(forecast.subs.map((x) => x.customer).filter(Boolean))] as string[];
+    const [{ data: bs }, { data: ss }] = await Promise.all([
+      db().from('businesses').select('stripe_customer_id').in('stripe_customer_id', ids),
+      db().from('suppliers').select('stripe_customer_id').in('stripe_customer_id', ids),
+    ]);
+    const tradeIds = new Set((bs ?? []).map((b) => b.stripe_customer_id as string));
+    const supplierIds = new Set((ss ?? []).map((x) => x.stripe_customer_id as string));
+    for (const x of forecast.subs) {
+      if (x.customer && tradeIds.has(x.customer)) split.trades += x.next12;
+      else if (x.customer && supplierIds.has(x.customer)) split.suppliers += x.next12;
+      else split.other += x.next12;
+    }
+  }
+
   return (
     <div>
-      <VatWatch t={takings} who={who} />
+      <VatWatch t={takings} who={who} f={forecast} split={split} />
       <div className="admin-head">
         <h1>Admin</h1>
         {sp.deleted && <p className="ok-box">Deleted {sp.deleted}.</p>}
