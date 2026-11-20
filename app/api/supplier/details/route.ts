@@ -22,6 +22,7 @@ const Body = z.object({
   town: z.string().trim().min(2, 'Enter your town').max(80),
   postcode: z.string().trim().min(2, 'Enter the postcode of your yard or depot').max(10),
   delivers_nationally: z.boolean(),
+  delivery_radius_miles: z.preprocess((v) => (v === '' || v == null ? undefined : Number(v)), z.number().int().min(5).max(1000).optional()),
   categories: z.array(z.enum(cats)).min(1, 'Pick at least one thing you supply'),
   description: z.string().trim().min(10, 'Add a one or two sentence summary').max(400, 'Keep the summary under 400 characters'),
   about: z.preprocess(blank, z.string().trim().max(2000, 'About us is too long (2,000 characters at most)').optional()),
@@ -62,14 +63,17 @@ export async function POST(req: NextRequest) {
     if (!count) return fail('Add at least one picture of your products or premises. Your profile page needs something to show.');
   }
 
-  const { error } = await db().from('suppliers').update({
+  const row = {
     contact_name: d.contact_name, phone: d.phone, public_email: d.public_email ?? null, website, address: d.address ?? null,
     town: d.town, postcode: pc.postcode, lat: pc.lat, lng: pc.lng, delivers_nationally: d.delivers_nationally,
     categories: d.categories, description: d.description, about: d.about ?? null, year_established: d.year_established ?? null,
     delivery_options: d.delivery_options, min_order: d.min_order ?? null, trade_accounts: d.trade_accounts, trade_only: d.trade_only, does_domestic: d.does_domestic,
     standards: d.standards, standards_other: d.standards_other ?? null, product_liability: d.product_liability,
     ...(submitting ? { status: 'pending', submitted_at: new Date().toISOString() } : {}),
-  }).eq('id', s.id);
+  };
+  let { error } = await db().from('suppliers').update({ ...row, delivery_radius_miles: d.delivers_nationally ? null : d.delivery_radius_miles ?? null }).eq('id', s.id);
+  // Database not yet updated for delivery radius: save everything else
+  if (error && /delivery_radius_miles/.test(error.message ?? '')) ({ error } = await db().from('suppliers').update(row).eq('id', s.id));
   if (error) {
     console.error('supplier details save failed', error);
     return fail('Something went wrong saving. Please try again.', 500);

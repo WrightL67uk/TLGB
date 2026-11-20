@@ -22,7 +22,7 @@ export const inviteLink = (inviteId: string) => `${siteUrl()}/quote/${inviteToke
 
 export type QuoteSupplier = {
   id: string; name: string; categories: string[]; town: string | null; email: string | null;
-  lat: number | null; lng: number | null; delivers_nationally: boolean;
+  lat: number | null; lng: number | null; delivers_nationally: boolean; delivery_radius_miles?: number | null;
   quote_requests: boolean; quote_plan: string | null; quote_paid_until: string | null;
 };
 
@@ -59,10 +59,16 @@ export async function matchSuppliers(categories: string[], lat: number, lng: num
     .eq('status', 'approved')
     .eq('quote_requests', true)
     .overlaps('categories', categories);
+  const radii = new Map<string, number>();
+  {
+    // Ignored if the column is not there yet
+    const { data: r } = await db().from('suppliers').select('id, delivery_radius_miles').in('id', (data ?? []).map((x) => x.id as string));
+    for (const x of r ?? []) if (x.delivery_radius_miles) radii.set(x.id as string, Number(x.delivery_radius_miles));
+  }
   const rows = ((data ?? []) as QuoteSupplier[])
     .filter(takesRequests)
     .map((s) => ({ s, dist: s.lat != null && s.lng != null ? miles(lat, lng, s.lat, s.lng) : null }))
-    .filter(({ s, dist }) => s.delivers_nationally || (dist != null && dist <= MATCH_MILES))
+    .filter(({ s, dist }) => s.delivers_nationally || (dist != null && dist <= (radii.get(s.id) ?? MATCH_MILES)))
     .sort((a, b) => {
       // more of the list covered first, then nearest
       const ca = categories.filter((c) => a.s.categories.includes(c)).length;

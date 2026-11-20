@@ -3,6 +3,7 @@ import { getMembership } from '@/lib/membership';
 import '../resources.css';
 import { db, photoUrl } from '@/lib/supabase';
 import { lookupPostcode } from '@/lib/postcodes';
+import { reaches } from '@/lib/deliveryRadius';
 import { SUPPLIER_CATEGORIES, supplierCategoryLabel, miles, shortUrl } from '@/lib/resources';
 import { takesRequests, ratingsFor } from '@/lib/quotes';
 import { isLive, hasProfile } from '@/lib/supplierAccount';
@@ -16,7 +17,7 @@ export const metadata = {
 
 type Supplier = {
   id: string; name: string; categories: string[]; description: string | null; website: string | null; phone: string | null;
-  town: string | null; postcode: string | null; lat: number | null; lng: number | null; delivers_nationally: boolean;
+  town: string | null; postcode: string | null; lat: number | null; lng: number | null; delivers_nationally: boolean; radius?: number | null;
   email: string | null; logo_path: string | null; quote_requests: boolean; quote_plan: string | null; quote_paid_until: string | null;
   status?: 'approved'; tier?: 'appear' | 'match' | null; subscription_status?: string; slug?: string | null; public_email?: string | null; does_domestic?: boolean;
 };
@@ -61,6 +62,15 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
     dist: where?.ok && s.lat != null && s.lng != null ? miles(where.lat, where.lng, s.lat, s.lng) : null,
     profile: hasProfile({ status: 'approved', tier: s.tier ?? null, subscription_status: s.subscription_status ?? 'none', slug: s.slug ?? null }),
   }));
+  const radii = new Map<string, number>();
+  {
+    // Ignored if the column is not there yet
+    const { data: r } = await db().from('suppliers').select('id, delivery_radius_miles').in('id', rows.map((x) => x.id));
+    for (const x of r ?? []) if (x.delivery_radius_miles) radii.set(x.id as string, Number(x.delivery_radius_miles));
+  }
+  rows = rows.map((s) => ({ ...s, radius: radii.get(s.id) ?? null }));
+  // Searching by postcode: leave out suppliers who say they do not deliver that far
+  if (where?.ok) rows = rows.filter((s) => reaches({ delivers_nationally: s.delivers_nationally, delivery_radius_miles: s.radius }, s.dist) !== false);
   const ratings = await ratingsFor(rows.map((r) => r.id));
   // Soil suppliers whose test certificates we have checked. Ignored if the column is not there yet.
   const soilChecked = new Set<string>();
@@ -112,7 +122,7 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
             <div className="badges">
               {s.categories.map((c) => <span key={c} className="badge ok">{supplierCategoryLabel(c)}</span>)}
               {s.does_domestic && <span className="badge ok">Homeowners welcome</span>}
-              {s.delivers_nationally && <span className="badge">delivers nationally</span>}
+              {s.delivers_nationally ? <span className="badge">delivers nationally</span> : s.radius ? <span className="badge">delivers within {s.radius} miles</span> : null}
               {soilChecked.has(s.id) && <span className="badge ok" title="We have checked their soil test certificates">Soil tests checked</span>}
               {s.tier === 'match' && <span className="badge ok">Match supplier</span>}
               {takesRequests(s) && <span className="badge ok">takes estimate requests</span>}

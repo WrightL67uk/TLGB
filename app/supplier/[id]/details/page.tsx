@@ -40,7 +40,7 @@ export default async function SupplierDetailsPage({ params }: { params: Promise<
         supplier={{
           id: s.id, status: s.status, name: s.name, contact_name: s.contact_name ?? '', phone: s.phone ?? '', public_email: s.public_email ?? '',
           email: s.email ?? '', website: s.website ?? '', address: s.address ?? '', town: s.town ?? '', postcode: s.postcode ?? '',
-          delivers_nationally: s.delivers_nationally, categories: s.categories, description: s.description ?? '', about: s.about ?? '',
+          delivers_nationally: s.delivers_nationally, delivery_radius_miles: s.delivery_radius_miles ? String(s.delivery_radius_miles) : '', categories: s.categories, description: s.description ?? '', about: s.about ?? '',
           year_established: s.year_established ? String(s.year_established) : '', delivery_options: s.delivery_options, min_order: s.min_order ?? '',
           trade_accounts: s.trade_accounts, trade_only: s.trade_only, does_domestic: !!s.does_domestic, standards: s.standards, standards_other: s.standards_other ?? '',
           product_liability: s.product_liability, tier: s.tier,

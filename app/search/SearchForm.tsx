@@ -14,6 +14,7 @@ export default function SearchForm({
   const [trade, setTrade] = useState(initialTrade);
   const tradeItems = trade ? accreditationsForTrade(trade) : [];
   const tradeLabel = TRADES.find((t) => t.slug === trade)?.label;
+  const supplierTrade = ['supplier', 'nursery', 'plant-hire'].includes(trade);
   const activeCount = accreds.length + (minPl ? 1 : 0);
 
   const chip = (a: Accreditation) => (
@@ -37,6 +38,12 @@ export default function SearchForm({
         <VerifiedToggle initial={verifiedOnly} />
         <button type="submit" className="sq sq-rust">search</button>
       </div>
+
+      {supplierTrade && (
+        <p className="ok-box" style={{ margin: '10px 0 0' }}>
+          Looking for plants, materials or hire? Suppliers have their own page. <a href="/suppliers"><strong>Search suppliers</strong></a> by category and postcode, and see who delivers to you.
+        </p>
+      )}
 
       <details className="filters" open={activeCount > 0}>
         <summary>Filters{activeCount ? ` (${activeCount})` : ''}</summary>

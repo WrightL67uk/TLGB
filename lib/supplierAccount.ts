@@ -27,6 +27,7 @@ export type Supplier = {
   lat: number | null;
   lng: number | null;
   delivers_nationally: boolean;
+  delivery_radius_miles?: number | null;
   categories: string[];
   description: string | null;
   about: string | null;

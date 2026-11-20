@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { uploadToSignedUrl } from '@/lib/supabaseBrowser';
 import { SUPPLIER_CATEGORIES } from '@/lib/resources';
 import { DELIVERY_OPTIONS, STANDARDS } from '@/lib/supplierOptions';
+import { DELIVERY_RADII } from '@/lib/deliveryRadius';
 
 type S = {
   id: string; status: string; name: string; contact_name: string; phone: string; public_email: string; email: string; website: string;
-  address: string; town: string; postcode: string; delivers_nationally: boolean; categories: string[]; description: string; about: string;
+  address: string; town: string; postcode: string; delivers_nationally: boolean; delivery_radius_miles: string; categories: string[]; description: string; about: string;
   year_established: string; delivery_options: string[]; min_order: string; trade_accounts: boolean; trade_only: boolean; does_domestic: boolean; standards: string[];
   standards_other: string; product_liability: boolean | null; tier: string | null;
 };
@@ -90,7 +91,7 @@ export default function SupplierDetails({ supplier, logoUrl, photos, videos }: {
     setBusy(submit ? 'submit' : 'save'); setMsg(null);
     const r = await post('/api/supplier/details', {
       supplierId: f.id, submit, contact_name: f.contact_name, phone: f.phone, public_email: f.public_email, website: f.website, address: f.address,
-      town: f.town, postcode: f.postcode, delivers_nationally: f.delivers_nationally, categories: f.categories, description: f.description,
+      town: f.town, postcode: f.postcode, delivers_nationally: f.delivers_nationally, delivery_radius_miles: f.delivery_radius_miles, categories: f.categories, description: f.description,
       about: f.about, year_established: f.year_established, delivery_options: f.delivery_options, min_order: f.min_order,
       trade_accounts: f.trade_accounts, trade_only: f.trade_only, does_domestic: f.does_domestic, standards: f.standards, standards_other: f.standards_other,
       product_liability: f.product_liability, captions: caps,
@@ -193,6 +194,13 @@ export default function SupplierDetails({ supplier, logoUrl, photos, videos }: {
 
       <h2 style={{ margin: '12px 0 0' }}>{basic ? 'Delivery' : 'How you work with trade buyers'}</h2>
       <label className="checks" style={{ fontWeight: 400 }}><input type="checkbox" checked={f.delivers_nationally} onChange={(e) => set('delivers_nationally', e.target.checked)} /> We deliver nationally</label>
+      <label>{f.delivers_nationally ? 'Delivery radius (not needed, you deliver nationally)' : 'Or: how far do you deliver from your yard?'}
+        <select value={f.delivers_nationally ? '' : f.delivery_radius_miles} disabled={f.delivers_nationally} onChange={(e) => set('delivery_radius_miles', e.target.value)}>
+          <option value="">Not stated</option>
+          {DELIVERY_RADII.map((n) => <option key={n} value={String(n)}>Within {n} miles</option>)}
+        </select>
+        <span className="hint">Shown on your listing. Buyers outside this distance will not be shown you when they search by postcode.</span>
+      </label>
       {!basic && <>
       <div className="checks">
         {DELIVERY_OPTIONS.map((d) => <label key={d.key}><input type="checkbox" checked={f.delivery_options.includes(d.key)} onChange={() => toggle('delivery_options', d.key)} /> {d.label}</label>)}

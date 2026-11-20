@@ -41,7 +41,7 @@ export default async function SupplierProfile({ params }: { params: Promise<{ sl
   const facts: [string, string][] = [
     ...(s.year_established ? [['Established', String(s.year_established)] as [string, string]] : []),
     ...(s.min_order ? [['Minimum order', s.min_order] as [string, string]] : []),
-    ['Delivery', [s.delivers_nationally ? 'Nationwide' : null, ...s.delivery_options.map((k) => DELIVERY_OPTIONS.find((d) => d.key === k)?.label)].filter(Boolean).join(' · ') || 'Ask for details'],
+    ['Delivery', [s.delivers_nationally ? 'Nationwide' : s.delivery_radius_miles ? `Within ${s.delivery_radius_miles} miles of ${s.town ?? 'their yard'}` : null, ...s.delivery_options.map((k) => DELIVERY_OPTIONS.find((d) => d.key === k)?.label)].filter(Boolean).join(' · ') || 'Ask for details'],
     ['Customers', s.trade_only ? 'Trade only' : 'Trade and public'],
     ...(s.trade_accounts ? [['Accounts', 'Trade accounts and credit terms available'] as [string, string]] : []),
     ...(s.ch_company_name ? [['Company', `${s.ch_company_name} (${s.company_number})`] as [string, string]] : []),
