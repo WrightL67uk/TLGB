@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadToSignedUrl } from '@/lib/supabaseBrowser';
-import { SUPPLIER_CATEGORIES } from '@/lib/resources';
+import { SUPPLIER_CATEGORIES, PLANT_KEYS } from '@/lib/resources';
 import { DELIVERY_OPTIONS, STANDARDS } from '@/lib/supplierOptions';
 import { DELIVERY_RADII } from '@/lib/deliveryRadius';
 
@@ -117,8 +117,15 @@ export default function SupplierDetails({ supplier, logoUrl, photos, videos }: {
       {msg && <p className={msg.kind === 'ok' ? 'ok-box' : 'err big'}>{msg.text}</p>}
 
       <h2 style={{ margin: 0 }}>What you supply</h2>
+      <p className="acc-head" style={{ margin: '4px 0 0' }}>Plants</p>
       <div className="checks">
-        {SUPPLIER_CATEGORIES.map((c) => (
+        {SUPPLIER_CATEGORIES.filter((c) => PLANT_KEYS.includes(c.key)).map((c) => (
+          <label key={c.key}><input type="checkbox" checked={f.categories.includes(c.key)} onChange={() => toggle('categories', c.key)} /> {c.label}</label>
+        ))}
+      </div>
+      <p className="acc-head" style={{ margin: '4px 0 0' }}>Materials, equipment and services</p>
+      <div className="checks">
+        {SUPPLIER_CATEGORIES.filter((c) => !PLANT_KEYS.includes(c.key)).map((c) => (
           <label key={c.key}><input type="checkbox" checked={f.categories.includes(c.key)} onChange={() => toggle('categories', c.key)} /> {c.label}</label>
         ))}
       </div>

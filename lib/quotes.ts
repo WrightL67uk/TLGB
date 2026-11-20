@@ -2,7 +2,7 @@ import 'server-only';
 import { createHash, createHmac, randomUUID } from 'crypto';
 import { db } from './supabase';
 import { env, siteUrl } from './config';
-import { miles } from './resources';
+import { miles, PLANT_KEYS, coversCategory } from './resources';
 
 export const MATCH_MILES = 80;      // local suppliers within this distance of the delivery postcode
 export const MAX_SUPPLIERS = 6;     // most suppliers one request can go to
@@ -58,7 +58,7 @@ export async function matchSuppliers(categories: string[], lat: number, lng: num
     .select('id, name, categories, town, email, lat, lng, delivers_nationally, quote_requests, quote_plan, quote_paid_until')
     .eq('status', 'approved')
     .eq('quote_requests', true)
-    .overlaps('categories', categories);
+    .overlaps('categories', categories.flatMap((c) => (c === 'trees-plants' ? ['trees-plants', ...PLANT_KEYS] : [c])));
   const radii = new Map<string, number>();
   {
     // Ignored if the column is not there yet
@@ -71,14 +71,14 @@ export async function matchSuppliers(categories: string[], lat: number, lng: num
     .filter(({ s, dist }) => s.delivers_nationally || (dist != null && dist <= (radii.get(s.id) ?? MATCH_MILES)))
     .sort((a, b) => {
       // more of the list covered first, then nearest
-      const ca = categories.filter((c) => a.s.categories.includes(c)).length;
-      const cb = categories.filter((c) => b.s.categories.includes(c)).length;
+      const ca = categories.filter((c) => coversCategory(a.s.categories, c)).length;
+      const cb = categories.filter((c) => coversCategory(b.s.categories, c)).length;
       return cb - ca || (a.dist ?? 9999) - (b.dist ?? 9999);
     });
   const ratings = await ratingsFor(rows.map((r) => r.s.id));
   return rows.map(({ s, dist }) => ({
     id: s.id, name: s.name, town: s.town, dist, national: s.delivers_nationally,
-    covers: categories.filter((c) => s.categories.includes(c)), rating: ratings[s.id] ?? null,
+    covers: categories.filter((c) => coversCategory(s.categories, c)), rating: ratings[s.id] ?? null,
   }));
 }
 

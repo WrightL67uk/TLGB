@@ -3,9 +3,17 @@
 export const SUPPLIER_CATEGORIES: { key: string; label: string }[] = [
   { key: 'soil-aggregates', label: 'Soil, mulch and aggregates' },
   { key: 'turf-seed', label: 'Turf, seed and turf care' },
-  { key: 'trees-plants', label: 'Trees, shrubs and hedging' },
-  { key: 'perennials', label: 'Perennials, grasses and herbaceous plants' },
-  { key: 'topiary', label: 'Topiary, specimen and architectural plants' },
+  { key: 'trees', label: 'Trees' },
+  { key: 'shrubs', label: 'Shrubs' },
+  { key: 'hedging', label: 'Hedging' },
+  { key: 'perennials', label: 'Perennials' },
+  { key: 'grasses', label: 'Grasses' },
+  { key: 'herbaceous', label: 'Herbaceous plants' },
+  { key: 'bulbs', label: 'Bulbs' },
+  { key: 'plugs', label: 'Plugs and young plants' },
+  { key: 'topiary', label: 'Topiary' },
+  { key: 'specimen', label: 'Specimen plants' },
+  { key: 'architectural', label: 'Architectural plants' },
   { key: 'fencing-gates', label: 'Fencing and gates' },
   { key: 'paving-stone', label: 'Paving, kerbs and stone' },
   { key: 'landscape-products', label: 'Tree pits, drainage and landscape products' },
@@ -17,7 +25,13 @@ export const SUPPLIER_CATEGORIES: { key: string; label: string }[] = [
   { key: 'business-development', label: 'Business development and tendering' },
   { key: 'insurance', label: 'Insurance and brokers' },
 ];
-export const supplierCategoryLabel = (k: string) => SUPPLIER_CATEGORIES.find((c) => c.key === k)?.label ?? k;
+/** The plant options, each one its own tick box. */
+export const PLANT_KEYS = ['trees', 'shrubs', 'hedging', 'perennials', 'grasses', 'herbaceous', 'bulbs', 'plugs', 'topiary', 'specimen', 'architectural'];
+/** Before plants were split into separate options there was one: 'trees-plants'. */
+export const supplierCategoryLabel = (k: string) => SUPPLIER_CATEGORIES.find((c) => c.key === k)?.label ?? (k === 'trees-plants' ? 'Trees, shrubs and hedging' : k);
+/** Does a supplier cover this estimate category? A plant line is covered by any plant option. */
+export const coversCategory = (supplierCats: string[], cat: string) =>
+  cat === 'trees-plants' ? supplierCats.some((k) => k === 'trees-plants' || PLANT_KEYS.includes(k)) : supplierCats.includes(cat);
 
 export const HELP_KINDS: { key: string; label: string }[] = [
   { key: 'labour', label: 'Extra hands or a gang' },
