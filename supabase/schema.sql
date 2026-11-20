@@ -23,6 +23,7 @@ insert into trade_categories (slug, label, sort_order) values
   ('grounds-maintenance', 'Grounds Maintenance',           60),
   ('hard-landscaping',    'Hard Landscaping / Paving',     70),
   ('fencing',             'Fencing Contractor',            80),
+  ('garden-buildings',    'Garden Buildings',              85),
   ('irrigation',          'Irrigation',                    90),
   ('play-sports',         'Play & Sports Surfacing',      100),
   ('gritting',            'Gritting / Winter Maintenance',110),

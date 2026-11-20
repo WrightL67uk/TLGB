@@ -104,6 +104,7 @@ export const TRADES: { slug: string; label: string }[] = [
   { slug: 'grounds-maintenance', label: 'Grounds Maintenance' },
   { slug: 'hard-landscaping', label: 'Hard Landscaping / Paving' },
   { slug: 'fencing', label: 'Fencing Contractor' },
+  { slug: 'garden-buildings', label: 'Garden Buildings' },
   { slug: 'irrigation', label: 'Irrigation' },
   { slug: 'play-sports', label: 'Play & Sports Surfacing' },
   { slug: 'gritting', label: 'Gritting / Winter Maintenance' },
