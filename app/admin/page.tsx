@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 const gbp0 = (n: number) => `£${Math.round(n).toLocaleString('en-GB')}`;
 
 /** Takings over the last 12 months against the VAT registration threshold. */
-function VatWatch({ t, who, f, split }: { t: Takings | 'error'; who: Map<string, { name: string; kind: string; href: string }>; f: Forecast | 'error'; split: { trades: number; suppliers: number; other: number } }) {
+function VatWatch({ t, who, f, split, fwho }: { t: Takings | 'error'; who: Map<string, { name: string; kind: string; href: string }>; f: Forecast | 'error'; split: { trades: number; suppliers: number; other: number }; fwho: Map<string, { name: string; kind: string; href: string }> }) {
   if (t === null) return null;
   if (t === 'error') return <p className="muted small">VAT watch: could not read takings from Stripe just now.</p>;
   const pct = Math.min(100, (t.year / VAT_THRESHOLD) * 100);
@@ -36,6 +36,26 @@ function VatWatch({ t, who, f, split }: { t: Takings | 'error'; who: Map<string,
           </span>
         </div>
       ) : null}
+      {f && f !== 'error' && f.subs.length > 0 && (
+        <details style={{ marginTop: 6 }}>
+          <summary style={{ cursor: 'pointer' }}>Who makes up the estimate ({f.subs.length})</summary>
+          <table className="table" style={{ marginTop: 6 }}>
+            <thead><tr><th>Who</th><th>Charges in 12 months</th><th style={{ textAlign: 'right' }}>Next 12 months</th></tr></thead>
+            <tbody>
+              {[...f.subs].sort((a, b) => b.next12 - a.next12).map((x, i) => {
+                const w = x.customer ? fwho.get(x.customer) : undefined;
+                return (
+                  <tr key={i}>
+                    <td>{w ? <><Link href={w.href}>{w.name}</Link> <span className="muted small">({w.kind})</span></> : <span className="muted">Not matched {x.customer ? `(${x.customer})` : ''}</span>}</td>
+                    <td className="small">{x.charges}</td>
+                    <td style={{ textAlign: 'right' }}>£{x.next12.toFixed(2)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </details>
+      )}
       {level === 'amber' && <p className="small" style={{ color: colour, margin: '6px 0 0' }}>Halfway to the VAT threshold. Time to review registering with your accountant.</p>}
       {level === 'red' && (
         <p className="small" style={{ color: colour, margin: '6px 0 0' }}>
@@ -174,12 +194,15 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
 
   // Split the 12-month estimate into trades and suppliers by matching Stripe customers
   const split = { trades: 0, suppliers: 0, other: 0 };
+  const fwho = new Map<string, { name: string; kind: string; href: string }>();
   if (forecast && forecast !== 'error' && forecast.subs.length) {
     const ids = [...new Set(forecast.subs.map((x) => x.customer).filter(Boolean))] as string[];
     const [{ data: bs }, { data: ss }] = await Promise.all([
-      db().from('businesses').select('stripe_customer_id').in('stripe_customer_id', ids),
-      db().from('suppliers').select('stripe_customer_id').in('stripe_customer_id', ids),
+      db().from('businesses').select('id, trading_name, stripe_customer_id').in('stripe_customer_id', ids),
+      db().from('suppliers').select('id, name, stripe_customer_id').in('stripe_customer_id', ids),
     ]);
+    for (const b of bs ?? []) fwho.set(b.stripe_customer_id as string, { name: b.trading_name as string, kind: 'trade', href: `/admin/${b.id}` });
+    for (const x of ss ?? []) fwho.set(x.stripe_customer_id as string, { name: x.name as string, kind: 'supplier', href: '/admin/resources' });
     const tradeIds = new Set((bs ?? []).map((b) => b.stripe_customer_id as string));
     const supplierIds = new Set((ss ?? []).map((x) => x.stripe_customer_id as string));
     for (const x of forecast.subs) {
@@ -191,7 +214,7 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
 
   return (
     <div>
-      <VatWatch t={takings} who={who} f={forecast} split={split} />
+      <VatWatch t={takings} who={who} f={forecast} split={split} fwho={fwho} />
       <div className="admin-head">
         <h1>Admin</h1>
         {sp.deleted && <p className="ok-box">Deleted {sp.deleted}.</p>}
