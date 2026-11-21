@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { db } from '@/lib/supabase';
 import { stripe, verifyWebhook, mapStatus, periodEnd } from '@/lib/stripe';
 import { emailAdminBilling, emailMemberPaymentFailed, emailAdminSupplier } from '@/lib/email';
@@ -197,6 +198,8 @@ export async function POST(req: NextRequest) {
         break;
       }
     }
+    // Any billing change refreshes the admin VAT takings and 12-month estimate straight away
+    if (/^(customer\.subscription|invoice|charge|checkout\.session)/.test(event.type)) revalidateTag('vat');
   } catch (err) {
     // Let Stripe retry: forget we saw it
     console.error('webhook handling failed', event.type, err);

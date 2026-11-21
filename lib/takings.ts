@@ -41,7 +41,7 @@ async function load(): Promise<Takings> {
 }
 
 // Refreshed at most once an hour so the admin page stays quick. Errors are not cached.
-const cached = unstable_cache(load, ['vat-takings'], { revalidate: 3600 });
+const cached = unstable_cache(load, ['vat-takings'], { revalidate: 3600, tags: ['vat'] });
 
 export async function getTakings(): Promise<Takings | 'error'> {
   try {
@@ -119,7 +119,7 @@ async function loadForecast(): Promise<Forecast> {
   return { subs, total: subs.reduce((a, x) => a + x.next12, 0), checkedAt: new Date().toISOString() };
 }
 
-const cachedForecast = unstable_cache(loadForecast, ['vat-forecast'], { revalidate: 3600 });
+const cachedForecast = unstable_cache(loadForecast, ['vat-forecast'], { revalidate: 3600, tags: ['vat'] });
 
 export async function getForecast(): Promise<Forecast | 'error'> {
   try {

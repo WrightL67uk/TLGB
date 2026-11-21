@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { deleteBusiness, deleteSupplier, deleteSeeker, deleteContractor } from '@/lib/adminDelete';
 
 export const runtime = 'nodejs';
@@ -22,6 +23,7 @@ export async function POST(req: NextRequest) {
   const errBack = /^\/admin(\/[\w\-/]*)?$/.test(from) ? from : k.back;
   if (fd?.get('confirm') !== 'yes') return NextResponse.redirect(new URL(`${errBack}?delete_error=${encodeURIComponent('Tick the box to confirm before deleting.')}`, req.url), 303);
   const r = await k.run(id);
+  revalidateTag('vat');
   if (!r.ok) return NextResponse.redirect(new URL(`${errBack}?delete_error=${encodeURIComponent(r.error)}`, req.url), 303);
   return NextResponse.redirect(new URL(`${k.back}?deleted=${encodeURIComponent(r.name)}`, req.url), 303);
 }

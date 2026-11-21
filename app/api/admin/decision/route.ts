@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { db } from '@/lib/supabase';
 import { stripe, stripeEnabled } from '@/lib/stripe';
 import { emailApplicantApproved, emailApplicantRejected } from '@/lib/email';
@@ -92,5 +93,6 @@ export async function POST(req: NextRequest) {
     return new NextResponse('Unknown action', { status: 400 });
   }
 
+  revalidateTag('vat');
   return NextResponse.redirect(new URL(`/admin/${id}?done=1`, req.url), 303);
 }

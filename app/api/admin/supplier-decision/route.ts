@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { db } from '@/lib/supabase';
 import { stripe, stripeEnabled } from '@/lib/stripe';
 import { emailSupplierLive, emailSupplierRejected, emailAdminSupplier } from '@/lib/email';
@@ -43,5 +44,6 @@ export async function POST(req: NextRequest) {
     if (s.email) await emailSupplierRejected(s.email, s.name, reason).catch(() => null);
     await emailAdminSupplier(`Supplier rejected: ${s.name}`, `You rejected ${s.name}.${note}`, s.id).catch(() => null);
   }
+  revalidateTag('vat');
   return back(req);
 }
