@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 const gbp0 = (n: number) => `£${Math.round(n).toLocaleString('en-GB')}`;
 
 /** Takings over the last 12 months against the VAT registration threshold. */
-function VatWatch({ t, who, f, split, fwho }: { t: Takings | 'error'; who: Map<string, { name: string; kind: string; href: string }>; f: Forecast | 'error'; split: { trades: number; suppliers: number; other: number }; fwho: Map<string, { name: string; kind: string; href: string }> }) {
+function VatWatch({ t, who, f, split, fwho }: { t: Takings | 'error'; who: Map<string, { name: string; kind: string; href: string }>; f: Forecast | 'error'; split: { trades: number; suppliers: number; agencies: number; other: number }; fwho: Map<string, { name: string; kind: string; href: string }> }) {
   if (t === null) return null;
   if (t === 'error') return <p className="muted small">VAT watch: could not read takings from Stripe just now.</p>;
   const pct = Math.min(100, (t.year / VAT_THRESHOLD) * 100);
@@ -32,7 +32,7 @@ function VatWatch({ t, who, f, split, fwho }: { t: Takings | 'error'; who: Map<s
           <strong>Estimated turnover</strong>
           <span>
             Next 12 months, if nobody leaves: <b>{gbp0(f.total)}</b> ({Math.round((f.total / VAT_THRESHOLD) * 100)}% of the threshold)
-            <span className="muted small"> · trades {gbp0(split.trades)} · suppliers {gbp0(split.suppliers)}{split.other ? ` · other ${gbp0(split.other)}` : ''} · {f.subs.length} live {f.subs.length === 1 ? 'subscription' : 'subscriptions'}</span>
+            <span className="muted small"> · trades {gbp0(split.trades)} · suppliers {gbp0(split.suppliers)}{split.agencies ? ` · agencies ${gbp0(split.agencies)}` : ''}{split.other ? ` · other ${gbp0(split.other)}` : ''} · {f.subs.length} live {f.subs.length === 1 ? 'subscription' : 'subscriptions'}</span>
           </span>
         </div>
       ) : null}
@@ -46,7 +46,7 @@ function VatWatch({ t, who, f, split, fwho }: { t: Takings | 'error'; who: Map<s
                 const w = x.customer ? fwho.get(x.customer) : undefined;
                 return (
                   <tr key={i}>
-                    <td>{w ? <><Link href={w.href}>{w.name}</Link> <span className="muted small">({w.kind})</span></> : <span className="muted">Not matched {x.customer ? `(${x.customer})` : ''}</span>}</td>
+                    <td>{w ? <><Link href={w.href}>{w.name}</Link> <span className="muted small">({w.kind})</span></> : <span className="muted">Not matched: {x.name || x.email || 'no name in Stripe'}{x.name && x.email ? ` (${x.email})` : ''}{x.customer && <> · <a href={`https://dashboard.stripe.com/customers/${x.customer}`} target="_blank" rel="noopener">Open in Stripe</a></>}</span>}</td>
                     <td className="small">{x.charges}</td>
                     <td style={{ textAlign: 'right' }}>£{x.next12.toFixed(2)}</td>
                   </tr>
@@ -194,7 +194,7 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
   }
 
   // Split the 12-month estimate into trades and suppliers by matching Stripe customers
-  const split = { trades: 0, suppliers: 0, other: 0 };
+  const split = { trades: 0, suppliers: 0, agencies: 0, other: 0 };
   const fwho = new Map<string, { name: string; kind: string; href: string }>();
   if (forecast && forecast !== 'error' && forecast.subs.length) {
     const ids = [...new Set(forecast.subs.map((x) => x.customer).filter(Boolean))] as string[];
@@ -204,11 +204,32 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
     ]);
     for (const b of bs ?? []) fwho.set(b.stripe_customer_id as string, { name: b.trading_name as string, kind: 'trade', href: `/admin/${b.id}` });
     for (const x of ss ?? []) fwho.set(x.stripe_customer_id as string, { name: x.name as string, kind: 'supplier', href: '/admin/resources' });
+    // Subscriptions whose customer id is not stored on any listing: try the Stripe email instead
+    const emails = [...new Set(forecast.subs.filter((x) => x.customer && !fwho.has(x.customer) && x.email).map((x) => x.email!.toLowerCase()))];
+    if (emails.length) {
+      const [{ data: eb }, { data: es }, { data: ea }] = await Promise.all([
+        db().from('businesses').select('id, trading_name, email').in('email', emails),
+        db().from('suppliers').select('id, name, email').in('email', emails),
+        db().from('agencies').select('id, name, email').in('email', emails),
+      ]);
+      for (const x of forecast.subs) {
+        if (!x.customer || fwho.has(x.customer) || !x.email) continue;
+        const e = x.email.toLowerCase();
+        const b = (eb ?? []).find((r) => (r.email as string).toLowerCase() === e);
+        const su = (es ?? []).find((r) => (r.email as string).toLowerCase() === e);
+        const ag = (ea ?? []).find((r) => (r.email as string).toLowerCase() === e);
+        if (b) fwho.set(x.customer, { name: b.trading_name as string, kind: 'trade', href: `/admin/${b.id}` });
+        else if (su) fwho.set(x.customer, { name: su.name as string, kind: 'supplier', href: '/admin/resources' });
+        else if (ag) fwho.set(x.customer, { name: ag.name as string, kind: 'agency', href: '/admin/agencies' });
+      }
+    }
     const tradeIds = new Set((bs ?? []).map((b) => b.stripe_customer_id as string));
     const supplierIds = new Set((ss ?? []).map((x) => x.stripe_customer_id as string));
     for (const x of forecast.subs) {
-      if (x.customer && tradeIds.has(x.customer)) split.trades += x.next12;
-      else if (x.customer && supplierIds.has(x.customer)) split.suppliers += x.next12;
+      const kind = x.customer ? fwho.get(x.customer)?.kind : undefined;
+      if (kind === 'trade' || (x.customer && tradeIds.has(x.customer))) split.trades += x.next12;
+      else if (kind === 'supplier' || (x.customer && supplierIds.has(x.customer))) split.suppliers += x.next12;
+      else if (kind === 'agency') split.agencies += x.next12;
       else split.other += x.next12;
     }
   }

@@ -53,7 +53,7 @@ export async function getTakings(): Promise<Takings | 'error'> {
 
 // ---- Forecast: what the current subscribers will pay over the next 12 months, if nobody leaves ----
 
-export type ForecastSub = { customer: string | null; next12: number; charges: number };
+export type ForecastSub = { customer: string | null; email: string | null; name: string | null; next12: number; charges: number };
 export type Forecast = { subs: ForecastSub[]; total: number; checkedAt: string } | null;
 
 const DAY = 86400;
@@ -72,7 +72,7 @@ async function loadForecast(): Promise<Forecast> {
   let after: string | undefined;
   for (let page = 0; page < 50; page++) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const res: any = await stripe('GET', 'subscriptions', { limit: 100, starting_after: after, expand: ['data.discounts'] });
+    const res: any = await stripe('GET', 'subscriptions', { limit: 100, starting_after: after, expand: ['data.discounts', 'data.customer'] });
     for (const sub of res.data) {
       if (!['active', 'trialing', 'past_due'].includes(sub.status)) continue;
       if (sub.cancel_at_period_end || sub.cancel_at) continue;
@@ -111,7 +111,12 @@ async function loadForecast(): Promise<Forecast> {
         total += amt;
         charges++;
       }
-      subs.push({ customer: typeof sub.customer === 'string' ? sub.customer : null, next12: total / 100, charges });
+      const cust = typeof sub.customer === 'object' && sub.customer ? sub.customer : null;
+      subs.push({
+        customer: typeof sub.customer === 'string' ? sub.customer : cust?.id ?? null,
+        email: cust?.email ?? null, name: cust?.name ?? null,
+        next12: total / 100, charges,
+      });
     }
     if (!res.has_more || !res.data.length) break;
     after = res.data[res.data.length - 1].id;
