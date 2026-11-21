@@ -15,6 +15,8 @@ export const SUPPLIER_CATEGORIES: { key: string; label: string }[] = [
   { key: 'specimen', label: 'Specimen plants' },
   { key: 'architectural', label: 'Architectural plants' },
   { key: 'fencing-gates', label: 'Fencing and gates' },
+  { key: 'sheds', label: 'Sheds, summerhouses and log stores' },
+  { key: 'garden-rooms', label: 'Garden rooms and offices' },
   { key: 'paving-stone', label: 'Paving, kerbs and stone' },
   { key: 'landscape-products', label: 'Tree pits, drainage and landscape products' },
   { key: 'artificial-play', label: 'Artificial grass, play and sports surfacing' },
