@@ -2,6 +2,7 @@ import { siteUrl } from './config';
 
 // The "Verified member" badge a member can put on their own website, linking back to their listing.
 export const BADGE_PATH = '/badge/tlgb-verified-member.png';
+export const BADGE_JPG_PATH = '/badge/tlgb-verified-member.jpg';
 export const BADGE_W = 240;
 export const BADGE_H = 67;
 

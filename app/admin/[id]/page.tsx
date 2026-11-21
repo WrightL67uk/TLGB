@@ -2,7 +2,7 @@ import { vacanciesUsed } from '@/lib/vacancies';
 import RenameForm from '@/app/admin/RenameForm';
 import DeleteForm from '@/app/admin/DeleteForm';
 import CopyCode from '@/app/account/[id]/badge/CopyCode';
-import { badgeCode, BADGE_PATH, BADGE_W, BADGE_H } from '@/lib/badge';
+import { badgeCode, BADGE_PATH, BADGE_JPG_PATH, BADGE_W, BADGE_H } from '@/lib/badge';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { db, photoUrl } from '@/lib/supabase';
@@ -169,7 +169,10 @@ export default async function AdminDetail({
               <h3 style={{ marginBottom: 4 }}>Verified member badge</h3>
               <p className="muted small" style={{ marginTop: 0 }}>For sending to {b.trading_name} if they ask. Only for members who are verified or free (founding).</p>
               <p><img src={BADGE_PATH} alt="Verified member of The Little Green Book" width={BADGE_W} height={BADGE_H} /></p>
-              <p><a href={BADGE_PATH} download="tlgb-verified-member.png" className="sq">Download the badge</a></p>
+              <p style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <a href={BADGE_PATH} download="tlgb-verified-member.png" className="sq">Download PNG</a>
+                <a href={BADGE_JPG_PATH} download="tlgb-verified-member.jpg" className="sq">Download JPG</a>
+              </p>
               <p className="small" style={{ marginBottom: 4 }}>Website code (links to their listing):</p>
               <CopyCode code={badgeCode(b.id)} />
             </>
