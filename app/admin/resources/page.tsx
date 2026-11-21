@@ -28,7 +28,7 @@ export default async function AdminResources({ searchParams }: { searchParams: P
     db().from('suppliers').select('*').eq('status', 'pending').order('created_at'),
     db().from('service_enquiries').select('id, created_at, service, name, business_name, email, phone, schemes, message, handled').order('created_at', { ascending: false }).limit(100),
     db().from('help_requests').select('id, created_at, email, business_name, kind, title, status').eq('status', 'open').order('created_at', { ascending: false }).limit(100),
-    db().from('suppliers').select('id, name, town, email, categories, quote_requests, quote_plan, quote_paid_until, wants_requests, tier, subscription_status, paid_until').eq('status', 'approved').order('name'),
+    db().from('suppliers').select('id, name, town, email, categories, quote_requests, quote_plan, quote_paid_until, wants_requests, does_domestic, tier, subscription_status, paid_until').eq('status', 'approved').order('name'),
     db().from('quote_requests').select('id, created_at, reference, postcode, status').order('created_at', { ascending: false }).limit(20),
   ]);
   const { data: started } = await db().from('suppliers').select('id, created_at, name, email, tier, subscription_status').eq('status', 'started').order('created_at', { ascending: false });
@@ -190,6 +190,12 @@ export default async function AdminResources({ searchParams }: { searchParams: P
                     <option value="paid">Paid</option>
                   </select>
                   <input name="paid_until" type="date" defaultValue={s.quote_paid_until ?? ''} />
+                  <button type="submit">Save</button>
+                </form>
+                <form method="post" action="/api/admin/suppliers" style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '6px 0' }}>
+                  <input type="hidden" name="id" value={s.id} />
+                  <input type="hidden" name="action" value="domestic" />
+                  <label className="chk"><input type="checkbox" name="does_domestic" defaultChecked={!!s.does_domestic} /> Sells to homeowners</label>
                   <button type="submit">Save</button>
                 </form>
                 <DeleteForm kind="supplier" id={s.id} name={s.name} from="/admin/resources" what="their listing, estimates and ratings" />

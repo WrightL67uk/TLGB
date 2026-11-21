@@ -79,6 +79,10 @@ export async function POST(req: NextRequest) {
     await db().from('businesses').update({ founding_member: on }).eq('id', id);
     await db().from('review_events').insert({ business_id: id, action: 'note', actor, detail: on ? 'Made a free (founding) member' : 'Free membership removed' });
     if (on) await stopPlanForFounding(b, actor);
+  } else if (action === 'domestic') {
+    const on = fd.get('does_domestic') === 'on';
+    await db().from('businesses').update({ does_domestic: on }).eq('id', id);
+    await db().from('review_events').insert({ business_id: id, action: 'note', actor, detail: on ? 'Admin switched on: shown to homeowners' : 'Admin switched off: not shown to homeowners' });
   } else if (action === 'clear_recheck') {
     await db().from('businesses').update({ recheck_required: false, recheck_reason: null }).eq('id', id);
     await db().from('review_events').insert({ business_id: id, action: 'rechecked', actor, detail: notes || null });

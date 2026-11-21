@@ -165,6 +165,14 @@ export default async function AdminDetail({
             </form>
           )}
           {b.status === 'approved' && (
+            <form action="/api/admin/decision" method="post" className="inline" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', margin: '8px 0' }}>
+              <input type="hidden" name="id" value={b.id} />
+              <input type="hidden" name="action" value="domestic" />
+              <label className="check"><input type="checkbox" name="does_domestic" defaultChecked={!!b.does_domestic} /> Shown to homeowners (does domestic work)</label>
+              <button type="submit">Save</button>
+            </form>
+          )}
+          {b.status === 'approved' && (
             <>
               <h3 style={{ marginBottom: 4 }}>Verified member badge</h3>
               <p className="muted small" style={{ marginTop: 0 }}>For sending to {b.trading_name} if they ask. Only for members who are verified or free (founding).</p>

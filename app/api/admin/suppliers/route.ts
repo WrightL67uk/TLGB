@@ -9,6 +9,12 @@ export async function POST(req: NextRequest) {
   const id = String(fd?.get('id') ?? '');
   const back = (q = '') => NextResponse.redirect(new URL(`/admin/resources${q}#price-requests`, req.url), 303);
   if (!fd || !/^[0-9a-f-]{36}$/i.test(id)) return back();
+  if (String(fd.get('action') ?? '') === 'domestic') {
+    const on = fd.get('does_domestic') === 'on';
+    const { error: e2 } = await db().from('suppliers').update({ does_domestic: on }).eq('id', id);
+    if (e2) console.error('admin supplier domestic update failed', e2);
+    return back();
+  }
   const plan = String(fd.get('plan') ?? 'off');
   const email = String(fd.get('email') ?? '').trim().toLowerCase();
   const until = String(fd.get('paid_until') ?? '');
