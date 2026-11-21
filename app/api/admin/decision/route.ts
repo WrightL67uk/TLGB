@@ -12,6 +12,18 @@ function actorFrom(req: NextRequest) {
   try { return atob(h.replace(/^Basic /, '')).split(':')[0] || 'admin'; } catch { return 'admin'; }
 }
 
+/** A free (founding) member must not keep being charged: stop their Stripe plan. Any refund is done in Stripe. */
+async function stopPlanForFounding(b: { id: string; subscription_status: string; stripe_subscription_id: string | null }, actor: string) {
+  if (!b.stripe_subscription_id || !['active', 'trialing', 'past_due'].includes(b.subscription_status) || !stripeEnabled()) return;
+  try {
+    await stripe('DELETE', `subscriptions/${b.stripe_subscription_id}`);
+    await db().from('review_events').insert({ business_id: b.id, action: 'billing', actor, detail: 'Stripe plan cancelled because they were made a free (founding) member. Refund anything already paid in Stripe if you want to.' });
+  } catch (e) {
+    console.error('cancel plan for founding member failed', e);
+    await db().from('review_events').insert({ business_id: b.id, action: 'note', actor, detail: 'Made free, but we could not cancel their Stripe plan automatically. Cancel it in Stripe or they will keep being charged.' });
+  }
+}
+
 // Protected by middleware.ts (Basic Auth). Plain HTML form posts, so no JS needed in admin.
 export async function POST(req: NextRequest) {
   const fd = await req.formData();
@@ -38,6 +50,7 @@ export async function POST(req: NextRequest) {
       admin_notes: notes || null,
     }).eq('id', id);
     await db().from('review_events').insert({ business_id: id, action: 'approved', actor, detail: notes || null });
+    if (fd.get('founding_member') === 'on' || b.founding_member) await stopPlanForFounding(b, actor);
     const chosen = ['active', 'trialing', 'past_due'].includes(b.subscription_status) ? 'paid' : b.free_listing ? 'free' : null;
     await emailApplicantApproved(b.email, b.contact_name, b.trading_name, fd.get('founding_member') === 'on' || !!b.founding_member, chosen, b.id);
   } else if (action === 'reject') {
@@ -64,6 +77,7 @@ export async function POST(req: NextRequest) {
     const on = fd.get('founding_member') === 'on';
     await db().from('businesses').update({ founding_member: on }).eq('id', id);
     await db().from('review_events').insert({ business_id: id, action: 'note', actor, detail: on ? 'Made a free (founding) member' : 'Free membership removed' });
+    if (on) await stopPlanForFounding(b, actor);
   } else if (action === 'clear_recheck') {
     await db().from('businesses').update({ recheck_required: false, recheck_reason: null }).eq('id', id);
     await db().from('review_events').insert({ business_id: id, action: 'rechecked', actor, detail: notes || null });

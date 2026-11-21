@@ -157,6 +157,9 @@ export default async function AdminDetail({
               <input type="hidden" name="action" value="founding" />
               <input type="hidden" name="founding_member" value={b.founding_member ? 'off' : 'on'} />
               <button type="submit">{b.founding_member ? 'Remove free membership' : 'Make free (founding) member'}</button>
+              {!b.founding_member && ['active', 'trialing', 'past_due'].includes(b.subscription_status) && (
+                <span className="small warn"> This also cancels their Stripe plan so they stop being charged. Refund any payment in Stripe.</span>
+              )}
             </form>
           )}
           <h3 style={{ marginBottom: 4 }}>Vacancy posts</h3>
