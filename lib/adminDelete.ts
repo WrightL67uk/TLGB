@@ -53,6 +53,14 @@ export async function deleteBusiness(id: string): Promise<Result> {
 export async function deleteSupplier(id: string): Promise<Result> {
   const { data: s } = await db().from('suppliers').select('name, logo_path, stripe_subscription_id, subscription_status').eq('id', id).maybeSingle();
   if (!s) return { ok: false, error: 'Supplier not found.' };
+  // A paying or trialing supplier must stop being charged. Refunds are done in Stripe.
+  if (s.stripe_subscription_id && stripeEnabled() && !['cancelled', 'none'].includes(s.subscription_status)) {
+    try { await stripe('DELETE', `subscriptions/${s.stripe_subscription_id}`); }
+    catch (err) {
+      console.error('delete: cancelling supplier subscription failed', err);
+      return { ok: false, error: 'Could not cancel their Stripe subscription, so nothing was deleted. Cancel it in Stripe first, then try again.' };
+    }
+  }
   const { data: pics } = await db().from('supplier_photos').select('storage_path').eq('supplier_id', id);
   const { data: vids } = await db().from('supplier_videos').select('storage_path').eq('supplier_id', id);
   await removeFiles('portfolio', [...(pics ?? []).map((p) => p.storage_path), ...(vids ?? []).map((v) => v.storage_path), ...(s.logo_path ? [s.logo_path] : [])]);

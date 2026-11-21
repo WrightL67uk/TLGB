@@ -163,7 +163,12 @@ export default async function AdminResources({ searchParams }: { searchParams: P
       {!!started?.length && (
         <>
           <h3>Signed up, details not sent yet ({started.length})</h3>
-          {started.map((s) => <p key={s.id} style={{ margin: '2px 0' }}>{s.name} ({s.email}), {s.tier ? TIER_INFO[s.tier as 'appear' | 'match'].label : 'Basic (free)'}, {['active', 'trialing'].includes(s.subscription_status) ? 'paid' : 'not paid'}, {ukDate(s.created_at)}</p>)}
+          {started.map((s) => (
+            <div key={s.id} style={{ margin: '8px 0' }}>
+              <p style={{ margin: '2px 0' }}>{s.name} ({s.email}), {s.tier ? TIER_INFO[s.tier as 'appear' | 'match'].label : 'Basic (free)'}, {['active', 'trialing'].includes(s.subscription_status) ? 'paid' : 'not paid'}, {ukDate(s.created_at)}</p>
+              <DeleteForm kind="supplier" id={s.id} name={s.name} from="/admin/resources" what={['active', 'trialing', 'past_due'].includes(s.subscription_status) ? 'their sign-up and cancels their Stripe plan (refund any payment in Stripe)' : 'their sign-up'} />
+            </div>
+          ))}
         </>
       )}
 
