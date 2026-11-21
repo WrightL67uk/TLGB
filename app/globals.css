@@ -382,3 +382,10 @@ body:has(.qr-only) main { padding: 0 !important; max-width: none !important; mar
 .sup-send:disabled { opacity: .6; }
 .sup-err { color: var(--danger); font-size: .9rem; }
 @media print { .sup { display: none; } }
+
+/* Report this business */
+.report-btn { background: none; border: 1px solid var(--line); border-radius: 6px; padding: 7px 12px; font: inherit; font-size: .9rem; cursor: pointer; color: inherit; margin-top: 10px; }
+.report-btn:hover { border-color: #999; }
+.report-back { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.report-panel { width: min(400px, 100%); }
+.sup-body select { font: inherit; padding: 8px; border: 1px solid #c9ccc2; border-radius: 4px; width: 100%; }

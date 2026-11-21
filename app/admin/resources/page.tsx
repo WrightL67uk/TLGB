@@ -226,7 +226,7 @@ export default async function AdminResources({ searchParams }: { searchParams: P
               <tr key={e.id} style={{ opacity: e.handled ? 0.5 : 1 }}>
                 <td>{ukDate(e.created_at)}</td>
                 <td>{e.name}{e.business_name ? `, ${e.business_name}` : ''}<br /><a href={`mailto:${e.email}`}>{e.email}</a><br />{e.phone}</td>
-                <td>{e.service === 'contact' ? 'Contact form: ' : e.service === 'retention' ? 'Retention: ' : ''}{e.schemes.join(', ')}</td>
+                <td>{e.service === 'report' ? 'REPORT: ' : e.service === 'contact' ? 'Contact form: ' : e.service === 'retention' ? 'Retention: ' : ''}{e.schemes.join(', ')}</td>
                 <td style={{ whiteSpace: 'pre-line' }}>{e.message}</td>
                 <td>{!e.handled && <Act table="service_enquiries" id={e.id} action="handled" label="Mark handled" />}</td>
               </tr>

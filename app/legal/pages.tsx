@@ -36,6 +36,10 @@ export const LEGAL_PAGES: LegalPage[] = [
         <p>Before you hire, buy from or subcontract to anyone you find through TLGB, carry out the checks you would normally make, including asking for current insurance certificates and references. Any contract you make is between you and the other business. We are not a party to it, we do not act as an agent for anyone, and we do not take commission.</p>
         <p>If a business&rsquo;s membership lapses or its insurance expires, its listing shows as &ldquo;Unverified&rdquo; until it gives us current documents.</p>
 
+        <h2>3A. Reporting a business</h2>
+        <p>Every public listing has a &ldquo;Report this business&rdquo; button. Use it only to tell us something you honestly believe is true, such as a certificate that is not valid, someone pretending to be another company, unsafe working or seriously poor work. Do not use it to settle a personal dispute or to harm a competitor, and do not make a report you know to be false.</p>
+        <p>Reports go to our team only. We do not publish them and we do not tell the business who made one, although we may need to tell them what has been alleged in order to ask for their response. We may contact you for more detail, and we may check the business&rsquo;s documents, ask it to respond, suspend its listing or remove it. We are not a party to disputes about work, quotes or payment between businesses and cannot resolve them. See the <Link href="/legal/complaints">complaints procedure</Link>. We keep reports for up to two years.</p>
+
         <h2>4. Leads and public information</h2>
         <p>Leads on the website come from public sources such as Contracts Finder, Find a Tender, Public Contracts Scotland, Sell2Wales and council planning registers (through UK PlanIt). Public sector information is used under the Open Government Licence v3.0. We match and summarise this information automatically, so it can be incomplete, late or wrongly matched to a trade. Always read the original notice before acting on it.</p>
 
@@ -236,7 +240,7 @@ export const LEGAL_PAGES: LegalPage[] = [
         <h3>Everyone</h3>
         <ul>
           <li><strong>Login records:</strong> your email address and secure, one-way scrambled copies of login links and session tokens. <em>Why:</em> to let you log in securely (contract and legitimate interests).</li>
-          <li><strong>Things you send us:</strong> enquiries, accreditation help requests, interest in our retention bond and defects cover scheme, supplier suggestions, Help Hub posts and job reports. <em>Why:</em> to deal with them (legitimate interests).</li>
+          <li><strong>Things you send us:</strong> reports about a listed business (your name, email and what you tell us; we do not pass these to the business), enquiries, accreditation help requests, interest in our retention bond and defects cover scheme, supplier suggestions, Help Hub posts and job reports. <em>Why:</em> to deal with them (legitimate interests).</li>
           <li><strong>Share link activity:</strong> when a compliance pack link is opened or a document downloaded, we record the time so the member can see it. <em>Why:</em> legitimate interests of the member and of us in keeping shared documents secure.</li>
           <li><strong>Technical logs:</strong> our hosting provider keeps short-term server logs, which include IP addresses, for security and fault finding (legitimate interests).</li>
         </ul>
@@ -340,11 +344,12 @@ export const LEGAL_PAGES: LegalPage[] = [
           <li>post anything unlawful, defamatory, discriminatory, threatening, abusive or offensive;</li>
           <li>share someone&rsquo;s compliance pack link, documents or PQQ answers beyond the purpose they were shared for;</li>
           <li>try to get around login, share-link or membership controls, test our security without permission, or upload viruses or harmful code;</li>
+          <li>make a report about a business that you know to be false, or use the reporting button to harass or harm a competitor;</li>
           <li>overload, disrupt or interfere with the website or other users;</li>
           <li>resell or republish our content or data, or use it to build a competing directory.</li>
         </ul>
         <h2>Reporting</h2>
-        <p>To report a listing, job or post that breaks this policy, use the report option where there is one, or email <Mail d={d} />.</p>
+        <p>To report a listing, job or post that breaks this policy, use the &ldquo;Report this business&rdquo; button on the listing, or email <Mail d={d} />. Reports must be honest and made in good faith. Knowingly false or malicious reports break this policy.</p>
       </>
     ),
   },
@@ -367,7 +372,7 @@ export const LEGAL_PAGES: LegalPage[] = [
           <li>If you are not happy with our reply, ask for it to be reviewed by one of the partners who run TLGB, who were not involved in the first reply. They will respond within a further 20 working days.</li>
         </ol>
         <h2>Complaints about another business</h2>
-        <p>We cannot settle disputes about work, quotes, payments or contracts between businesses, as we are not a party to them. If you have evidence that a business gave us false information, or no longer meets our checks, we will investigate and may suspend or remove its listing.</p>
+        <p>You can use the &ldquo;Report this business&rdquo; button on any listing. We cannot settle disputes about work, quotes, payments or contracts between businesses, as we are not a party to them. If you have evidence that a business gave us false information, or no longer meets our checks, we will investigate and may suspend or remove its listing.</p>
         <h2>Data protection complaints</h2>
         <p>You can also complain to the Information Commissioner&rsquo;s Office at <a href="https://ico.org.uk/make-a-complaint/" target="_blank" rel="noopener">ico.org.uk</a>. See our <Link href="/legal/privacy">privacy notice</Link>.</p>
       </>

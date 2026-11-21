@@ -326,6 +326,30 @@ Email: <a href="mailto:${esc(m.email)}">${esc(m.email)}</a></p>
   );
 }
 
+/** Someone reported a listed business. To the team, plus a short receipt to the reporter. The business is never told. */
+export async function emailReport(m: { business: string; kind: string; reason: string; name: string; email: string; message: string; adminLink: string }) {
+  await send(
+    CONTACT_RECIPIENTS,
+    `Report about ${m.business}: ${m.reason}`,
+    `<p><strong>${esc(m.name)}</strong> reported <strong>${esc(m.business)}</strong> (${esc(m.kind)}).</p>
+<p>Reason: ${esc(m.reason)}<br>
+Email: <a href="mailto:${esc(m.email)}">${esc(m.email)}</a><br>
+Admin: https://tlgb.co.uk${esc(m.adminLink)}</p>
+<p>${esc(m.message).replace(/\n/g, '<br>')}</p>
+<p>Reply to this email to ask them for more detail. Do not pass their details to the business. A copy is saved in admin under Resources.</p>`,
+    'report-admin',
+    m.email
+  );
+  await send(
+    m.email,
+    'We have your report',
+    `<p>Hello ${esc(m.name.split(' ')[0])},</p>
+<p>Thanks for telling us about ${esc(m.business)}. We look into every report and may email you if we need more detail. We do not tell the business who reported them.</p>
+<p>The Little Green Book</p>`,
+    'report-customer'
+  );
+}
+
 /** A supplier asked to be listed. */
 export async function emailAdminSupplierSubmission(name: string, website: string | null, email: string, wantsRequests = false) {
   await send(

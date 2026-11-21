@@ -7,6 +7,7 @@ import { hasProfile, photosFor, videosFor, standardLabel, type Supplier } from '
 import { DELIVERY_OPTIONS } from '@/lib/supplierOptions';
 import { ratingsFor } from '@/lib/quotes';
 import SoilPanel from '../SoilPanel';
+import ReportButton from '@/app/ReportButton';
 import '../../resources.css';
 import '../supplier.css';
 
@@ -102,6 +103,7 @@ export default async function SupplierProfile({ params }: { params: Promise<{ sl
           {s.website && <p style={{ margin: '0 0 6px' }}><a href={s.website} target="_blank" rel="noopener">{shortUrl(s.website)}</a></p>}
           {(s.address || s.town) && <p className="muted small" style={{ margin: '8px 0 0' }}>{[s.address, s.town, s.postcode].filter(Boolean).join(', ')}</p>}
           <dl className="sup-facts">{facts.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+          <ReportButton kind="supplier" id={s.id} name={s.name} />
         </aside>
       </div>
     </div>

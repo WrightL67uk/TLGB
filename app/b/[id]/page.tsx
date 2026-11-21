@@ -6,6 +6,7 @@ import '../../contractor.css';
 import { liveAccreditations, fmtDate } from '@/lib/expiries';
 import Link from 'next/link';
 import { getContractor } from '@/lib/contractors';
+import ReportButton from '@/app/ReportButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -79,6 +80,7 @@ export default async function BusinessPage({ params, searchParams }: { params: P
           <a href={`mailto:${b.email}`}>{b.email}</a>
           {b.website && <><br /><a href={b.website} rel="nofollow noopener" target="_blank">{b.website}</a></>}
         </p>
+        <ReportButton kind="trade" id={b.id} name={b.trading_name} />
       </div>
 
       {photos && photos.length > 0 && (
