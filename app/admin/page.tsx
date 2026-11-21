@@ -88,6 +88,7 @@ function VatWatch({ t, who, f, split, fwho }: { t: Takings | 'error'; who: Map<s
         )}
       </details>
       <p className="muted small" style={{ margin: '4px 0 0' }}>Card payments through Stripe, less refunds. The estimate adds up what every current subscription will be charged over the next 12 months at today’s prices, free trials and discounts, with no one cancelling and no new sign-ups. Updated hourly. Amber at {gbp0(VAT_REVIEW_AT)}, red at {gbp0(VAT_WARN_AT)}.</p>
+      <form action="/api/admin/refresh-vat" method="post" style={{ marginTop: 6 }}><button type="submit">Refresh these figures from Stripe now</button></form>
     </div>
   );
 }
