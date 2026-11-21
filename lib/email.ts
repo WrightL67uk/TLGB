@@ -61,7 +61,7 @@ function toText(html: string) {
     .trim();
 }
 
-async function send(to: string | string[], subject: string, body: string, category: string, replyTo: string = TLGB_EMAIL, fromName = 'The Little Green Book') {
+async function send(to: string | string[], subject: string, body: string, category: string, replyTo: string = TLGB_EMAIL, fromName = 'The Little Green Book', attachments?: { content: string; filename: string; type: string; disposition: string }[]) {
   // Lets the site run for demos before SendGrid is set up: emails are skipped, not crashed on.
   if (!process.env.SENDGRID_API_KEY) {
     console.warn(`Email skipped (SendGrid not configured): ${subject}`);
@@ -81,6 +81,7 @@ async function send(to: string | string[], subject: string, body: string, catego
         html,
         text,
         categories: ['transactional', category],
+        ...(attachments ? { attachments } : {}),
         trackingSettings: {
           clickTracking: { enable: false, enableText: false },
           openTracking: { enable: false },
@@ -1214,5 +1215,65 @@ ${reason ? `<p>Reason: ${para(reason)}</p>` : ''}
 <p>You can edit it and send it again.</p>
 <p>${button(`${siteUrl()}/recruiter/vacancies`, 'Open my vacancies')}</p>`,
     approved ? 'agency-vacancy-approved' : 'agency-vacancy-rejected'
+  );
+}
+
+
+// ---------- Document signing ----------
+
+/** A signer is asked to sign. The link is private to them. */
+export async function emailSigningRequest(m: { to: string; name: string; sender: string; title: string; message: string | null; link: string; expires: string }) {
+  await send(
+    m.to,
+    `${m.sender} has asked you to sign: ${m.title}`,
+    `<p>Hello ${esc(m.name.split(' ')[0])},</p>
+<p><strong>${esc(m.sender)}</strong> has asked you to read and sign <strong>${esc(m.title)}</strong>.</p>
+${m.message ? `<p style="border-left:3px solid #ccc;padding-left:10px;color:#444">${esc(m.message).replace(/\n/g, '<br>')}</p>` : ''}
+<p><a href="${esc(m.link)}">Open the document and sign</a></p>
+<p>This link is just for you, so please do not forward it. It stops working on ${esc(m.expires)}.</p>
+<p>The Little Green Book only runs the signing. We did not write the document and we are not a party to it. If you are not expecting it, ignore this email.</p>`,
+    'signing-request',
+    m.sender.includes('@') ? m.sender : TLGB_EMAIL,
+    'The Little Green Book signing'
+  );
+}
+
+export async function emailSigningReminder(m: { to: string; name: string; sender: string; title: string; link: string }) {
+  await send(
+    m.to,
+    `Reminder: please sign ${m.title}`,
+    `<p>Hello ${esc(m.name.split(' ')[0])},</p>
+<p>A reminder that <strong>${esc(m.sender)}</strong> is waiting for you to sign <strong>${esc(m.title)}</strong>.</p>
+<p><a href="${esc(m.link)}">Open the document and sign</a></p>`,
+    'signing-reminder',
+    TLGB_EMAIL,
+    'The Little Green Book signing'
+  );
+}
+
+/** Everyone gets the finished PDF with its certificate. */
+export async function emailSigningComplete(m: { to: string[]; title: string; pdf: Buffer; fileName: string }) {
+  await send(
+    m.to,
+    `Signed by everyone: ${m.title}`,
+    `<p><strong>${esc(m.title)}</strong> has now been signed by everyone.</p>
+<p>The signed copy is attached. It includes a signature page and a certificate showing who signed and when. Please keep it safe: we keep a copy, but it is yours to store.</p>`,
+    'signing-complete',
+    TLGB_EMAIL,
+    'The Little Green Book signing',
+    [{ content: m.pdf.toString('base64'), filename: m.fileName, type: 'application/pdf', disposition: 'attachment' }]
+  );
+}
+
+export async function emailSigningDeclined(m: { to: string; title: string; who: string; reason: string | null }) {
+  await send(
+    m.to,
+    `${m.who} declined to sign: ${m.title}`,
+    `<p><strong>${esc(m.who)}</strong> has declined to sign <strong>${esc(m.title)}</strong>.</p>
+${m.reason ? `<p>Their reason: ${esc(m.reason).replace(/\n/g, '<br>')}</p>` : ''}
+<p>The other signers can no longer sign this version. You can upload a corrected document and send it again.</p>`,
+    'signing-declined',
+    TLGB_EMAIL,
+    'The Little Green Book signing'
   );
 }

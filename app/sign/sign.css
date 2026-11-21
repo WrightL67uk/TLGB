@@ -1,0 +1,11 @@
+.sign-sig { border: 1px solid var(--line); border-radius: 8px; background: #fff; touch-action: none; width: 100%; max-width: 480px; height: 160px; display: block; cursor: crosshair; }
+.sign-tabs { display: flex; gap: 8px; margin: 8px 0; }
+.sign-tabs button { background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 7px 14px; font: inherit; cursor: pointer; }
+.sign-tabs button.on { background: var(--forest); color: #fff; border-color: var(--forest); }
+.sign-typed { font-family: "Brush Script MT", "Segoe Script", "Snell Roundhand", cursive; font-size: 2.2rem; border: 1px solid var(--line); border-radius: 8px; padding: 14px; min-height: 80px; background: #fff; max-width: 480px; }
+.sign-frame { width: 100%; height: 70vh; min-height: 420px; border: 1px solid var(--line); border-radius: 8px; background: #f4f4f1; }
+.sign-signer { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-bottom: 8px; align-items: center; }
+@media (max-width: 600px) { .sign-signer { grid-template-columns: 1fr; } }
+.sign-status { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .8rem; background: #eee; }
+.sign-status.signed, .sign-status.completed { background: #e3f3d8; color: #27500a; }
+.sign-status.declined, .sign-status.cancelled, .sign-status.expired { background: #fbe4e4; color: #791f1f; }
