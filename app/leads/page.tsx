@@ -11,6 +11,7 @@ import '../contractor.css';
 export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'Public Tenders | The Little Green Book',
+  alternates: { canonical: '/leads' },
   description: 'Live landscaping, grounds maintenance, tree work and external works leads from across the UK: public tenders, main contractor wins, new planning applications and tree works. Updated every morning.',
 };
 

@@ -4,7 +4,7 @@ import { siteUrl } from '@/lib/config';
 /** Keep search engines out of private areas; point them at the sitemap. */
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: '*', allow: '/', disallow: ['/admin', '/api/', '/account', '/supplier/', '/seeker', '/contractor/', '/login', '/quote/', '/sign/'] }],
+    rules: [{ userAgent: '*', allow: '/', disallow: ['/admin', '/api/', '/account', '/supplier/', '/seeker', '/contractor/', '/quote/', '/sign/'] }],
     sitemap: `${siteUrl()}/sitemap.xml`,
   };
 }

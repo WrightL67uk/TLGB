@@ -11,6 +11,7 @@ import '../contractor.css';
 export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'TLGB Tenders | The Little Green Book',
+  alternates: { canonical: '/jobs' },
   description: 'Landscaping, groundworks, fencing and external works packages posted directly by main contractors and housebuilders. Members see the full details and reply.',
 };
 

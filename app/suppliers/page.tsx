@@ -12,6 +12,7 @@ import './supplier.css';
 export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'Suppliers | The Little Green Book',
+  alternates: { canonical: '/suppliers' },
   description: 'Landscaping suppliers: topsoil, turf, trees and hedging, fencing, paving, tree pits, artificial grass, plus virtual assistants and business development support. Free to search.',
 };
 

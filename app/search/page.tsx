@@ -15,7 +15,7 @@ type Result = {
 
 type SP = Promise<Record<string, string | string[] | undefined>>;
 
-export const metadata = { title: 'Search trades | TLGB' };
+export const metadata = { title: 'Search trades | The Little Green Book', alternates: { canonical: '/search' } };
 
 export default async function Search({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams;

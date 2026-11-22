@@ -6,7 +6,7 @@ import { currentRole, isRole, roleFromPath, roleShort } from '@/lib/roles';
 import LoginForm from './LoginForm';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Log in | TLGB' };
+export const metadata = { title: 'Log in | The Little Green Book', robots: { index: false, follow: true } };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string; as?: string }> }) {
   const sp = await searchParams;
