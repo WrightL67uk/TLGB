@@ -1278,6 +1278,21 @@ ${m.reason ? `<p>Their reason: ${esc(m.reason).replace(/\n/g, '<br>')}</p>` : ''
   );
 }
 
+/** Tells us when someone ticks that they would like to write an article. */
+export async function emailAdminContributor(m: { name: string; email: string; business?: string; website?: string }) {
+  await send(
+    CONTACT_RECIPIENTS,
+    `Newsletter: ${m.name} would like to write an article`,
+    `<p><strong>${esc(m.name)}</strong> ticked that they are interested in writing an article for the newsletter.</p>
+<p>Email: <a href="mailto:${esc(m.email)}">${esc(m.email)}</a><br>
+Business: ${esc(m.business || 'not given')}<br>
+Website: ${esc(m.website || 'not given')}</p>
+<p>Reply to this email to get in touch with them. The list is also in admin under Newsletter.</p>`,
+    'newsletter-contributor',
+    m.email
+  );
+}
+
 /** Double opt-in: the person must press the button before they are added to the newsletter. */
 export async function emailNewsletterConfirm(to: string, name: string, token: string) {
   const link = `https://tlgb.co.uk/newsletter/confirm?t=${encodeURIComponent(token)}`;

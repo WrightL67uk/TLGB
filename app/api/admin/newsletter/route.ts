@@ -11,10 +11,10 @@ const csv = (v: unknown) => {
 
 /** Download everyone who has confirmed and not unsubscribed, ready to import into an email tool. */
 export async function GET() {
-  const { data } = await db().from('newsletter_subscribers').select('name, email, consented_at, confirmed_at, source')
+  const { data } = await db().from('newsletter_subscribers').select('name, email, consented_at, confirmed_at, source, wants_to_write, contributor_business, contributor_website')
     .not('confirmed_at', 'is', null).is('unsubscribed_at', null).order('confirmed_at').limit(50000);
-  const rows = [['First name', 'Email', 'Consent given', 'Confirmed', 'Came from'], ...(data ?? []).map((r) => [
-    r.name.split(' ')[0], r.email, r.consented_at.slice(0, 16).replace('T', ' '), (r.confirmed_at ?? '').slice(0, 16).replace('T', ' '), r.source ?? '',
+  const rows = [['First name', 'Email', 'Consent given', 'Confirmed', 'Came from', 'Wants to write', 'Business', 'Website'], ...(data ?? []).map((r) => [
+    r.name.split(' ')[0], r.email, r.consented_at.slice(0, 16).replace('T', ' '), (r.confirmed_at ?? '').slice(0, 16).replace('T', ' '), r.source ?? '', r.wants_to_write ? 'Yes' : '', r.contributor_business ?? '', r.contributor_website ?? '',
   ])];
   return new NextResponse(rows.map((r) => r.map(csv).join(',')).join('\r\n'), {
     headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="tlgb-newsletter-${new Date().toISOString().slice(0, 10)}.csv"` },
