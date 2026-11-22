@@ -4,13 +4,14 @@ import { siteUrl } from '@/lib/config';
 import { HOW_TOS } from '@/lib/howTo';
 import { LEGAL_PAGES } from '@/app/legal/pages';
 import { publicListings } from '@/lib/seo';
+import { ADVICE } from '@/lib/advice';
 
 export const revalidate = 3600;
 
 const STATIC = [
   '/', '/search', '/tenders', '/leads', '/jobs', '/recruitment', '/looking-for-work', '/suppliers', '/suppliers/join',
   '/help-hub', '/guides', '/guides/finding-leads', '/guides/retention-ban', '/guides/winning-tenders',
-  '/find', '/accreditation-help', '/contact', '/supply-chains', '/contractors', '/contractors/join', '/join', '/tour', '/tools/payment-dates', '/legal',
+  '/find', '/advice', '/accreditation-help', '/contact', '/supply-chains', '/contractors', '/contractors/join', '/join', '/tour', '/tools/payment-dates', '/legal',
 ];
 
 /** Tells Google which pages exist: public pages, guides, approved listings and live vacancies. */
@@ -19,6 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const out: MetadataRoute.Sitemap = [
     ...STATIC.map((p) => ({ url: `${base}${p === '/' ? '' : p}`, lastModified: now })),
+    ...ADVICE.map((a) => ({ url: `${base}/advice/${a.slug}` })),
     ...HOW_TOS.map((h) => ({ url: `${base}/guides/${h.slug}` })),
     ...LEGAL_PAGES.map((l) => ({ url: `${base}/legal/${l.slug}` })),
   ];

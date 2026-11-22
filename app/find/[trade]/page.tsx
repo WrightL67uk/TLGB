@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { publicListings, knownTrade, tradePlural, tradePluralCap, areaName } from '@/lib/seo';
 import { tradeLabel } from '@/lib/config';
+import { tradeFaqs } from '@/lib/faqs';
+import FaqList from '@/app/FaqList';
 
 export const revalidate = 3600;
 
@@ -40,6 +42,8 @@ export default async function TradePage({ params }: { params: Promise<{ trade: s
         {sorted.map(([code, n]) => <li key={code}><Link href={`/find/${trade}/${code.toLowerCase()}`}>{areaName(code)} ({code} postcodes)</Link> <span className="muted">({n})</span></li>)}
       </ul>
       <p>Not in the list? <Link href={`/search?trade=${trade}`}>Search by postcode and distance</Link>, since many trades cover a wide area around where they are based.</p>
+      <FaqList faqs={tradeFaqs(trade)} />
+      <p><Link href="/advice">More advice on hiring a trade</Link></p>
     </div>
   );
 }
