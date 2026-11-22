@@ -241,6 +241,10 @@ export const LEGAL_PAGES: LegalPage[] = [
         <ul>
           <li><strong>Your details:</strong> name, business name, email and phone. <em>Why:</em> to tell you when we open, send you your one-time discount code and offer you membership first, as you asked (legitimate interests). We keep them for up to 12 months after we open, unless you become a member or ask us to remove them sooner.</li>
         </ul>
+        <h3>Newsletter</h3>
+        <ul>
+          <li><strong>Your details:</strong> name and email address, plus a record of when you agreed and the wording you agreed to. <em>Why:</em> to send you our newsletter and updates, which you asked for by ticking the consent box and confirming your email (consent). You can withdraw consent at any time with the unsubscribe link in every email. We keep your details until you unsubscribe, and keep a minimal record that you did so to make sure we do not email you again.</li>
+        </ul>
         <h3>Everyone</h3>
         <ul>
           <li><strong>Login records:</strong> your email address and secure, one-way scrambled copies of login links and session tokens. <em>Why:</em> to let you log in securely (contract and legitimate interests).</li>

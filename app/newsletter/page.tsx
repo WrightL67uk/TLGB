@@ -1,0 +1,48 @@
+import Link from 'next/link';
+import type { Metadata } from 'next';
+import { CONSENT_TEXT } from '@/lib/newsletter';
+
+export const metadata: Metadata = {
+  title: 'Newsletter | The Little Green Book',
+  description: 'News, tips and updates for the UK landscaping and external works industry, from The Little Green Book. Free to join.',
+  alternates: { canonical: '/newsletter' },
+};
+
+export default async function NewsletterPage({ searchParams }: { searchParams: Promise<{ sent?: string; error?: string; src?: string }> }) {
+  const sp = await searchParams;
+  const src = (sp.src ?? '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30);
+  return (
+    <div className="narrow">
+      <h1>The Little Green Book newsletter</h1>
+      <p className="lead">News, practical tips and updates for the UK landscaping and external works industry. Free, and you can unsubscribe at any time.</p>
+
+      {sp.sent ? (
+        <div className="ok-box">
+          <h2 style={{ marginTop: 0 }}>Check your email</h2>
+          <p style={{ marginBottom: 0 }}>We have sent you a message with a button to confirm your address. You will not receive the newsletter until you press it. If it does not arrive in a few minutes, look in your junk folder.</p>
+        </div>
+      ) : (
+        <form method="post" action="/api/newsletter" className="stack" style={{ maxWidth: 480 }}>
+          {sp.error && <p className="err big">{sp.error}</p>}
+          <input type="hidden" name="src" value={src} />
+          {/* Hidden from people; bots tend to fill it in */}
+          <div style={{ position: 'absolute', left: '-9999px' }} aria-hidden="true">
+            <label>Website <input name="website_url" tabIndex={-1} autoComplete="off" /></label>
+          </div>
+          <label>Your name
+            <input name="name" required maxLength={100} autoComplete="name" />
+          </label>
+          <label>Your email address
+            <input name="email" type="email" required maxLength={200} autoComplete="email" />
+          </label>
+          <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontWeight: 400 }}>
+            <input type="checkbox" name="consent" value="yes" required style={{ width: 22, height: 22, marginTop: 2, flex: '0 0 auto' }} />
+            <span>{CONSENT_TEXT}</span>
+          </label>
+          <button type="submit">Subscribe</button>
+          <p className="small muted">We use your name and email only to send you the newsletter. Read how we look after your information in our <Link href="/legal/privacy">privacy policy</Link>.</p>
+        </form>
+      )}
+    </div>
+  );
+}

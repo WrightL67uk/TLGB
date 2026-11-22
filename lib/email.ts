@@ -1277,3 +1277,17 @@ ${m.reason ? `<p>Their reason: ${esc(m.reason).replace(/\n/g, '<br>')}</p>` : ''
     'The Little Green Book signing'
   );
 }
+
+/** Double opt-in: the person must press the button before they are added to the newsletter. */
+export async function emailNewsletterConfirm(to: string, name: string, token: string) {
+  const link = `https://tlgb.co.uk/newsletter/confirm?t=${encodeURIComponent(token)}`;
+  await send(
+    to,
+    'Please confirm your email address',
+    `<p>Hi ${esc(name.split(' ')[0] || name)},</p>
+<p>Thanks for signing up to the Little Green Book newsletter. Please press the button to confirm your email address.</p>
+<p><a href="${link}" style="display:inline-block;background:#163f27;color:#ffffff;padding:12px 22px;text-decoration:none;border-radius:4px;font-weight:bold">Confirm my subscription</a></p>
+<p>You will not get the newsletter until you do. If you did not sign up, ignore this email and nothing will happen.</p>`,
+    'newsletter-confirm'
+  );
+}

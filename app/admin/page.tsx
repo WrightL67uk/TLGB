@@ -262,6 +262,7 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
           {(seekersWaiting ?? 0) > 0 && <span className="count"> {seekersWaiting} waiting</span>}
         </Link>
         <Link href="/admin/waitlist">Waiting list</Link>
+        <Link href="/admin/newsletter">Newsletter</Link>
         <Link href="/admin/vacancies">Vacancies</Link>
         <Link href="/admin/admins">Admins</Link>
         <Link href="/admin/codes">Discount codes</Link>
