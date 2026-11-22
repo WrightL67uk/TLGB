@@ -14,8 +14,6 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      // One address for the site: www sends visitors and search engines to tlgb.co.uk.
-      { source: '/:path*', has: [{ type: 'host', value: 'www.tlgb.co.uk' }], destination: 'https://tlgb.co.uk/:path*', permanent: true },
       // The Help board was renamed the Help Hub; old links keep working.
       { source: '/help-board', destination: '/help-hub', permanent: true },
       { source: '/help-board/:path*', destination: '/help-hub/:path*', permanent: true },
