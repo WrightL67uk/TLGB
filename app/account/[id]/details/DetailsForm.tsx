@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { uploadToSignedUrl } from '@/lib/supabaseBrowser';
 import AccreditationPicker, { readAccreditationExpiries } from '@/app/AccreditationPicker';
+import OtherTrade from '@/app/OtherTrade';
 import { TRADES, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
 
 type FileField = 'letterhead' | 'pl_certificate' | 'el_certificate' | 'accreditation_docs' | 'photos';
@@ -54,6 +55,7 @@ export default function DetailsForm({ id, businessType, company, email, saved }:
       phone: String(fd.get('phone') ?? ''),
       website: String(fd.get('website') ?? ''),
       trades: fd.getAll('trades').map(String),
+      other_trade: fd.get('other_trade_on') === 'on' ? String(fd.get('other_trade') ?? '') : '',
       base_postcode: String(fd.get('base_postcode') ?? ''),
       radius_miles: fd.get('covers_nationwide') === 'on' ? '2000' : String(fd.get('radius_miles') ?? ''),
       pl_cover_amount: String(fd.get('pl_cover_amount') ?? ''),
@@ -181,6 +183,7 @@ export default function DetailsForm({ id, businessType, company, email, saved }:
             <label key={t.slug} className="check"><input type="checkbox" name="trades" value={t.slug} defaultChecked={arr(saved.trades).includes(t.slug)} /> {t.label}</label>
           ))}
         </div>
+        <OtherTrade saved={str(saved.other_trade)} />
         <div className="two">
           <label>Base postcode<input name="base_postcode" required placeholder="e.g. SG1 2AB" defaultValue={str(saved.base_postcode)} /></label>
           <label>Will travel up to

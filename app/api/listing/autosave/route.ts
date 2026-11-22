@@ -6,7 +6,7 @@ import { ownedBusiness } from '@/lib/account';
 export const runtime = 'nodejs';
 
 const TEXT = ['trading_name', 'owner_full_name', 'business_address', 'contact_name', 'phone', 'website', 'base_postcode', 'radius_miles',
-  'pl_cover_amount', 'pl_expiry', 'el_cover_amount', 'el_expiry', 'description'];
+  'pl_cover_amount', 'pl_expiry', 'el_cover_amount', 'el_expiry', 'description', 'other_trade'];
 const LISTS = ['trades', 'accreditations'];
 
 /** Saves the details form as they type, for listings not yet sent for approval. */

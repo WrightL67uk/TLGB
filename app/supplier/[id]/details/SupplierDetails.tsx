@@ -11,7 +11,7 @@ type S = {
   id: string; status: string; name: string; contact_name: string; phone: string; public_email: string; email: string; website: string;
   address: string; town: string; postcode: string; delivers_nationally: boolean; delivery_radius_miles: string; categories: string[]; description: string; about: string;
   year_established: string; delivery_options: string[]; min_order: string; trade_accounts: boolean; trade_only: boolean; does_domestic: boolean; standards: string[];
-  standards_other: string; product_liability: boolean | null; tier: string | null;
+  standards_other: string; other_category: string; other_category_ok: boolean; product_liability: boolean | null; tier: string | null;
 };
 type Photo = { id: string; url: string; caption: string };
 type Video = { id: string; url: string; caption: string; approved: boolean };
@@ -27,6 +27,7 @@ export default function SupplierDetails({ supplier, logoUrl, photos, videos }: {
   const [f, setF] = useState(supplier);
   const [caps, setCaps] = useState<Record<string, string>>(Object.fromEntries(photos.map((p) => [p.id, p.caption])));
   const [vcaps, setVcaps] = useState<Record<string, string>>(Object.fromEntries(videos.map((v) => [v.id, v.caption])));
+  const [otherOn, setOtherOn] = useState(!!supplier.other_category);
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const started = f.status === 'started';
@@ -93,7 +94,7 @@ export default function SupplierDetails({ supplier, logoUrl, photos, videos }: {
       supplierId: f.id, submit, contact_name: f.contact_name, phone: f.phone, public_email: f.public_email, website: f.website, address: f.address,
       town: f.town, postcode: f.postcode, delivers_nationally: f.delivers_nationally, delivery_radius_miles: f.delivery_radius_miles, categories: f.categories, description: f.description,
       about: f.about, year_established: f.year_established, delivery_options: f.delivery_options, min_order: f.min_order,
-      trade_accounts: f.trade_accounts, trade_only: f.trade_only, does_domestic: f.does_domestic, standards: f.standards, standards_other: f.standards_other,
+      trade_accounts: f.trade_accounts, trade_only: f.trade_only, does_domestic: f.does_domestic, standards: f.standards, standards_other: f.standards_other, other_category: f.other_category,
       product_liability: f.product_liability, captions: caps,
     });
     if (r.ok && videos.length) await post('/api/supplier/videos', { action: 'caption', supplierId: f.id, captions: vcaps });
@@ -129,6 +130,13 @@ export default function SupplierDetails({ supplier, logoUrl, photos, videos }: {
           <label key={c.key}><input type="checkbox" checked={f.categories.includes(c.key)} onChange={() => toggle('categories', c.key)} /> {c.label}</label>
         ))}
       </div>
+      <label className="check"><input type="checkbox" checked={!!f.other_category || otherOn} onChange={(e) => { setOtherOn(e.target.checked); if (!e.target.checked) set('other_category', ''); }} /> Other (not in the lists above)</label>
+      {(otherOn || !!f.other_category) && (
+        <label>What else do you supply?
+          <input value={f.other_category} onChange={(e) => set('other_category', e.target.value)} maxLength={120} placeholder="e.g. Reclaimed railway sleepers" />
+          <span className="hint">{f.other_category && f.other_category_ok ? 'Approved: shown on your profile.' : 'We will check this and add it to your profile. Until then you can still pick anything above.'}</span>
+        </label>
+      )}
       {f.categories.includes('soil-aggregates') && !started && <p className="ok-box" style={{ margin: 0 }}>You supply soil. <a href={`/supplier/${f.id}/soil`}><strong>Add your soil quality details and test results</strong></a> to earn a &ldquo;soil tests checked&rdquo; badge.</p>}
       {f.tier === 'match' && <p className="hint" style={{ margin: 0 }}>On the Match plan, these decide which estimate requests you receive.</p>}
       <label>Summary for the supplier list (one or two sentences)

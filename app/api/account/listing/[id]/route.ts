@@ -25,7 +25,8 @@ const Schema = z.object({
   description: z.preprocess(blank, z.string().trim().max(2000).optional()),
   base_postcode: z.string().trim().min(5).max(10),
   radius_miles: z.coerce.number().int().refine((v) => (v >= 5 && v <= 300) || v === 2000, 'Choose how far you cover'),
-  trades: z.array(z.enum(tradeSlugs)).min(1, 'Pick at least one trade'),
+  trades: z.array(z.enum(tradeSlugs)).default([]),
+  other_trade: z.preprocess(blank, z.string().trim().min(3, 'Tell us what your other trade is').max(120).optional()),
   accreditations: z.array(z.enum(ACCREDITATIONS)).default([]),
   accreditation_expiries: z.record(z.string(), z.string()).default({}),
   turnover_band: z.enum(bandKeys, { message: 'Choose your annual turnover' }),
@@ -80,6 +81,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // ---- Changes that need an admin to look at them
   const changes: string[] = [];
   if (d.trading_name !== b.trading_name) changes.push(`Trading name changed to "${d.trading_name}"`);
+  if (!d.trades.length && !d.other_trade) return fail('Pick at least one trade, or tick Other and tell us what you do');
+  const otherChanged = (d.other_trade ?? null) !== (b.other_trade ?? null);
+  if (otherChanged && d.other_trade) changes.push(`Other trade to approve: "${d.other_trade}"`);
   if (!sameSet(d.trades, b.trades)) changes.push('Trades changed');
   if (!sameSet(d.accreditations, b.accreditations)) changes.push('Accreditations changed');
   const oldExp = b.accreditation_expiries ?? {};
@@ -143,6 +147,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       radius_miles: d.radius_miles,
       does_domestic: d.does_domestic,
       trades: d.trades,
+      other_trade: d.other_trade ?? null,
+      other_trade_ok: otherChanged ? false : !!b.other_trade_ok,
       accreditations,
       accreditation_expiries: accreditationExpiries,
       turnover_band: d.turnover_band,

@@ -23,7 +23,8 @@ const Body = z.object({
   postcode: z.string().trim().min(2, 'Enter the postcode of your yard or depot').max(10),
   delivers_nationally: z.boolean(),
   delivery_radius_miles: z.preprocess((v) => (v === '' || v == null ? undefined : Number(v)), z.number().int().min(5).max(1000).optional()),
-  categories: z.array(z.enum(cats)).min(1, 'Pick at least one thing you supply'),
+  categories: z.array(z.enum(cats)).default([]),
+  other_category: z.preprocess(blank, z.string().trim().min(3, 'Tell us what else you supply').max(120).optional()),
   description: z.string().trim().min(10, 'Add a one or two sentence summary').max(400, 'Keep the summary under 400 characters'),
   about: z.preprocess(blank, z.string().trim().max(2000, 'About us is too long (2,000 characters at most)').optional()),
   year_established: z.preprocess((v) => (v === '' || v == null ? undefined : Number(v)), z.number().int().min(1800).max(new Date().getFullYear()).optional()),
@@ -55,6 +56,8 @@ export async function POST(req: NextRequest) {
   const pc = await lookupPostcode(d.postcode);
   if (!pc.ok) return fail(pc.reason);
 
+  if (!d.categories.length && !d.other_category) return fail('Pick at least one thing you supply, or tick Other and tell us what');
+  const otherChanged = (d.other_category ?? null) !== ((s as { other_category?: string | null }).other_category ?? null);
   const submitting = !!d.submit && s.status === 'started';
   if (submitting && s.tier) {
     if (!isSubscribed(s)) return fail('Please complete payment first, then send your details.');
@@ -69,6 +72,8 @@ export async function POST(req: NextRequest) {
     categories: d.categories, description: d.description, about: d.about ?? null, year_established: d.year_established ?? null,
     delivery_options: d.delivery_options, min_order: d.min_order ?? null, trade_accounts: d.trade_accounts, trade_only: d.trade_only, does_domestic: d.does_domestic,
     standards: d.standards, standards_other: d.standards_other ?? null, product_liability: d.product_liability,
+    other_category: d.other_category ?? null,
+    ...(otherChanged ? { other_category_ok: false } : {}),
     ...(submitting ? { status: 'pending', submitted_at: new Date().toISOString() } : {}),
   };
   let { error } = await db().from('suppliers').update({ ...row, delivery_radius_miles: d.delivers_nationally ? null : d.delivery_radius_miles ?? null }).eq('id', s.id);
@@ -80,6 +85,9 @@ export async function POST(req: NextRequest) {
   }
   for (const [id, caption] of Object.entries(d.captions ?? {})) {
     if (/^[0-9a-f-]{36}$/i.test(id)) await db().from('supplier_photos').update({ caption: caption || null }).eq('id', id).eq('supplier_id', s.id);
+  }
+  if (otherChanged && d.other_category && !submitting) {
+    await emailAdminSupplier(`Supplier other category to approve: ${s.name}`, `${s.name} typed in "${d.other_category}" as something else they supply. Approve it in the Suppliers admin page.`, s.id).catch(() => null);
   }
   if (submitting) {
     await emailAdminSupplier(`Supplier waiting for approval: ${s.name}`, s.tier ? `${s.name} has paid for ${s.tier === 'match' ? 'Match' : 'Appear'} and sent their details to be checked.` : `${s.name} has sent a free Basic listing to be checked.`, s.id).catch(() => null);

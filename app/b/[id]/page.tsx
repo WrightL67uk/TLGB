@@ -45,6 +45,7 @@ export default async function BusinessPage({ params, searchParams }: { params: P
   const reason = unverifiedReason(b);
   const verified = !reason;
 
+  const { data: ot } = await db().from('businesses').select('other_trade, other_trade_ok').eq('id', id).maybeSingle();
   const { data: photos } = await db().from('business_photos').select('storage_path, caption').eq('business_id', id).order('sort_order');
   const { data: lg } = verified ? await db().from('businesses').select('logo_path').eq('id', id).maybeSingle() : { data: null };
   const logo = (lg as { logo_path?: string | null } | null)?.logo_path ?? null;
@@ -68,7 +69,7 @@ export default async function BusinessPage({ params, searchParams }: { params: P
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
       {logo && <img src={photoUrl(logo)} alt={`${b.trading_name} logo`} className="listing-logo" />}
       <h1>{b.trading_name}</h1>
-      <p className="muted">{b.trades.map(tradeLabel).join(', ')}</p>
+      <p className="muted">{[...b.trades.map(tradeLabel), ...(ot?.other_trade && ot.other_trade_ok ? [ot.other_trade as string] : [])].join(', ')}</p>
       {me && error && <p className="err big">{error}</p>}
       {me && (
         <div className="save-box">

@@ -10,6 +10,8 @@ export type Business = {
   ch_company_name?: string | null;
   ch_registered_address?: string | null;
   draft_data?: unknown;
+  other_trade?: string | null;
+  other_trade_ok?: boolean;
   company_number: string | null;
   owner_full_name: string | null;
   trading_name: string;

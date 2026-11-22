@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadToSignedUrl } from '@/lib/supabaseBrowser';
 import AccreditationPicker, { readAccreditationExpiries } from '@/app/AccreditationPicker';
+import OtherTrade from '@/app/OtherTrade';
 import { TRADES, PL_COVER_OPTIONS, MAX_PHOTOS, gbp } from '@/lib/config';
 
 type FileField = 'letterhead' | 'pl_certificate' | 'el_certificate' | 'accreditation_docs' | 'photos';
@@ -54,6 +55,7 @@ export default function AccountEditor({ b, docs, photos, bands }: Props) {
       base_postcode: fd.get('base_postcode'),
       radius_miles: fd.get('covers_nationwide') === 'on' ? 2000 : fd.get('radius_miles'),
       trades: fd.getAll('trades'),
+      other_trade: fd.get('other_trade_on') === 'on' ? fd.get('other_trade') : '',
       accreditations: fd.getAll('accreditations'),
       accreditation_expiries: readAccreditationExpiries(fd),
       turnover_band: fd.get('turnover_band'),
@@ -167,6 +169,7 @@ export default function AccountEditor({ b, docs, photos, bands }: Props) {
               </label>
             ))}
           </div>
+          <OtherTrade saved={(b as { other_trade?: string | null }).other_trade ?? ''} approved={!!(b as { other_trade_ok?: boolean }).other_trade_ok} />
           <label className="check" htmlFor="does_domestic">
             <input id="does_domestic" type="checkbox" name="does_domestic" defaultChecked={b.does_domestic} /> We do domestic work (show us to homeowners who search TLGB)
           </label>

@@ -50,11 +50,27 @@ export default async function AdminResources({ searchParams }: { searchParams: P
     for (const x of vs ?? []) vidSupp.set(x.id as string, x.name as string);
   }
   const pending = pendingNew ?? (await db().from('suppliers').select('id, created_at, name, categories, description, website, phone, town, postcode, email').eq('status', 'pending').order('created_at')).data?.map((x) => ({ ...x, wants_requests: false }));
+  const { data: otherCats } = await db().from('suppliers').select('id, name, other_category, other_category_ok').not('other_category', 'is', null).order('name');
+  const otherPending = (otherCats ?? []).filter((o) => !o.other_category_ok);
+
 
   return (
     <div>
       <p><Link href="/admin">&larr; Back to listings</Link></p>
       <h1>Suppliers, enquiries and Help Hub</h1>
+      {otherPending.length > 0 && (
+        <section className="panel" style={{ borderColor: 'var(--warn)' }}>
+          <h2>&ldquo;Other&rdquo; categories to approve ({otherPending.length})</h2>
+          {otherPending.map((o) => (
+            <form key={o.id as string} method="post" action="/api/admin/other" className="row">
+              <input type="hidden" name="id" value={o.id as string} /><input type="hidden" name="kind" value="supplier" />
+              <strong>{o.name as string}</strong> <input name="text" defaultValue={o.other_category as string} maxLength={120} />
+              <button name="action" value="approve" className="primary">Approve</button> <button name="action" value="remove">Remove</button>
+            </form>
+          ))}
+          <p className="muted small">If several suppliers ask for the same thing, tell Claude and it can become a proper category.</p>
+        </section>
+      )}
       {sp.deleted && <p className="ok-box">Deleted {sp.deleted}.</p>}
       {sp.delete_error && <p className="err big">{sp.delete_error}</p>}
       {sp.renamed && <p className="ok-box">Name saved.</p>}

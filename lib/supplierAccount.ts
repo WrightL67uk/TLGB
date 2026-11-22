@@ -46,6 +46,8 @@ export type Supplier = {
   does_domestic: boolean;
   standards: string[];
   standards_other: string | null;
+  other_category?: string | null;
+  other_category_ok?: boolean;
   product_liability: boolean | null;
   logo_path: string | null;
   quote_requests: boolean;

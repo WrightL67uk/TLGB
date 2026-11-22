@@ -70,6 +70,7 @@ export default async function SupplierProfile({ params }: { params: Promise<{ sl
           <h1>{s.name}</h1>
           <div className="badges">
             {s.categories.map((c) => <span key={c} className="badge ok">{supplierCategoryLabel(c)}</span>)}
+            {s.other_category && s.other_category_ok && <span className="badge ok">{s.other_category}</span>}
             {s.ch_company_name && <span className="badge ok" title="Checked on Companies House">Company checked</span>}
             {soilOk && <span className="badge ok" title="We have checked their soil test certificates">Soil tests checked</span>}
             {s.quote_requests && <span className="badge ok">takes estimate requests</span>}

@@ -40,7 +40,8 @@ const Base = z.object({
   description: z.preprocess(blankToUndef, z.string().trim().max(2000).optional()),
   base_postcode: z.string().trim().min(5).max(10),
   radius_miles: z.coerce.number().int().refine((v) => (v >= 5 && v <= 300) || v === 2000, 'Choose how far you cover'),
-  trades: z.array(z.enum(tradeSlugs)).min(1, 'Pick at least one trade'),
+  trades: z.array(z.enum(tradeSlugs)).default([]),
+  other_trade: z.preprocess(blankToUndef, z.string().trim().min(3, 'Tell us what your other trade is').max(120).optional()),
   accreditations: z.array(z.enum(ACCREDITATIONS)).default([]),
   accreditation_expiries: z.record(z.string(), z.string()).default({}),
   turnover_band: z.enum(bandKeys, { message: 'Choose your annual turnover' }),
@@ -108,6 +109,7 @@ export async function POST(req: NextRequest) {
     return fail(`${LABEL[key] ?? key ?? 'Form'}: ${issue.message}`);
   }
   const d = parsed.data;
+  if (!d.trades.length && !d.other_trade) return fail('Trades: pick at least one trade, or tick Other and tell us what you do');
 
   // ---- File rules
   const by = (f: string) => d.files.filter((x) => x.field === f);
@@ -174,6 +176,8 @@ export async function POST(req: NextRequest) {
       lng: pc.lng,
       radius_miles: d.radius_miles,
       trades: d.trades,
+      other_trade: d.other_trade ?? null,
+      other_trade_ok: false,
       accreditations: d.accreditations,
       accreditation_expiries: accExp.value,
       turnover_band: d.turnover_band,

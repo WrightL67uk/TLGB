@@ -138,7 +138,17 @@ export default async function AdminDetail({
           <h2>Contact</h2>
           <p>{b.contact_name}<br />{b.email}<br />{b.phone}<br />{b.website && <a href={b.website} target="_blank" rel="noopener">{b.website}</a>}</p>
           <p>Base {b.base_postcode}, {isNationwide(b.radius_miles) ? 'covers the whole UK' : `travels ${b.radius_miles} miles`}</p>
-          <p>{b.trades.map(tradeLabel).join(', ')}</p>
+          <p>{b.trades.map(tradeLabel).join(', ') || 'No listed trade chosen'}</p>
+          {b.other_trade && (
+            <form method="post" action="/api/admin/other" className="panel" style={{ borderColor: b.other_trade_ok ? undefined : 'var(--warn)' }}>
+              <input type="hidden" name="id" value={b.id} /><input type="hidden" name="kind" value="business" />
+              <p><strong>Other trade they typed in</strong> {b.other_trade_ok ? <span className="status approved">approved</span> : <span className="warn">waiting for you</span>}</p>
+              <input name="text" defaultValue={b.other_trade} maxLength={120} />
+              <button name="action" value="approve" className="primary">{b.other_trade_ok ? 'Save wording' : 'Approve (shows on profile)'}</button>{' '}
+              <button name="action" value="remove">Remove</button>
+              <p className="muted small">If several businesses ask for the same thing, tell Claude and it can become a proper trade.</p>
+            </form>
+          )}
           <p>Turnover: {turnoverBand(b.turnover_band)?.label ?? 'not given'}
             {pricing.mode === 'bands' && bandPrice(pricing, b.turnover_band) && <span className="muted"> (listing £{bandPrice(pricing, b.turnover_band)!.price}/yr)</span>}
             {pricing.mode === 'plans' && <span className="muted"> (plan: {b.plan === 'pro' ? 'Pro' : b.plan === 'verified' ? 'Verified' : 'not chosen yet'})</span>}</p>
