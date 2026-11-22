@@ -27,6 +27,7 @@ export default async function MenuPage() {
     {
       title: 'Find trades and suppliers',
       items: [
+        { label: 'Browse trades by area', href: '/find', note: 'Landscapers, groundworkers, tree surgeons and more, by trade and postcode area.', k: 'find browse area location town county trade directory' },
         { label: 'Find a trade', href: '/search', note: 'Search checked landscaping and external works trades by trade and postcode.' },
         { label: 'Suppliers', href: '/suppliers', note: 'Soil, turf, trees, fencing, paving, plant hire and merchants near your job.' },
         { label: 'Add a supplier', href: '/suppliers/add', note: 'Suggest a supplier for the directory.' },

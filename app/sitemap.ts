@@ -3,13 +3,14 @@ import { db } from '@/lib/supabase';
 import { siteUrl } from '@/lib/config';
 import { HOW_TOS } from '@/lib/howTo';
 import { LEGAL_PAGES } from '@/app/legal/pages';
+import { publicListings } from '@/lib/seo';
 
 export const revalidate = 3600;
 
 const STATIC = [
   '/', '/search', '/tenders', '/leads', '/jobs', '/recruitment', '/looking-for-work', '/suppliers', '/suppliers/join',
   '/help-hub', '/guides', '/guides/finding-leads', '/guides/retention-ban', '/guides/winning-tenders',
-  '/accreditation-help', '/contact', '/supply-chains', '/contractors', '/contractors/join', '/join', '/tour', '/tools/payment-dates', '/legal',
+  '/find', '/accreditation-help', '/contact', '/supply-chains', '/contractors', '/contractors/join', '/join', '/tour', '/tools/payment-dates', '/legal',
 ];
 
 /** Tells Google which pages exist: public pages, guides, approved listings and live vacancies. */
@@ -28,6 +29,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       db().from('suppliers').select('slug').eq('status', 'approved').not('tier', 'is', null).in('subscription_status', ['active', 'trialing', 'past_due']).not('slug', 'is', null).limit(2000),
     ]);
     for (const b of biz ?? []) out.push({ url: `${base}/b/${b.id}` });
+    const listings = await publicListings();
+    const trades = new Set<string>(), combos = new Set<string>();
+    for (const l of listings) for (const t of new Set(l.trades)) { trades.add(t); combos.add(`${t}/${l.area.toLowerCase()}`); }
+    for (const t of trades) out.push({ url: `${base}/find/${t}` });
+    for (const c of combos) out.push({ url: `${base}/find/${c}` });
     for (const x of sups ?? []) out.push({ url: `${base}/suppliers/${x.slug}` });
     for (const v of vacs ?? []) out.push({ url: `${base}/recruitment/vacancies/${v.id}`, lastModified: new Date(v.updated_at) });
   } catch {

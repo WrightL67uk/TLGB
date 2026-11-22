@@ -1,0 +1,17 @@
+# The Little Green Book (TLGB)
+
+> A UK directory of landscape and external works trades and suppliers. Verified members have had their company details, public liability and employers liability insurance and accreditations (such as CHAS, SMAS, Constructionline, NPTC) checked by TLGB. Listings that have not been checked say so on the page.
+
+## Find trades
+- [Browse by trade and area](https://tlgb.co.uk/find): landscapers, groundworkers, tree surgeons and other trades, by postcode area
+- [Search by postcode and distance](https://tlgb.co.uk/search)
+
+## Find suppliers
+- [Landscape suppliers](https://tlgb.co.uk/suppliers): soil, aggregates, plants, turf, fencing, sheds, garden rooms, hire and more
+
+## Guides
+- [Guides for trades](https://tlgb.co.uk/guides): accreditation, tenders, finding leads, retentions and late payment
+
+## About
+- [Contact](https://tlgb.co.uk/contact)
+- [Terms and policies](https://tlgb.co.uk/legal)

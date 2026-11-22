@@ -1,4 +1,7 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import { siteUrl } from '@/lib/config';
+import { areaOf, areaName } from '@/lib/seo';
 import { db, photoUrl } from '@/lib/supabase';
 import { isNationwide, gbp, tradeLabel, accreditationLabel } from '@/lib/config';
 import { unverifiedReason } from '@/lib/membership';
@@ -9,6 +12,21 @@ import { getContractor } from '@/lib/contractors';
 import ReportButton from '@/app/ReportButton';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return { title: 'Not found | The Little Green Book', robots: { index: false } };
+  const { data: b } = await db().from('businesses').select('trading_name, trades, description, base_postcode, status, founding_member, subscription_status, free_listing').eq('id', id).maybeSingle();
+  if (!b || b.status !== 'approved' || !(b.founding_member || b.free_listing || ['active', 'trialing', 'past_due', 'cancelled'].includes(b.subscription_status))) return { title: 'Not found | The Little Green Book', robots: { index: false } };
+  const area = areaOf(b.base_postcode);
+  const place = area ? ` in the ${areaName(area)} area` : '';
+  const trades = (b.trades as string[]).map(tradeLabel).join(', ');
+  return {
+    title: `${b.trading_name} | ${trades}${area ? `, ${areaName(area)}` : ''} | The Little Green Book`,
+    description: (b.description as string | null)?.slice(0, 155) || `${b.trading_name}: ${trades}${place}. See insurance, accreditations and how to get in touch on The Little Green Book.`,
+    alternates: { canonical: `/b/${id}` },
+  };
+}
 
 export default async function BusinessPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string }> }) {
   const { id } = await params;
@@ -33,8 +51,21 @@ export default async function BusinessPage({ params, searchParams }: { params: P
   const me = await getContractor();
   const saved = me ? !!(await db().from('contractor_favourites').select('business_id', { count: 'exact', head: true }).eq('company_id', me.company.id).eq('business_id', id)).count : false;
 
+  const area = areaOf(b.base_postcode);
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: b.trading_name,
+    url: `${siteUrl()}/b/${b.id}`,
+    ...(b.description ? { description: b.description } : {}),
+    ...(logo ? { image: photoUrl(logo) } : {}),
+    ...(area ? { areaServed: `${areaName(area)} area, UK` } : {}),
+    knowsAbout: b.trades.map(tradeLabel),
+  };
+
   return (
     <div className="narrow">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
       {logo && <img src={photoUrl(logo)} alt={`${b.trading_name} logo`} className="listing-logo" />}
       <h1>{b.trading_name}</h1>
       <p className="muted">{b.trades.map(tradeLabel).join(', ')}</p>

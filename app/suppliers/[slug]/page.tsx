@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { db, photoUrl } from '@/lib/supabase';
+import { siteUrl } from '@/lib/config';
 import { supplierCategoryLabel, shortUrl } from '@/lib/resources';
 import { hasProfile, photosFor, videosFor, standardLabel, type Supplier } from '@/lib/supplierAccount';
 import { DELIVERY_OPTIONS } from '@/lib/supplierOptions';
@@ -39,6 +40,16 @@ export default async function SupplierProfile({ params }: { params: Promise<{ sl
     lastTest = (t?.[0]?.tested_on as string | undefined) ?? null;
   }
   const mail = s.public_email || s.email;
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: s.name,
+    url: `${siteUrl()}/suppliers/${s.slug}`,
+    ...(s.description ? { description: s.description } : {}),
+    ...(s.website ? { sameAs: [s.website] } : {}),
+    ...(s.town ? { address: { '@type': 'PostalAddress', addressLocality: s.town, addressCountry: 'GB' } } : {}),
+    knowsAbout: s.categories.map(supplierCategoryLabel),
+  };
   const facts: [string, string][] = [
     ...(s.year_established ? [['Established', String(s.year_established)] as [string, string]] : []),
     ...(s.min_order ? [['Minimum order', s.min_order] as [string, string]] : []),
@@ -51,6 +62,7 @@ export default async function SupplierProfile({ params }: { params: Promise<{ sl
 
   return (
     <div className="sup-profile">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
       <p className="small"><Link href="/suppliers">&larr; All suppliers</Link></p>
       <div className="sup-head">
         {s.logo_path && <img src={photoUrl(s.logo_path)} alt={`${s.name} logo`} className="sup-logo" />}
