@@ -43,12 +43,14 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
         <div className="who">
           <Link href={`/join?as=trade${offer ? `&code=${encodeURIComponent(offer.code)}` : ''}`}>
             <strong>I am a trade</strong>
-            <span>Landscapers, gardeners, groundworkers, fencers, tree surgeons and other external works businesses who carry out the work.</span>
+            <b>We do the work</b>
+            <span>Landscapers, gardeners, groundworkers, fencers, tree surgeons and other external works businesses that carry out the work on site.</span>
             <em>See trade membership</em>
           </Link>
           <Link href={`/suppliers/join${code}`}>
             <strong>I am a supplier</strong>
-            <span>Nurseries, merchants, soil, turf, stone, fencing, machinery and plant hire businesses who sell to the trade.</span>
+            <b>We supply the materials</b>
+            <span>Nurseries, merchants, soil, turf, stone, fencing, machinery and plant hire businesses that sell or hire to the trade.</span>
             <em>See supplier plans</em>
           </Link>
         </div>

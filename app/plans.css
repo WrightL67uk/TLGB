@@ -40,7 +40,8 @@
 .who a { display: flex; flex-direction: column; gap: 8px; padding: 26px 24px; border-radius: 16px; border: 2px solid var(--forest, #14331f); background: #fff; color: inherit; text-decoration: none; }
 .who a:hover, .who a:focus-visible { background: #eef5e8; }
 .who a strong { font-size: 1.45rem; color: var(--forest, #14331f); line-height: 1.15; }
-.who a span { color: #4d554f; }
+.who a b { font-size: 1.1rem; color: var(--rust, #b4532a); }
+.who a span { color: #2f3631; }
 .who a em { font-style: normal; font-weight: 700; color: var(--rust, #b4532a); margin-top: auto; padding-top: 8px; }
 @media (max-width: 640px) { .who { grid-template-columns: 1fr; } }
 
