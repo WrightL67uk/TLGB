@@ -46,7 +46,7 @@ export default async function SiteHome({ params }: { params: Promise<{ slug: str
 
       <section className="ms-block ms-soft">
         <div className="wrap ms-split">
-          {second ? <img className="ms-pic" style={{ height: 360 }} src={second.url} alt={second.caption ?? ''} /> : <div />}
+          {second ? <img className="ms-pic" style={{ height: 360 }} src={second.url} alt={second.caption || `Work by ${shortName(b)}`} /> : <div />}
           <div>
             <h2>About us</h2>
             <div className="ms-about">{(site.about ?? '').split(/\n\s*\n/).map((p, i) => <p key={i}>{p}</p>)}</div>

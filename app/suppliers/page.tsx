@@ -119,7 +119,7 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
       <div className="res-list">
         {rows.map((s) => (
           <div key={s.id} className={`res-card ${s.profile ? 'sup-paid' : ''}`}>
-            <h2>{s.profile && s.logo_path && <img src={photoUrl(s.logo_path)} alt="" className="card-logo" />}{s.profile ? <Link href={`/suppliers/${s.slug}`}>{s.name}</Link> : s.name}</h2>
+            <h2>{s.profile && s.logo_path && <img src={photoUrl(s.logo_path)} alt={`${s.name} logo`} className="card-logo" />}{s.profile ? <Link href={`/suppliers/${s.slug}`}>{s.name}</Link> : s.name}</h2>
             <div className="badges">
               {s.categories.map((c) => <span key={c} className="badge ok">{supplierCategoryLabel(c)}</span>)}
               {s.does_domestic && <span className="badge ok">Homeowners welcome</span>}

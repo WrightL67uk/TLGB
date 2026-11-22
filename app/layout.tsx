@@ -68,7 +68,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <footer className="foot">
           <div className="foot-in">
             <div>
-              <img src={LOGO_SRC} alt="" width={56} height={55} className="foot-logo" />
+              <img src={LOGO_SRC} alt="The Little Green Book" width={56} height={55} className="foot-logo" />
               <p>The Little Green Book. A directory of checked landscaping and external works trades.</p>
             </div>
             <nav className="foot-cols" aria-label="Site">

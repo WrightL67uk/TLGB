@@ -124,9 +124,9 @@ export default async function Search({ searchParams }: { searchParams: SP }) {
           <div className="results">
             {results.map((r) => (
               <Link href={`/b/${r.id}`} key={r.id} className="card">
-                {thumbs.get(r.id) ? <img src={thumbs.get(r.id)} alt="" /> : <div className="noimg" />}
+                {thumbs.get(r.id) ? <img src={thumbs.get(r.id)} alt={`${r.trading_name} work photo`} /> : <div className="noimg" />}
                 <div className="card-body">
-                  <h3>{logos.get(r.id) && <img src={logos.get(r.id)} alt="" className="card-logo" />}{r.trading_name}</h3>
+                  <h3>{logos.get(r.id) && <img src={logos.get(r.id)} alt={`${r.trading_name} logo`} className="card-logo" />}{r.trading_name}</h3>
                   <p className="muted">{r.trades.map(tradeLabel).join(', ')}</p>
                   {domestic.has(r.id) && <p className="badges"><span className="badge ok">Homeowners welcome</span></p>}
                   {r.verified ? (

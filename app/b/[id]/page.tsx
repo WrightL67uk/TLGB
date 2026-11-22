@@ -118,7 +118,7 @@ export default async function BusinessPage({ params, searchParams }: { params: P
         <>
           <h2>Recent work</h2>
           <div className="gallery">
-            {photos.map((p) => <img key={p.storage_path} src={photoUrl(p.storage_path)} alt={p.caption ?? ''} />)}
+            {photos.map((p) => <img key={p.storage_path} src={photoUrl(p.storage_path)} alt={p.caption || `${b.trading_name}, ${(b.trades ?? []).map(tradeLabel).join(', ') || 'work'} photo`} />)}
           </div>
         </>
       )}
