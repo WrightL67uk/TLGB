@@ -40,14 +40,14 @@ export const ACCREDITATION_LIST: Accreditation[] = [
   // Design
   { key: 'CMLI', label: 'Chartered Landscape Architect (CMLI)', trades: ['landscape-architect'], expires: true },
   { key: 'LI Registered Practice', label: 'Landscape Institute Registered Practice', trades: ['landscape-architect'], expires: true },
-  { key: 'CIEEM', label: 'CIEEM member (ecology and biodiversity net gain)', trades: ['landscape-architect'], expires: true },
+  { key: 'CIEEM', label: 'CIEEM member (ecology and biodiversity net gain)', trades: ['landscape-architect', 'ecology'], expires: true },
   { key: 'SGD', label: 'Society of Garden Designers member (MSGD)', trades: ['landscape-designer'], expires: true },
 
   // Trees
   { key: 'Arboricultural Association ARB Approved', label: 'Arboricultural Association ARB Approved Contractor', trades: ['arborist'], expires: true },
   { key: 'NPTC CS30/31', label: 'NPTC chainsaw maintenance and felling (CS30 / CS31)', trades: ['arborist'], expires: false },
   { key: 'NPTC CS38/39', label: 'NPTC tree climbing, aerial rescue and aerial cutting (CS38 / CS39)', trades: ['arborist'], expires: false },
-  { key: 'Lantra Tree Inspection', label: 'Lantra Professional Tree Inspection', trades: ['arborist'], expires: true },
+  { key: 'Lantra Tree Inspection', label: 'Lantra Professional Tree Inspection', trades: ['arborist', 'arb-consultant'], expires: true },
   { key: 'ISA Certified Arborist', label: 'ISA Certified Arborist', trades: ['arborist'], expires: true },
 
   // Groundworks, paving and plant
@@ -112,6 +112,22 @@ export const TRADES: { slug: string; label: string }[] = [
   { slug: 'supplier', label: 'Materials Supplier' },
   { slug: 'plant-hire', label: 'Machine / Plant Hire' },
   { slug: 'training', label: 'Training Provider' },
+  { slug: 'gardener', label: 'Gardener / Garden Maintenance' },
+  { slug: 'turfing', label: 'Turfing and Seeding' },
+  { slug: 'artificial-grass', label: 'Artificial Grass Installer' },
+  { slug: 'surfacing', label: 'Tarmac, Resin and Driveway Surfacing' },
+  { slug: 'walling', label: 'Walling, Brickwork and Stonemasonry' },
+  { slug: 'decking-timber', label: 'Decking, Pergolas and Timber Structures' },
+  { slug: 'drainage', label: 'Drainage and SuDS' },
+  { slug: 'green-roofs', label: 'Green Roofs and Living Walls' },
+  { slug: 'water-features', label: 'Water Features and Ponds' },
+  { slug: 'lighting', label: 'External and Garden Lighting' },
+  { slug: 'ecology', label: 'Ecology and Biodiversity' },
+  { slug: 'arb-consultant', label: 'Arboricultural Consultant / Tree Survey' },
+  { slug: 'surveying', label: 'Land and Topographical Surveying' },
+  { slug: 'invasive-species', label: 'Invasive Weed Control' },
+  { slug: 'rail-highways', label: 'Rail and Highways Vegetation Management' },
+  { slug: 'waste-muckaway', label: 'Waste, Skips and Muckaway' },
 ];
 
 export const tradeLabel = (slug: string) =>

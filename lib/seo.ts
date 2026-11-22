@@ -36,6 +36,22 @@ const PLURALS: Record<string, string> = {
   'hard-landscaping': 'paving and hard landscaping contractors', fencing: 'fencing contractors', 'garden-buildings': 'garden building specialists',
   irrigation: 'irrigation specialists', 'play-sports': 'play and sports surfacing contractors', gritting: 'gritting and winter maintenance contractors',
   nursery: 'nurseries and plant suppliers', supplier: 'materials suppliers', 'plant-hire': 'plant and machinery hire companies', training: 'training providers',
+ 'gardener': 'gardeners and garden maintenance services',
+ 'turfing': 'turfing and seeding contractors',
+ 'artificial-grass': 'artificial grass installers',
+ 'surfacing': 'tarmac, resin and driveway surfacing contractors',
+ 'walling': 'walling, brickwork and stonemasonry contractors',
+ 'decking-timber': 'decking, pergola and timber structure specialists',
+ 'drainage': 'drainage and SuDS contractors',
+ 'green-roofs': 'green roof and living wall specialists',
+ 'water-features': 'water feature and pond specialists',
+ 'lighting': 'external and garden lighting specialists',
+ 'ecology': 'ecology and biodiversity consultants',
+ 'arb-consultant': 'arboricultural consultants and tree surveyors',
+ 'surveying': 'land and topographical surveyors',
+ 'invasive-species': 'invasive weed control specialists',
+ 'rail-highways': 'rail and highways vegetation management contractors',
+ 'waste-muckaway': 'waste, skip and muckaway services',
 };
 export const tradePlural = (slug: string) => PLURALS[slug] ?? tradeLabel(slug).toLowerCase();
 
