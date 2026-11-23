@@ -83,6 +83,11 @@ export const ACCREDITATION_LIST: Accreditation[] = [
   { key: 'Lantra Approved Centre', label: 'Lantra approved training provider', trades: ['training'], expires: true },
   { key: 'City & Guilds Approved Centre', label: 'City & Guilds / NPTC approved centre', trades: ['training'], expires: true },
   { key: 'CITB ATO', label: 'CITB Approved Training Organisation', trades: ['training'], expires: true },
+  { key: 'BALI Accredited Training Provider', label: 'BALI accredited training provider', trades: ['training'], expires: true },
+  { key: 'NPORS Accredited Training Provider', label: 'NPORS accredited training provider', trades: ['training'], expires: true },
+  { key: 'RoSPA Approved', label: 'RoSPA approved training provider', trades: ['training'], expires: true },
+  { key: 'Ofqual recognised', label: 'Ofqual recognised awarding organisation', trades: ['training'], expires: false },
+  { key: 'Arboricultural Association Approved Training', label: 'Arboricultural Association approved training', trades: ['training', 'arborist'], expires: true },
 ];
 
 export const ACCREDITATIONS = ACCREDITATION_LIST.map((a) => a.key) as [string, ...string[]];
