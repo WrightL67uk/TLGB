@@ -83,6 +83,10 @@ export const ACCREDITATION_LIST: Accreditation[] = [
   { key: 'Lantra Approved Centre', label: 'Lantra approved training provider', trades: ['training'], expires: true },
   { key: 'City & Guilds Approved Centre', label: 'City & Guilds / NPTC approved centre', trades: ['training'], expires: true },
   { key: 'CITB ATO', label: 'CITB Approved Training Organisation', trades: ['training'], expires: true },
+  { key: 'BPCA member', label: 'BPCA (British Pest Control Association) member', trades: ['pest-control'], expires: true },
+  { key: 'NPTA member', label: 'NPTA (National Pest Technicians Association) member', trades: ['pest-control'], expires: true },
+  { key: 'RSPH Level 2 Pest Management', label: 'RSPH Level 2 Award in Pest Management', trades: ['pest-control'], expires: false },
+  { key: 'CRRU Wildlife Aware', label: 'CRRU Wildlife Aware (rodenticide stewardship)', trades: ['pest-control'], expires: true },
   { key: 'BALI Accredited Training Provider', label: 'BALI accredited training provider', trades: ['training'], expires: true },
   { key: 'NPORS Accredited Training Provider', label: 'NPORS accredited training provider', trades: ['training'], expires: true },
   { key: 'RoSPA Approved', label: 'RoSPA approved training provider', trades: ['training'], expires: true },
@@ -133,6 +137,7 @@ export const TRADES: { slug: string; label: string }[] = [
   { slug: 'invasive-species', label: 'Invasive Weed Control' },
   { slug: 'rail-highways', label: 'Rail and Highways Vegetation Management' },
   { slug: 'waste-muckaway', label: 'Waste, Skips and Muckaway' },
+  { slug: 'pest-control', label: 'Pest Controller' },
 ];
 
 export const tradeLabel = (slug: string) =>

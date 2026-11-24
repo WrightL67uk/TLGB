@@ -46,7 +46,8 @@ insert into trade_categories (slug, label, sort_order) values
   ('surveying', 'Land and Topographical Surveying', 26),
   ('invasive-species', 'Invasive Weed Control', 45),
   ('rail-highways', 'Rail and Highways Vegetation Management', 112),
-  ('waste-muckaway', 'Waste, Skips and Muckaway', 145)
+  ('waste-muckaway', 'Waste, Skips and Muckaway', 145),
+  ('pest-control', 'Pest Controller', 147)
 on conflict (slug) do nothing;
 
 -- ---------------------------------------------------------------

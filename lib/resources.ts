@@ -38,6 +38,7 @@ export const SUPPLIER_CATEGORIES: { key: string; label: string }[] = [
   { key: 'ecology-products', label: 'Ecology products (bird and bat boxes, habitat)' },
   { key: 'site-welfare', label: 'Site cabins, welfare and portable toilets' },
   { key: 'waste-skips', label: 'Skip hire, waste and recycling' },
+  { key: 'pest-services', label: 'Pest control services and products' },
   { key: 'vehicles', label: 'Vans, trailers and vehicle hire' },
   { key: 'workwear', label: 'Workwear, boots and signage' },
   { key: 'recruitment', label: 'Recruitment and labour supply' },
