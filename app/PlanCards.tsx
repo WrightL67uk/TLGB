@@ -53,8 +53,8 @@ export default function PlanCards({ monthly, yearly, trial, save, live, target }
           {trial > 0 && <span className="plan-badge">{trial} days free</span>}
           <h2>Verified monthly</h2>
           <p className="plan-price">{monthly < FOUNDING_OFFER.monthlyWas && <s className="plan-was">{pounds(FOUNDING_OFFER.monthlyWas)}</s>}{pounds(monthly)} <span>a month</span></p>
-          {monthly < FOUNDING_OFFER.monthlyWas && <p className="plan-founding">Founding member price</p>}
-          <p className="muted small">Cancel any time</p>
+          {monthly < FOUNDING_OFFER.monthlyWas && <p className="plan-founding">Founding price until {FOUNDING_OFFER.ends}</p>}
+          <p className="muted small">Cancel any time. Waiting list codes come off this price.</p>
           {monthly < FOUNDING_OFFER.monthlyWas && <p className="plan-fine">Offer ends {FOUNDING_OFFER.ends}</p>}
           <ul>
             <li className="yes">Verified badge, shown first</li>
@@ -72,7 +72,7 @@ export default function PlanCards({ monthly, yearly, trial, save, live, target }
           {trial > 0 && save.months === 0 && <span className="plan-badge">{trial} days free</span>}
           <h2>Verified yearly</h2>
           <p className="plan-price plan-price-big">{yearly < FOUNDING_OFFER.yearlyWas && <s className="plan-was">{pounds(FOUNDING_OFFER.yearlyWas)}</s>}{pounds(yearly)} <span>a year</span></p>
-          {yearly < FOUNDING_OFFER.yearlyWas && <p className="plan-founding">Founding member price</p>}
+          {yearly < FOUNDING_OFFER.yearlyWas && <p className="plan-founding">Founding price until {FOUNDING_OFFER.ends}</p>}
           {save.pounds > 0 && <p className="plan-save">Works out at {pounds(save.perMonth)} a month. Save {pounds(save.pounds)}.</p>}
           <ul>
             <li className="yes">Everything in monthly</li>

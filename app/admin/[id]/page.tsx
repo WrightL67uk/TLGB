@@ -152,7 +152,13 @@ export default async function AdminDetail({
           <p>Turnover: {turnoverBand(b.turnover_band)?.label ?? 'not given'}
             {pricing.mode === 'bands' && bandPrice(pricing, b.turnover_band) && <span className="muted"> (listing £{bandPrice(pricing, b.turnover_band)!.price}/yr)</span>}
             {pricing.mode === 'plans' && <span className="muted"> (plan: {b.plan === 'pro' ? 'Pro' : b.plan === 'verified' ? 'Verified' : 'not chosen yet'})</span>}</p>
-        </section>
+                  <form method="post" action="/api/admin/code" className="row">
+            <input type="hidden" name="id" value={b.id} />
+            <label>Discount or founding code on this account <input name="code" defaultValue={b.signup_code ?? ''} maxLength={20} placeholder="none" /></label>
+            <button>Save code</button>
+            <span className="muted small">Applied when they start the trial. Leave blank and save to remove.</span>
+          </form>
+</section>
 
         <section className="panel">
           <h2>Membership</h2>

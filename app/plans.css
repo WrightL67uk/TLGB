@@ -47,3 +47,9 @@
 
 .sup-plans { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 860px) { .sup-plans { grid-template-columns: 1fr; } }
+
+.code-box { margin: 0 0 18px; padding: 12px 16px; background: #f4f3ec; border-radius: 10px; }
+.code-box .row { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.code-box label { display: flex; gap: 10px; align-items: center; font-weight: 600; }
+.code-box input[name=code] { text-transform: uppercase; width: 11em; }
+.code-box button.link { background: none; border: 0; padding: 0; color: var(--rust, #b4532a); text-decoration: underline; cursor: pointer; font: inherit; }
