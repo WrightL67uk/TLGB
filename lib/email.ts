@@ -102,6 +102,7 @@ export type ApplicationSummary = {
   email: string;
   companyNumber?: string | null;
   postcode: string;
+  risk?: { level: string; flags: { text: string }[] } | null;
 };
 
 /** Sent to the TLGB admin inbox each time an application needs approval. */
@@ -112,6 +113,12 @@ export async function emailAdminNewApplication(a: ApplicationSummary) {
     a.businessType === 'ltd'
       ? `Limited company ${esc(a.companyNumber ?? '')}, checked as active on Companies House.`
       : 'Sole trader. Letterhead uploaded, needs a manual check.';
+  const r = a.risk;
+  const riskLine = r
+    ? r.level === 'green' && !r.flags.length
+      ? '<p style="color:#2d6a3e"><strong>Companies House risk check: nothing flagged.</strong></p>'
+      : `<p style="color:${r.level === 'red' ? '#b4532a' : '#8a6d00'}"><strong>Companies House risk check: ${r.level.toUpperCase()}</strong></p><ul>${r.flags.map((f) => `<li>${esc(f.text)}</li>`).join('')}</ul>`
+    : '';
 
   await send(
     admins,
@@ -121,6 +128,7 @@ export async function emailAdminNewApplication(a: ApplicationSummary) {
 ${esc(a.contactName)} (${esc(a.email)})<br>
 Base postcode: ${esc(a.postcode)}<br>
 ${check}</p>
+${riskLine}
 <p><a href="${link}" style="display:inline-block;background:#111;color:#fff;padding:10px 18px;text-decoration:none;border-radius:4px">Review application</a></p>`,
     'admin-approval'
   );
@@ -1304,5 +1312,18 @@ export async function emailNewsletterConfirm(to: string, name: string, token: st
 <p><a href="${link}" style="display:inline-block;background:#163f27;color:#ffffff;padding:12px 22px;text-decoration:none;border-radius:4px;font-weight:bold">Confirm my subscription</a></p>
 <p>You will not get the newsletter until you do. If you did not sign up, ignore this email and nothing will happen.</p>`,
     'newsletter-confirm'
+  );
+}
+
+/** Weekly recheck found listed companies whose Companies House picture got worse. */
+export async function emailAdminRiskChanges(rows: { id: string; name: string; from: string; to: string; flags: string[] }[]) {
+  if (!rows.length) return;
+  await send(
+    adminList(),
+    `Risk check: ${rows.length} member${rows.length === 1 ? '' : 's'} changed`,
+    `<p>The weekly Companies House check found these changes.</p>
+${rows.map((r) => `<p><strong>${esc(r.name)}</strong>: ${esc(r.from)} to <strong>${esc(r.to)}</strong><br>${r.flags.map(esc).join('<br>')}<br><a href="${siteUrl()}/admin/${r.id}">Open in admin</a></p>`).join('')}
+<p>This is from public Companies House data only. It is not a credit check and does not include CCJs.</p>`,
+    'admin-risk'
   );
 }

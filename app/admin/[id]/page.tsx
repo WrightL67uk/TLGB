@@ -124,6 +124,27 @@ export default async function AdminDetail({
               </p>
               {nameMismatch && <p className="warn">Trading name differs from the registered name. Check this is a genuine trading name.</p>}
               <p><a href={`https://find-and-update.company-information.service.gov.uk/company/${b.company_number}`} target="_blank" rel="noopener">Open on Companies House</a></p>
+              {(() => {
+                const r = b.risk_check as { level: string; flags: { level: string; text: string }[]; facts?: Record<string, unknown>; checkedAt?: string; error?: string } | null;
+                const colour = r?.level === 'red' ? '#b4532a' : r?.level === 'amber' ? '#8a6d00' : '#2d6a3e';
+                return (
+                  <div className="panel" style={{ borderColor: r ? colour : undefined, marginTop: 10 }}>
+                    <p><strong>Companies House risk check:</strong>{' '}
+                      {r ? <span style={{ color: colour, fontWeight: 700 }}>{r.level.toUpperCase()}</span> : <span className="muted">not run yet</span>}
+                      {r?.checkedAt && <span className="muted small"> checked {new Date(r.checkedAt).toLocaleDateString('en-GB')}</span>}
+                    </p>
+                    {r?.error && <p className="warn small">Check did not complete: {r.error}</p>}
+                    {r && r.flags.length === 0 && !r.error && <p className="small">Nothing flagged: active, filings up to date, no insolvency history, no recent strike-off action.</p>}
+                    {r && r.flags.length > 0 && <ul className="small">{r.flags.map((f, i) => <li key={i} style={{ color: f.level === 'red' ? '#b4532a' : undefined }}>{f.text}</li>)}</ul>}
+                    {r?.facts && <p className="muted small">Directors {String(r.facts.activeDirectors ?? '?')}, outstanding charges {String(r.facts.chargesOutstanding ?? '?')}, last accounts {r.facts.lastAccounts ? new Date(String(r.facts.lastAccounts)).toLocaleDateString('en-GB') : 'none'}{r.facts.accountsType ? ` (${String(r.facts.accountsType)})` : ''}.</p>}
+                    <p className="small">
+                      <form method="post" action="/api/admin/risk" style={{ display: 'inline' }}><input type="hidden" name="id" value={b.id} /><button className="link">Run again</button></form>
+                      {' · '}<a href="https://www.trustonline.org.uk/" target="_blank" rel="noopener">CCJ search on TrustOnline</a> <span className="muted">(about £6 to £10, search the registered name)</span>
+                    </p>
+                    <p className="muted small">Public Companies House data only: not a credit score and no CCJs. Rechecked every Monday; you are emailed if it gets worse.</p>
+                  </div>
+                );
+              })()}
             </>
           ) : (
             <>

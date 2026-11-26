@@ -12,7 +12,8 @@ import { runRecruitAlerts } from '@/lib/recruitJob';
 import { runQuoteJob } from '@/lib/quoteJob';
 import { db } from '@/lib/supabase';
 import { runSignupNudges } from '@/lib/nudgeJob';
-import { emailAdminJobFailures } from '@/lib/email';
+import { emailAdminJobFailures, emailAdminRiskChanges } from '@/lib/email';
+import { runRiskRechecks } from '@/lib/riskCheck';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,6 +35,11 @@ export async function GET(req: NextRequest) {
       failures.push({ job, error: err instanceof Error ? err.message : String(err) });
     }
   };
+  // Mondays: recheck every listed limited company at Companies House and report any that got worse
+  if (new Date().getUTCDay() === 1 || req.nextUrl.searchParams.get('risk') === '1') {
+    await run('risk', 'Companies House risk recheck', async () => { const r = await runRiskRechecks(); await emailAdminRiskChanges(r.worsened); return r; });
+  }
+
   // Look further back after a bad day, so a source that was down catches up
   const lastRun = (await db().from('site_settings').select('value').eq('key', 'leads_status').maybeSingle()).data?.value as { sources?: Record<string, { ok: boolean }> } | undefined;
   const hadFailure = Object.values(lastRun?.sources ?? {}).some((x) => !x.ok);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createHash, timingSafeEqual } from 'crypto';
 import { db } from '@/lib/supabase';
 import { emailAdminNewApplication, emailApplicantReceived } from '@/lib/email';
+import { checkBusiness } from '@/lib/riskCheck';
 
 // Step 2 of 2: browser has uploaded the files. Check they all arrived, move the
 // application into the admin queue and send the emails.
@@ -56,8 +57,12 @@ export async function POST(req: NextRequest) {
 
   await db().from('review_events').insert({ business_id: id, action: 'submitted', actor: biz.email });
 
+  // Free Companies House risk flags for limited companies; shown to admin only
+  const risk = biz.business_type === 'ltd' && biz.company_number ? (await checkBusiness(id, biz.company_number).catch(() => null))?.result ?? null : null;
+
   const summary = {
     id,
+    risk,
     tradingName: biz.trading_name,
     businessType: biz.business_type,
     contactName: biz.contact_name,
