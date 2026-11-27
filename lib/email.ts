@@ -1125,21 +1125,45 @@ export async function emailAdminVacancy(business: string, title: string, id: str
 }
 
 /** Someone started signing up yesterday and has not finished. Sent once. */
-export async function emailSignupNudge(to: string, name: string, business: string, stage: 'plan' | 'details', link: string) {
+export async function emailSignupNudge(to: string, name: string, business: string, stage: 'plan' | 'details', link: string, stuckLink: string, n: number, stopLink: string | null = null) {
   const first = name.split(' ')[0];
+  const subject = n === 1 ? `${business}: you are one step away` : n === 2 ? `${business}: still want to be in the book?` : n === 3 ? `${business}: a week in, still waiting for you` : `${business}: your listing is still waiting`;
+  const opener = n === 1
+    ? `You started listing <strong>${esc(business)}</strong> on The Little Green Book but did not quite finish.`
+    : n === 2
+      ? `A couple of days ago you started listing <strong>${esc(business)}</strong> on The Little Green Book. It is still waiting for you, and takes about ten minutes to finish.`
+      : n === 3
+        ? `It has been a week since you started listing <strong>${esc(business)}</strong>. Everything you entered is saved, and it is a few minutes to finish.`
+        : `Your listing for <strong>${esc(business)}</strong> is still saved and waiting. Main contractors search the book every week, and you are not in it yet.`;
   await send(
     to,
-    `${business}: you are one step away`,
+    subject,
     `<p>Hi${first ? ` ${esc(first)}` : ''},</p>
-<p>You started listing <strong>${esc(business)}</strong> on The Little Green Book but did not quite finish.</p>
+<p>${opener}</p>
 <p>${stage === 'plan'
-      ? 'The next step is choosing your plan: a free listing, or verified membership with a free trial.'
+      ? 'The next step is choosing your plan: a free listing, or verified membership with 30 days free.'
       : 'The next step is adding your details (insurance, accreditations and the work you do) and sending them to us to check. Your answers save as you go, so you can pick up where you left off.'}</p>
-<p><a href="${esc(link)}">Carry on where you left off</a></p>
-<p>Log in with your email and the password you chose. If you have forgotten it, choose "Email me a login link" on the login page.</p>
-<p>If you have changed your mind, you can ignore this email. We will not send another.</p>
-<p>The Little Green Book</p>`,
+<p><a href="${esc(link)}" style="display:inline-block;background:#163f27;color:#fff;padding:12px 20px;text-decoration:none;border-radius:6px;font-weight:600">Carry on where you left off</a></p>
+<p class="small">That button logs you in on its own for the next ${3} days, no password needed.</p>
+<p><strong>Stuck, or not sure what we need?</strong> Press the button below and one of us will get in touch, or just reply to this email. We check every listing by hand, so a real person reads it.</p>
+<p><a href="${esc(stuckLink)}" style="display:inline-block;border:2px solid #163f27;color:#163f27;padding:10px 18px;text-decoration:none;border-radius:6px;font-weight:600">I'm stuck, please help</a></p>
+${stopLink ? `<p class="small">Changed your mind? <a href="${esc(stopLink)}">Stop these reminders</a> and we will leave you be. Your account stays open if you ever want it.</p>` : '<p>If you have changed your mind, you can ignore this and we will stop after a few reminders.</p>'}
+<p>Ed and Trudy<br>The Little Green Book<br>admin@tlgb.co.uk</p>`,
     'signup-nudge'
+  );
+}
+
+/** Someone pressed "I'm stuck" in a sign-up reminder. */
+export async function emailAdminStuck(b: { id: string; trading_name: string; email: string; contact_name: string | null }, note: string) {
+  await send(
+    adminList(),
+    `Stuck at sign-up: ${b.trading_name}`,
+    `<p><strong>${esc(b.trading_name)}</strong> (${esc(b.contact_name ?? '')}, ${esc(b.email)}) pressed "I'm stuck" in a sign-up reminder.</p>
+${note ? `<p>They said:</p><blockquote>${esc(note)}</blockquote>` : '<p>They did not add a note.</p>'}
+<p>Reminders to them have stopped until you mark it handled.</p>
+<p><a href="${siteUrl()}/admin/${b.id}">Open in admin</a> · <a href="mailto:${esc(b.email)}">Email them</a></p>`,
+    'admin-stuck',
+    b.email
   );
 }
 

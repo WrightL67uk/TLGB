@@ -51,6 +51,13 @@ export async function consumeLoginToken(raw: string): Promise<string | null> {
   return (data?.email as string | undefined) ?? null;
 }
 
+/** Checks a token without using it up (for links that may be pressed more than once, like "I'm stuck"). */
+export async function peekLoginToken(raw: string): Promise<string | null> {
+  if (!raw || raw.length > 200) return null;
+  const { data } = await db().from('login_tokens').select('email').eq('token_hash', hash(raw)).gt('expires_at', new Date().toISOString()).maybeSingle();
+  return (data?.email as string | undefined) ?? null;
+}
+
 export async function createSession(email: string) {
   const raw = newToken();
   const expires = new Date(Date.now() + SESSION_DAYS * 86_400_000);

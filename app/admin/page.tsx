@@ -142,11 +142,11 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
   const scope = (q: any, key: string) =>
     key === 'recheck' ? q.eq('status', 'approved').eq('recheck_required', true) : q.eq('status', key === 'expiring' ? '__none__' : key);
 
-  const [{ data: rows }, counts]: [{ data: { id: string; created_at: string; trading_name: string; business_type: string; company_number: string | null; base_postcode: string; email: string; pl_expiry: string | null; founding_member: boolean; subscription_status: string; free_listing: boolean | null; billing_interval: string | null }[] | null }, Record<string, number>] = await Promise.all([
+  const [{ data: rows }, counts]: [{ data: { id: string; created_at: string; trading_name: string; business_type: string; company_number: string | null; base_postcode: string; email: string; pl_expiry: string | null; founding_member: boolean; subscription_status: string; free_listing: boolean | null; billing_interval: string | null; nudge_count: number | null; stuck_at: string | null; stuck_note: string | null }[] | null }, Record<string, number>] = await Promise.all([
     scope(
       db()
         .from('businesses')
-        .select('id, created_at, trading_name, business_type, company_number, base_postcode, email, pl_expiry, founding_member, subscription_status, free_listing, billing_interval'),
+        .select('id, created_at, trading_name, business_type, company_number, base_postcode, email, pl_expiry, founding_member, subscription_status, free_listing, billing_interval, nudge_count, stuck_at, stuck_note'),
       status
     )
       .order('created_at', { ascending: status === 'pending_review' || status === 'recheck' })
@@ -341,7 +341,9 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
             {rows.map((r) => (
               <tr key={r.id}>
                 <td>{new Date(r.created_at).toLocaleDateString('en-GB')}</td>
-                <td><Link href={`/admin/${r.id}`}>{r.trading_name}</Link><br /><span className="muted small">{r.email}</span></td>
+                <td><Link href={`/admin/${r.id}`}>{r.trading_name}</Link>{r.stuck_at && <> <span className="status rejected">needs help</span></>}<br /><span className="muted small">{r.email}</span>
+                  {r.stuck_at && <><br /><span className="small" style={{ color: '#b4532a' }}>Pressed &ldquo;I&rsquo;m stuck&rdquo; {new Date(r.stuck_at).toLocaleDateString('en-GB')}{r.stuck_note ? `: ${r.stuck_note}` : ''}</span></>}
+                  {status === 'started' && !r.stuck_at && <><br /><span className="muted small">{r.nudge_count ? `${r.nudge_count} reminder${r.nudge_count > 1 ? 's' : ''} sent` : 'no reminder yet'}</span></>}</td>
                 <td>{r.business_type === 'ltd' ? `Ltd ${r.company_number}` : 'Sole trader'}</td>
                 <td>{r.base_postcode}</td>
                 <td>{memberLabel(r)}</td>

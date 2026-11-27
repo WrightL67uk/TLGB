@@ -111,6 +111,20 @@ export default async function AdminDetail({
       <RenameForm kind="business" id={b.id} name={b.trading_name} from={`/admin/${b.id}`} />
 
       <div className="grid2">
+        {(b.stuck_at || b.nudges_stopped_at || (b.status === 'started' && b.nudge_count)) && (
+          <section className="panel" style={{ borderColor: b.stuck_at ? 'var(--warn)' : undefined }}>
+            <h2>Sign-up reminders</h2>
+            {b.stuck_at && (
+              <>
+                <p className="warn"><strong>They pressed &ldquo;I&rsquo;m stuck&rdquo;</strong> on {new Date(b.stuck_at).toLocaleString('en-GB')}.{b.stuck_note ? <> They said: <em>{b.stuck_note}</em></> : ' No note added.'}</p>
+                <p>Reminders are paused until you mark this handled. <a href={`mailto:${b.email}?subject=${encodeURIComponent('Your Little Green Book listing')}`}>Email {b.contact_name || b.email}</a></p>
+                <form method="post" action="/api/admin/stuck"><input type="hidden" name="id" value={b.id} /><button>Mark handled (reminders resume)</button></form>
+              </>
+            )}
+            {b.nudges_stopped_at && <p>They asked us to stop reminders on {new Date(b.nudges_stopped_at).toLocaleDateString('en-GB')}. No more will be sent.</p>}
+            {!b.stuck_at && !b.nudges_stopped_at && <p className="muted">{b.nudge_count} reminder{b.nudge_count === 1 ? '' : 's'} sent, last on {b.nudged_at ? new Date(b.nudged_at).toLocaleDateString('en-GB') : 'unknown'}. Carries on every two days until they finish or opt out.</p>}
+          </section>
+        )}
         <section className="panel">
           <h2>Identity check</h2>
           {b.business_type === 'ltd' ? (

@@ -11,6 +11,11 @@ export type Business = {
   ch_registered_address?: string | null;
   draft_data?: unknown;
   other_trade?: string | null;
+  nudge_count?: number | null;
+  nudged_at?: string | null;
+  stuck_at?: string | null;
+  stuck_note?: string | null;
+  nudges_stopped_at?: string | null;
   other_trade_ok?: boolean;
   company_number: string | null;
   owner_full_name: string | null;
