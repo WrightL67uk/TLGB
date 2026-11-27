@@ -129,12 +129,12 @@ export default async function AdminCodes({ searchParams }: { searchParams: Promi
                   </td>
                   <td>
                     {ok ? 'Working' : !c.active ? 'Switched off' : 'Used up or ended'}
-                    {live && !c.stripe_promo_id && c.kind !== 'price' && <><br /><span className="err">Not in Stripe yet</span></>}
+                    {live && !c.stripe_promo_id && <><br /><span className="err">Not in Stripe yet</span></>}
                     {c.kind === 'price' && <><br /><span className="muted">Price is set when they pay</span></>}
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>
                     {c.active ? <Act id={c.id} action="off" label="Switch off" /> : <Act id={c.id} action="on" label="Switch on" />}
-                    {live && !c.stripe_promo_id && c.kind !== 'price' && <> <Act id={c.id} action="stripe" label="Send to Stripe" /></>}
+                    {live && !c.stripe_promo_id && <> <Act id={c.id} action="stripe" label="Send to Stripe" /></>}
                   </td>
                 </tr>
               );
