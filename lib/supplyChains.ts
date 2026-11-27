@@ -1,24 +1,32 @@
 // Supply chain finder: where to register to get onto buyers' tender lists.
-// Every link was checked to be live in October 2026. Sign-up codes are the ones the
+// Every link was checked to be live in October or November 2026. Sign-up codes are the ones the
 // buyer published at the time and can change, so the page says so.
 
-export type ChainGroup = 'contractor' | 'housebuilder' | 'scheme' | 'portal' | 'framework' | 'news';
+export type ChainGroup = 'contractor' | 'housebuilder' | 'infrastructure' | 'grounds' | 'landowner' | 'scheme' | 'portal' | 'framework' | 'domestic' | 'news';
 
 export const GROUP_LABEL: Record<ChainGroup, string> = {
   contractor: 'Main contractors',
   housebuilder: 'Housebuilders',
+  infrastructure: 'Highways, rail, utilities and water',
+  grounds: 'Grounds maintenance and facilities contractors',
+  landowner: 'Public landowners and estates',
   scheme: 'Prequalification schemes',
   portal: 'Public tender portals',
   framework: 'Frameworks and buying groups',
+  domestic: 'Homeowner and domestic lead schemes',
   news: 'Where subcontract packages get advertised',
 };
 
 export const GROUP_HELP: Record<ChainGroup, string> = {
   contractor: 'Tier 1 contractors. Most will only invite you to price once you are on their approved list, and most use Constructionline or their own portal to vet you first.',
+  infrastructure: 'Clients and tier 1s on roads, rail, power and water. Verge and vegetation work, fencing, drainage, surfacing, ecology and tree work all run through these. Most need RISQS (rail) or Achilles UVDB (utilities) before they will talk to you.',
+  grounds: 'The big grounds maintenance, arboriculture and facilities companies subcontract mowing, tree work, pest control, fencing and winter work regionally. Worth registering even if the page says they mostly self-deliver.',
+  landowner: 'Forestry bodies, the Environment Agency and similar landowners let tree, fencing, habitat, drainage and civils work in regional lots that smaller firms can win directly.',
   housebuilder: 'Housebuilders buy landscaping, fencing and groundworks regionally. The supply chain page tells you how they work; the real door is usually the regional commercial or buying team.',
   scheme: 'The accreditations buyers ask for. Get these sorted first, because almost every PQQ asks for one of them.',
   portal: 'Where public sector tenders are published and submitted. Register once on each and set up alerts for your trades.',
   framework: 'Buyers group work into frameworks lasting several years. Getting onto one, or onto the supply chain of a contractor who is on one, gives you repeat work.',
+  domestic: 'For gardeners, landscapers, fencers, tree surgeons, pest controllers and decking or paving firms who want homeowner work. Most charge a fee, so read the small print.',
   news: 'Contractors advertise packages they need pricing here, often with a deadline only a few days away.',
 };
 
@@ -52,11 +60,51 @@ export const SUPPLY_CHAINS: ChainLink[] = [
   { name: 'Graham', group: 'contractor', url: 'https://www.graham.co.uk/work-with-us/supply-chain/', note: 'Graham supply chain registration.' },
   { name: 'Lovell', group: 'contractor', url: 'https://corporate.lovell.co.uk/supply-chain', note: 'Lovell partnerships housing. Regularly looks for landscaping and fencing subcontractors.' },
 
+  { name: 'Willmott Dixon', group: 'contractor', url: 'https://www.willmottdixon.co.uk/how-we-do-it/working-with-our-supply-chain', note: 'How Willmott Dixon works with its supply chain, with the route to register interest with the local construction office.' },
+  { name: 'Galliford Try', group: 'contractor', url: 'https://www.gallifordtry.co.uk/sustainability/supply-chain/', note: 'Supply chain page. They are moving their subcontractors to Constructionline Gold.', needs: 'Constructionline Gold' },
+  { name: 'Sir Robert McAlpine', group: 'contractor', url: 'https://www.srm.com/people-culture/supply-chain-partners/', note: 'Supply chain partners page. Prequalification is through Achilles BuildingConfidence.', needs: 'Achilles BuildingConfidence' },
+  { name: 'Tilbury Douglas', group: 'contractor', url: 'https://www.tilburydouglas.co.uk/?p=828', note: 'Register your interest form for new supply chain partners. Schools, hospitals and civils across England.', needs: 'Constructionline Gold' },
+  { name: 'VolkerWessels UK', group: 'contractor', url: 'https://www.volkerwessels.co.uk/en/our-approach/supply-chain', note: 'Covers VolkerFitzpatrick, VolkerHighways, VolkerRail and VolkerLaser. Prequalification through Constructionline.', needs: 'Constructionline', code: 'VW21' },
+  { name: 'Robertson Group', group: 'contractor', url: 'https://www.robertson.co.uk/join-our-supply-chain', note: 'Scotland and the North of England. Register through their Constructionline partnership.', needs: 'Constructionline', code: 'ROBC24' },
+  { name: 'Hochtief UK', group: 'contractor', url: 'https://hochtief.co.uk/supply-chain/', note: 'Infrastructure and building. Supply chain page with how to express interest.' },
+  { name: 'Esh Group', group: 'contractor', url: 'https://eshgroup.co.uk/supply-chain/', note: 'North East, Yorkshire and Cumbria. Online form, reviewed quarterly, then an assessment questionnaire.' },
+  { name: 'Seddon', group: 'contractor', url: 'https://www.seddon.co.uk/join-the-team/supply-chain', note: 'North West and Midlands building contractor. Supply chain sign-up page.' },
+  { name: 'Wynne Construction', group: 'contractor', url: 'https://wynneconstruction.co.uk/work-with-us/', note: 'North Wales and the North West. Work with us page for subcontractors.' },
+  { name: 'United Living', group: 'contractor', url: 'https://www.safecontractor.com/en-gb/united-living', note: 'Housing, infrastructure and property services. Vets subcontractors through SafeContractor.', needs: 'SafeContractor' },
+  { name: 'McLaren Construction', group: 'contractor', url: 'https://mclarengroup.com/integrated-compliances/supply-chain', note: 'Onboards new subcontractors in partnership with Constructionline.', needs: 'Constructionline' },
+
   // Housebuilders
   { name: 'Persimmon Homes', group: 'housebuilder', url: 'https://persimmonhomes.com/corporate/about-us/who-we-are/our-suppliers', note: 'How Persimmon works with suppliers and subcontractors.' },
   { name: 'Bellway', group: 'housebuilder', url: 'https://bellwayplc.co.uk/sustainability/construction/supply-chain-management', note: 'Bellway supply chain management. Approach the regional division buying team for your area.' },
+  { name: 'Berkeley Group', group: 'housebuilder', url: 'https://www.berkeleygroup.co.uk/our-vision/supply-chain', note: 'London and South East. Supply chain page explains their expectations and links to the supplier portal.' },
+  { name: 'Vistry Group', group: 'housebuilder', url: 'https://www.cqms-ltd.co.uk/?p=6083', note: 'Vistry (Bovis, Linden, Countryside) prequalifies subcontractors through CQMS. Register there to be visible to their regions.' },
+  { name: 'The Hill Group', group: 'housebuilder', url: 'https://www.hill.co.uk/subcontractors', note: 'London and the East. Subcontractor page with requirements.', needs: 'Constructionline Silver minimum, Gold for high risk trades' },
+  { name: 'Crest Nicholson', group: 'housebuilder', url: 'https://crestnicholson.com/supply-chain', note: 'Supply chain code of conduct and policies. Approach the regional commercial team to get on their list.' },
+  { name: 'Places for People', group: 'housebuilder', url: 'https://www.placesforpeople.co.uk/help-support/suppliers/', note: 'Housing association and developer. Supplier pages, tender process and a windows, external works and direct build DPS on Find a Tender.' },
+  { name: 'Keepmoat', group: 'housebuilder', url: 'https://www.keepmoat.com', note: 'Partnership housebuilder across the North and Midlands. No central portal; email supplychain@keepmoat.com with your trades and regions.' },
 
-  // Prequalification schemes
+  // Highways, rail, utilities and water
+  { name: 'National Highways', group: 'infrastructure', url: 'https://nationalhighways.co.uk/suppliers/guide-for-new-and-prospective-suppliers/', note: 'Guide for new suppliers. Most soft estate, fencing and barrier work is let by their maintenance contractors, who are listed on the page.' },
+  { name: 'Network Rail', group: 'infrastructure', url: 'https://www.networkrail.co.uk/industry-and-commercial/supply-chain/becoming-a-supplier/', note: 'Becoming a supplier page. Lineside vegetation, fencing and drainage work needs RISQS first.', needs: 'RISQS' },
+  { name: 'RISQS', group: 'infrastructure', url: 'https://www.risqs.org/suppliers', note: 'The rail industry supplier register. Needed before Network Rail or its contractors can use you.' },
+  { name: 'HS2', group: 'infrastructure', url: 'https://www.hs2.org.uk/suppliers/hs2-and-your-business/', note: 'How to get work on HS2. Packages are advertised through CompeteFor.' },
+  { name: 'CompeteFor', group: 'infrastructure', url: 'https://www.competefor.com', note: 'Free portal where HS2 and other big programmes publish subcontract packages.' },
+  { name: 'UK Power Networks', group: 'infrastructure', url: 'https://www.ukpowernetworks.co.uk/our-company/suppliers-and-partners', note: 'Electricity network for London, South East and East. Tree cutting near lines is let to regional contractors who then subcontract.', needs: 'Achilles UVDB' },
+  { name: 'Environment Agency', group: 'infrastructure', url: 'https://www.gov.uk/government/organisations/environment-agency/about/procurement', note: 'Flood, river and habitat work. Frameworks and smaller contracts appear on Find a Tender; the collaborative delivery contractors subcontract locally.' },
+  { name: 'Transport for London', group: 'infrastructure', url: 'https://tfl.gov.uk/info-for/suppliers-and-contractors/become-a-tfl-supplier', note: 'How to become a TfL supplier. Direct contracts need RISQS and Ariba registration; most verge and station landscaping is let through their tier 1 contractors.' },
+
+  // Grounds maintenance and facilities contractors
+  { name: 'Ground Control', group: 'grounds', url: 'https://www.ground-control.co.uk/join-us/suppliers/', note: 'The biggest subcontracting grounds maintenance and arb business in the UK. Online supplier registration for mowing, tree, fencing, winter and pest work.' },
+  { name: 'Mitie Landscapes', group: 'grounds', url: 'https://www.mitie.com/suppliers/', note: 'Facilities giant with a landscapes arm. Supplier page; onboarding is by invitation once you are on their radar.' },
+  { name: 'idverde', group: 'grounds', url: 'https://www.idverde.co.uk', note: 'Council parks and grounds contracts across the UK. No portal; email tenders@idverde.co.uk with your trades and area.' },
+  { name: 'Glendale', group: 'grounds', url: 'https://www.glendale-services.co.uk', note: 'Grounds, tree and countryside contractor. Contact busdev@glendale-services.co.uk to register interest.' },
+  { name: 'Nurture Group', group: 'grounds', url: 'https://www.nurture-group.co.uk', note: 'Commercial grounds and winter services. Mostly self-delivered but takes on regional partners for peaks.' },
+
+  // Public landowners and estates
+  { name: 'Forestry England', group: 'landowner', url: 'https://www.forestryengland.uk/article/current-tenders', note: 'Tree planting, fencing, ground prep, civils and tree safety work let through their Panacea portal and district frameworks.' },
+  { name: 'Forestry and Land Scotland', group: 'landowner', url: 'https://forestryandland.gov.scot/business-and-services/procurement', note: 'Scottish forestry estate. Contracts published on Public Contracts Scotland.' },
+  { name: 'Natural Resources Wales', group: 'landowner', url: 'https://naturalresources.wales/about-us/what-we-do/strategies-and-plans/how-we-buy-what-we-need/?lang=en', note: 'Welsh forestry, flood and habitat work. Everything over 25k is advertised on Sell2Wales, with quick quotes below that.' },
+
   { name: 'Constructionline', group: 'scheme', url: 'https://www.constructionline.co.uk', note: 'The register most tier 1 contractors and many councils use. Gold level includes the common PQQ questions so you answer them once.', needs: 'Silver or Gold depending on the buyer' },
   { name: 'CHAS', group: 'scheme', url: 'https://www.chas.co.uk', note: 'Health and safety accreditation and SSIP member. Common with councils, housing associations and facilities companies.' },
   { name: 'SMAS Worksafe', group: 'scheme', url: 'https://www.smasltd.com', note: 'SSIP health and safety accreditation, often a cheaper route to an SSIP certificate.' },
@@ -86,6 +134,12 @@ export const SUPPLY_CHAINS: ChainLink[] = [
   { name: 'YPO', group: 'framework', url: 'https://www.ypo.co.uk', note: 'Public sector buying organisation with grounds and estates frameworks.' },
   { name: 'NEPO', group: 'framework', url: 'https://www.nepo.org', note: 'North East councils buying group. Uses the ProContract portal.' },
   { name: 'Scape', group: 'framework', url: 'https://www.scape.co.uk', note: 'Public sector construction frameworks. Find out which contractors hold them in your region.' },
+  { name: 'Supplier Development Programme', group: 'framework', url: 'https://www.sdpscotland.co.uk', note: 'Free Scottish programme that trains small firms to win public contracts and runs meet the buyer events.' },
+
+  // Homeowner and domestic lead schemes
+  { name: 'TrustMark', group: 'domestic', url: 'https://www.trustmark.org.uk', note: 'The government endorsed quality scheme for work around the home. Landscapers join through the Association of Professional Landscapers.' },
+  { name: 'Checkatrade', group: 'domestic', url: 'https://join.checkatrade.com', note: 'Paid directory with vetting and reviews. Strong for gardeners, fencing, paving, tree work and pest control.' },
+  { name: 'Which? Trusted Traders', group: 'domestic', url: 'https://for-traders.which.co.uk', note: 'Assessed endorsement scheme. Slower to join, but carries weight with homeowners.' },
 
   // News
   { name: 'Construction Enquirer', group: 'news', url: 'https://www.constructionenquirer.com', note: 'Regularly runs "subcontractors wanted" stories when contractors win big jobs and need packages priced.' },
