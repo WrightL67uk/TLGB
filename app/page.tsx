@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import VerifiedToggle from './VerifiedToggle';
 import { TRADES } from '@/lib/config';
+import { SUPPLY_CHAINS } from '@/lib/supplyChains';
+import { db } from '@/lib/supabase';
 import { comingSoon } from '@/lib/launch';
 import ComingSoon from './ComingSoon';
 
@@ -62,7 +64,8 @@ const CHECKS = [
   ['Reminders', 'Trades are emailed 30 days and 7 days before anything expires, so what you see stays current.'],
 ];
 
-function Home() {
+async function Home() {
+  const { count: openTenders } = await db().from('leads').select('id', { count: 'exact', head: true }).or(`deadline.is.null,deadline.gte.${new Date().toISOString()}`);
   return (
     <div className="landing">
       <section className="band hero-band">
@@ -97,10 +100,12 @@ function Home() {
           <Link href="/#checks" className="sq sq-outline">what we check</Link>
         </div>
         <div className="split-stat">
-          <span className="stat-num">{TRADES.length}</span>
-          <span className="stat-label">trade categories</span>
-          <span className="stat-num stat-num-sm">{CHECKS.length}</span>
-          <span className="stat-label">checks on every listing</span>
+          <div className="stat-grid">
+            <div><span className="stat-num">{TRADES.length}</span><span className="stat-label">trade categories</span></div>
+            <div><span className="stat-num">{CHECKS.length}</span><span className="stat-label">checks on every listing</span></div>
+            <div><span className="stat-num">{SUPPLY_CHAINS.length}</span><span className="stat-label">supply chain routes</span></div>
+            <div><span className="stat-num">{(openTenders ?? 0).toLocaleString('en-GB')}</span><span className="stat-label">live tenders</span></div>
+          </div>
         </div>
       </section>
 

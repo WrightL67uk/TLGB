@@ -156,9 +156,11 @@ input, select, textarea { font-weight: 400; }
 .split-text h2 { font-size: 2rem; margin: 0; }
 .split-text p { margin: 0 0 8px; font-size: 1.1rem; max-width: 680px; opacity: .95; }
 .split-stat { background: var(--leaf); color: #fff; display: grid; align-content: center; justify-items: center; text-align: center; padding: 40px 16px; }
-.stat-num { font-size: 4.5rem; font-weight: 800; line-height: 1; }
-.stat-num-sm { font-size: 3rem; margin-top: 18px; }
-.stat-label { font-size: 1.1rem; font-weight: 600; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px 24px; width: 100%; max-width: 440px; }
+.stat-grid > div { display: grid; justify-items: center; gap: 6px; }
+.stat-num { font-size: 3.4rem; font-weight: 800; line-height: 1; }
+.stat-label { font-size: 1rem; font-weight: 600; line-height: 1.2; }
+@media (max-width: 480px) { .stat-num { font-size: 2.6rem; } }
 
 .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; padding: 72px 0 64px; }
 .feature { display: grid; gap: 14px; align-content: start; }
