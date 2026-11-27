@@ -5,6 +5,7 @@ import { stripe, verifyWebhook, mapStatus, periodEnd } from '@/lib/stripe';
 import { emailAdminBilling, emailMemberPaymentFailed, emailAdminSupplier } from '@/lib/email';
 import { addCredits, getAgencyPlan } from '@/lib/agencies';
 import { PAID_STATUSES } from '@/lib/membership';
+import { recordCommission, reverseCommission } from '@/lib/partners';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -169,12 +170,24 @@ export async function POST(req: NextRequest) {
         if (subId) {
           const sub = await stripe('GET', `subscriptions/${subId}`);
           await applySubscription(sub);
+          // A member introduced by a partner earns that partner a commission on each paid invoice (not the free trial)
+          if (sub.metadata?.business_id && !sub.metadata?.agency_id && !sub.metadata?.supplier_id) {
+            const interval = sub.metadata?.interval === 'year' || sub.items?.data?.[0]?.price?.recurring?.interval === 'year' ? 'year' : 'month';
+            await recordCommission(obj, sub.metadata.business_id, interval);
+          }
           // Each paid year gives an agency its credits, once per invoice. Unused credits roll over.
           if (sub.metadata?.agency_id) {
             const plan = await getAgencyPlan();
             await addCredits(sub.metadata.agency_id, Number(sub.metadata.credits) || plan.credits, 'plan', String(obj.id), 'Annual plan');
           }
         }
+        break;
+      }
+      case 'charge.refunded': {
+        // A fully refunded payment takes the partner's commission for that invoice back. Best effort: if Stripe
+        // does not name the invoice on the charge, reverse it by hand in admin (Partners).
+        const invoiceId = typeof obj.invoice === 'string' ? obj.invoice : obj.invoice?.id;
+        if (invoiceId && obj.refunded) await reverseCommission(invoiceId, 'Payment refunded');
         break;
       }
       case 'invoice.payment_failed': {

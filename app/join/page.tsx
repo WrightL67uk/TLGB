@@ -7,6 +7,7 @@ import PromoVideo from '@/app/PromoVideo';
 import { CODE_COOKIE, describe, findCode, usable } from '@/lib/discounts';
 import { getPricing, bandsWithPrices, yearlySaving } from '@/lib/pricing';
 import { stripeEnabled } from '@/lib/stripe';
+import { findPartnerByCode, PARTNER_COOKIE } from '@/lib/partners';
 import '../plans.css';
 
 export const metadata = { title: 'List your business | TLGB' };
@@ -21,6 +22,9 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
   const raw = sp.code || (await cookies()).get(CODE_COOKIE)?.value;
   const found = raw ? await findCode(raw).catch(() => null) : null;
   const offer = found && usable(found.code, found.uses) ? found.code : null;
+  // A partner code (typed here, or from a partner's own link) is not a discount, but it is a valid code
+  const jar = await cookies();
+  const partner = offer ? null : await findPartnerByCode(sp.code || jar.get(PARTNER_COOKIE)?.value || raw, { approvedOnly: true }).catch(() => null);
   const pricing = await getPricing();
   const bands = bandsWithPrices(pricing).map(({ key, label }) => ({ key, label }));
   const membership = pricing.mode === 'membership';
@@ -103,7 +107,8 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
             <button type="submit">Use code</button>
           </form>
         )}
-        {sp.code && !offer && <p className="err">That code is not valid. Check it and try again.</p>}
+        {partner && <p className="ok-box">Introduced by <strong>{partner.name}</strong>. Thank you for joining through them.</p>}
+        {sp.code && !offer && !partner && <p className="err">That code is not valid. Check it and try again.</p>}
         <p className="small">Already signed up? <Link href="/login">Log in</Link>. Supply the trade? <Link href="/suppliers/join">See supplier plans</Link>. <Link href="/join">Back</Link>.</p>
       </div>
     );

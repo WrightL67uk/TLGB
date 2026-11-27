@@ -266,6 +266,7 @@ export default async function AdminQueue({ searchParams }: { searchParams: Promi
         <Link href="/admin/vacancies">Vacancies</Link>
         <Link href="/admin/admins">Admins</Link>
         <Link href="/admin/codes">Discount codes</Link>
+        <Link href="/admin/partners">Partners</Link>
         <Link href="/admin/prices">Prices</Link>
         <Link href="/admin/resources">
           Suppliers, enquiries and Help Hub

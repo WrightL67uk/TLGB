@@ -4,6 +4,7 @@ import { db } from '@/lib/supabase';
 import { TURNOVER_BANDS } from '@/lib/config';
 import { checkCompany } from '@/lib/companiesHouse';
 import { cleanCode, CODE_COOKIE } from '@/lib/discounts';
+import { partnerForSignup } from '@/lib/partners';
 import { canLogIn, passwordProblem, setPassword } from '@/lib/passwords';
 import { sameOrigin } from '@/lib/session';
 import { startSession } from '@/lib/roles';
@@ -63,6 +64,8 @@ export async function POST(req: NextRequest) {
   if (tradingName.length < 2) return fail('Enter your business name.');
 
   const ch = company && company.ok ? company : null;
+  // Who introduced them, if anyone: a partner link they followed, or a partner code they typed
+  const partner = await partnerForSignup(req);
   const { data: biz, error } = await db().from('businesses').insert({
     status: 'started',
     business_type: d.business_type,
@@ -77,6 +80,7 @@ export async function POST(req: NextRequest) {
     turnover_band: d.turnover_band,
     does_domestic: d.does_domestic === 'yes',
     signup_code: cleanCode(req.cookies.get(CODE_COOKIE)?.value) || null,
+    ...(partner ? { partner_id: partner.id, partner_at: new Date().toISOString() } : {}),
     ...(d.plan === 'free' ? { free_listing: true } : {}),
   }).select('*').single();
   if (error || !biz) {
