@@ -66,21 +66,26 @@ export async function findCode(code: string) {
 
 /** Makes the coupon and promotion code in Stripe for a code saved in our table. */
 export async function pushToStripe(c: DiscountCode) {
-  // A code that sets the price has nothing to make in Stripe: the price is set when the payment page opens.
-  if (!stripeEnabled() || c.kind === 'price') return c;
+  if (!stripeEnabled()) return c;
+  const { getPricing } = await import('@/lib/pricing');
+  const pricing = await getPricing();
+  // A code that sets the monthly price is applied exactly when it comes through our plan page. It is
+  // also mirrored into Stripe as money off (today's monthly price less the code price), so the same
+  // word works if someone types it into the box on Stripe's payment page instead.
+  const priceOff = c.kind === 'price' ? Math.round((pricing.membership.monthly - Number(c.value)) * 100) : 0;
+  if (c.kind === 'price' && priceOff <= 0) return c;
   // Stripe counts a coupon's months from the day the membership starts, free trial included.
   // A code that lasts a few months is meant as that many PAID months, so the trial is added on top.
-  let months = c.duration_months ?? 12;
+  let months = c.duration_months ?? (c.kind === 'price' ? 3 : 12);
   if (c.duration === 'repeating' && months < 12) {
-    const { getPricing } = await import('@/lib/pricing');
-    const trial = (await getPricing()).membership.trial_days;
+    const trial = pricing.membership.trial_days;
     if (trial > 0) months += Math.ceil(trial / 30);
   }
   let coupon = c.stripe_coupon_id;
   if (!coupon) {
     const made = await stripe('POST', 'coupons', {
       name: `${c.code}: ${describe(c)}`.slice(0, 40),
-      ...(c.kind === 'percent' ? { percent_off: Number(c.value) } : { amount_off: Math.round(Number(c.value) * 100), currency: 'gbp' }),
+      ...(c.kind === 'percent' ? { percent_off: Number(c.value) } : { amount_off: c.kind === 'price' ? priceOff : Math.round(Number(c.value) * 100), currency: 'gbp' }),
       duration: c.duration,
       ...(c.duration === 'repeating' ? { duration_in_months: months } : {}),
       metadata: { tlgb_code_id: c.id },
