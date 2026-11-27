@@ -65,7 +65,7 @@ const CHECKS = [
 ];
 
 async function Home() {
-  const { count: openTenders } = await db().from('leads').select('id', { count: 'exact', head: true }).or(`deadline.is.null,deadline.gte.${new Date().toISOString()}`);
+  const { count: openTenders } = await db().from('leads').select('id', { count: 'exact', head: true }).eq('kind', 'tender').or(`deadline.is.null,deadline.gte.${new Date().toISOString()}`);
   return (
     <div className="landing">
       <section className="band hero-band">
@@ -104,7 +104,7 @@ async function Home() {
             <div><span className="stat-num">{TRADES.length}</span><span className="stat-label">trade categories</span></div>
             <div><span className="stat-num">{CHECKS.length}</span><span className="stat-label">checks on every listing</span></div>
             <div><span className="stat-num">{SUPPLY_CHAINS.length}</span><span className="stat-label">supply chain routes</span></div>
-            <div><span className="stat-num">{(openTenders ?? 0).toLocaleString('en-GB')}</span><span className="stat-label">live tenders</span></div>
+            <div><span className="stat-num">{(openTenders ?? 0).toLocaleString('en-GB')}</span><span className="stat-label">open tenders</span></div>
           </div>
         </div>
       </section>
