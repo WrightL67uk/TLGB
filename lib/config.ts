@@ -92,6 +92,14 @@ export const ACCREDITATION_LIST: Accreditation[] = [
   { key: 'RoSPA Approved', label: 'RoSPA approved training provider', trades: ['training'], expires: true },
   { key: 'Ofqual recognised', label: 'Ofqual recognised awarding organisation', trades: ['training'], expires: false },
   { key: 'Arboricultural Association Approved Training', label: 'Arboricultural Association approved training', trades: ['training', 'arborist'], expires: true },
+  { key: 'RPII Examination Centre', label: 'RPII approved examination centre', trades: ['training'], expires: true },
+  { key: 'Highfield Approved Centre', label: 'Highfield approved centre', trades: ['training'], expires: true },
+  { key: 'Highfield Online Training', label: 'Highfield online training (e-learning) partner', trades: ['training'], expires: true },
+  { key: 'RPII Annual Inspector', label: 'RPII annual (outdoor) play inspector', trades: ['inspections'], expires: true },
+  { key: 'LANTRA Professional Tree Inspection', label: 'Lantra Professional Tree Inspection', trades: ['inspections', 'arb-consultant'], expires: false },
+  { key: 'IOSH / NEBOSH', label: 'IOSH or NEBOSH qualified (health and safety)', trades: ['inspections', 'consultancy'], expires: false },
+  { key: 'CMLI', label: 'Chartered Member of the Landscape Institute (CMLI)', trades: ['consultancy', 'landscape-architect'], expires: true },
+  { key: 'CIHort / MCIHort', label: 'Chartered Institute of Horticulture member', trades: ['consultancy', 'landscaper'], expires: true },
 ];
 
 export const ACCREDITATIONS = ACCREDITATION_LIST.map((a) => a.key) as [string, ...string[]];
@@ -138,6 +146,8 @@ export const TRADES: { slug: string; label: string }[] = [
   { slug: 'rail-highways', label: 'Rail and Highways Vegetation Management' },
   { slug: 'waste-muckaway', label: 'Waste, Skips and Muckaway' },
   { slug: 'pest-control', label: 'Pest Controller' },
+  { slug: 'consultancy', label: 'Consultant / Advisory Services' },
+  { slug: 'inspections', label: 'Inspection and Audit Services' },
 ];
 
 export const tradeLabel = (slug: string) =>

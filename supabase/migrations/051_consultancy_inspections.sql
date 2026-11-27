@@ -1,0 +1,1 @@
+insert into trade_categories (slug, label, sort_order) values ('consultancy', 'Consultant / Advisory Services', 148), ('inspections', 'Inspection and Audit Services', 149) on conflict (slug) do nothing;

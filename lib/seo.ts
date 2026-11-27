@@ -53,6 +53,8 @@ const PLURALS: Record<string, string> = {
  'rail-highways': 'rail and highways vegetation management contractors',
  'waste-muckaway': 'waste, skip and muckaway services',
  'pest-control': 'pest controllers',
+ 'consultancy': 'landscape and grounds consultants',
+ 'inspections': 'inspection and audit services',
 };
 export const tradePlural = (slug: string) => PLURALS[slug] ?? tradeLabel(slug).toLowerCase();
 
