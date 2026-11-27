@@ -58,6 +58,7 @@ const CHECKS = [
   ['Companies House', 'Limited companies are checked live against Companies House. Sole traders send a letterhead, which we check by hand.'],
   ['Public liability', 'Every listing has a certificate on file. When cover runs out, the listing comes out of search until it is renewed.'],
   ['Accreditations', 'CHAS, Constructionline, SMAS and the rest are shown with their expiry dates. Lapsed ones are removed.'],
+  ['Financial health', 'Companies House filings are checked for overdue accounts, strike-off notices and insolvency when a business applies, and again every week while it is listed.'],
   ['Reminders', 'Trades are emailed 30 days and 7 days before anything expires, so what you see stays current.'],
 ];
 
@@ -98,7 +99,7 @@ function Home() {
         <div className="split-stat">
           <span className="stat-num">{TRADES.length}</span>
           <span className="stat-label">trade categories</span>
-          <span className="stat-num stat-num-sm">4</span>
+          <span className="stat-num stat-num-sm">{CHECKS.length}</span>
           <span className="stat-label">checks on every listing</span>
         </div>
       </section>
