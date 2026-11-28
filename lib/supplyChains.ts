@@ -2,11 +2,12 @@
 // Every link was checked to be live in October or November 2026. Sign-up codes are the ones the
 // buyer published at the time and can change, so the page says so.
 
-export type ChainGroup = 'contractor' | 'housebuilder' | 'infrastructure' | 'grounds' | 'landowner' | 'scheme' | 'portal' | 'framework' | 'domestic' | 'news';
+export type ChainGroup = 'contractor' | 'housebuilder' | 'housing' | 'infrastructure' | 'grounds' | 'landowner' | 'scheme' | 'portal' | 'framework' | 'domestic' | 'news';
 
 export const GROUP_LABEL: Record<ChainGroup, string> = {
   contractor: 'Main contractors',
   housebuilder: 'Housebuilders',
+  housing: 'Housing associations, managing agents and open space companies',
   infrastructure: 'Highways, rail, utilities and water',
   grounds: 'Grounds maintenance and facilities contractors',
   landowner: 'Public landowners and estates',
@@ -19,6 +20,7 @@ export const GROUP_LABEL: Record<ChainGroup, string> = {
 
 export const GROUP_HELP: Record<ChainGroup, string> = {
   contractor: 'Tier 1 contractors. Most will only invite you to price once you are on their approved list, and most use Constructionline or their own portal to vet you first.',
+  housing: 'These are the people who actually hold the grounds maintenance, tree, fencing, cleaning and estate repair budgets, and most of them buy direct rather than through a big contractor. Housing associations have to advertise, so register on their portal and watch Find a Tender. Managing agents and open space companies appoint regional contractors on their own say-so, so a well put together introduction counts for a lot.',
   infrastructure: 'Clients and tier 1s on roads, rail, power and water. Verge and vegetation work, fencing, drainage, surfacing, ecology and tree work all run through these. Most need RISQS (rail) or Achilles UVDB (utilities) before they will talk to you.',
   grounds: 'The big grounds maintenance, arboriculture and facilities companies subcontract mowing, tree work, pest control, fencing and winter work regionally. Worth registering even if the page says they mostly self-deliver.',
   landowner: 'Forestry bodies, the Environment Agency and similar landowners let tree, fencing, habitat, drainage and civils work in regional lots that smaller firms can win directly.',
@@ -82,6 +84,27 @@ export const SUPPLY_CHAINS: ChainLink[] = [
   { name: 'Crest Nicholson', group: 'housebuilder', url: 'https://crestnicholson.com/supply-chain', note: 'Supply chain code of conduct and policies. Approach the regional commercial team to get on their list.' },
   { name: 'Places for People', group: 'housebuilder', url: 'https://www.placesforpeople.co.uk/help-support/suppliers/', note: 'Housing association and developer. Supplier pages, tender process and a windows, external works and direct build DPS on Find a Tender.' },
   { name: 'Keepmoat', group: 'housebuilder', url: 'https://www.keepmoat.com', note: 'Partnership housebuilder across the North and Midlands. No central portal; email supplychain@keepmoat.com with your trades and regions.' },
+
+  // Housing associations, managing agents and open space companies
+  { name: 'Anchor', group: 'housing', url: 'https://www.anchor.org.uk/about-anchor/become-supplier', note: 'England\'s largest later-living landlord, 1,700 sites. Register on the Anchor Supply Portal to be considered for grounds, tree and estate works tenders.' },
+  { name: 'FirstPort', group: 'housing', url: 'https://www.firstport.co.uk/about-us/contractors-suppliers/', note: 'The biggest residential managing agent in the UK. Contractor page with their accreditation process, H and S requirements and supplier portal guides.' },
+  { name: 'Clarion Housing Group', group: 'housing', url: 'https://www.clarionhg.com/about/tender-opportunities/', note: 'Largest housing association in the UK, 125,000 homes. Register on their e-sourcing portal for tenders and dynamic purchasing systems; supplier assurance runs through Achilles.' },
+  { name: 'L&Q', group: 'housing', url: 'https://www.lqgroup.org.uk/contact-us/supplying-goods-and-services-to-lq', note: 'London and South East, 95,000 homes. Free registration on their In-tend supplier portal; they publish a forward pipeline of what is coming up.' },
+  { name: 'Peabody', group: 'housing', url: 'https://peabodygroup.org.uk/about-us/who-we-are/business-with-us', note: 'London and the South East. Supplier compliance through Alcumus, tenders through Delta eSourcing.' },
+  { name: 'Notting Hill Genesis', group: 'housing', url: 'https://group.nhg.org.uk/about-us/partner-with-us/suppliers/', note: 'London. Lets gardening and cleaning in ten regional lots so smaller firms can bid. Tenders run on Delta eSourcing.' },
+  { name: 'Hyde Group', group: 'housing', url: 'https://www.hyde-housing.co.uk/corporate/suppliers/procurement-frameworks/', note: 'London and the South. Over 50 frameworks and a minor works DPS you can join at any time.', needs: 'Constructionline Bronze minimum' },
+  { name: 'Sanctuary', group: 'housing', url: 'https://www.sanctuary.co.uk/suppliers', note: 'England and Scotland, 250,000 people housed. Register on their ProContract portal; they publish a procurement pipeline PDF.' },
+  { name: 'Sovereign Network Group', group: 'housing', url: 'https://sng.org.uk/working-with-us/suppliers-and-procurement', note: 'South, South West and London. Supplier handbook and In-tend portal; around 4,000 suppliers and spend near 800m a year.' },
+  { name: 'The Riverside Group', group: 'housing', url: 'https://www.riverside.org.uk/about-us/procurement/', note: 'North West and national. Register on their In-tend portal; SSIP membership such as SafeContractor is expected.', needs: 'SSIP' },
+  { name: 'Platform Housing Group', group: 'housing', url: 'https://www.platformhg.com/platform-housing-group-procurement', note: 'Midlands, 48,000 homes. Register on their Proactis portal; 18 month procurement pipeline published.' },
+  { name: 'Your Housing Group', group: 'housing', url: 'https://yourhousinggroup.co.uk/about-us/become-a-supplier/', note: 'North West and Yorkshire. Become a supplier page and planned procurement notices on Find a Tender.' },
+  { name: 'Housing Procurement Portal', group: 'housing', url: 'https://www.housingprocurement.com', note: 'The shared ProContract portal used by Home Group, Orbit, The Guinness Partnership and dozens of other associations. One free registration covers all of them.' },
+  { name: 'Greenbelt Group', group: 'housing', url: 'https://www.greenbelt.co.uk', note: 'Owns and manages open space on over 1,000 new housing developments. Appoints regional grounds contractors directly; introduce yourself through mail@greenbelt.co.uk.' },
+  { name: 'Meadfleet', group: 'housing', url: 'https://www.meadfleet.co.uk', note: 'Open space management on 320 developments across England and Wales, run from Stevenage. Regional contract managers appoint local grounds subcontractors.' },
+  { name: 'Trinity Estates', group: 'housing', url: 'https://www.trinityestates.com', note: 'Residential managing agent based in Hemel Hempstead working with most national housebuilders. No portal; property managers appoint local contractors, so approach the regional office.' },
+  { name: 'Rendall and Rittner', group: 'housing', url: 'https://www.safecontractor.com/en-gb/insights/customer-success/case-study-rendall-and-rittner/', note: 'Managing agent for 90,000 homes. Vets every contractor through SafeContractor, so get that first and then approach their property managers.', needs: 'SafeContractor' },
+  { name: 'Savills Property Management', group: 'housing', url: 'https://www.savills.co.uk/services/property-management/supply-chain.aspx', note: 'Manages commercial estates, residential blocks and rural estates across the UK. Email ServicePartnerHub@savills.com to start Proactis registration.' },
+  { name: 'CBRE', group: 'housing', url: 'https://www.cbre.com/about-us/supply-chain/suppliers-supply-chain-technologies-and-registration', note: 'The largest commercial property and FM manager. Register interest on their supplier portal; onboarding proper is by invitation once a CBRE contact sponsors you.' },
 
   // Highways, rail, utilities and water
   { name: 'National Highways', group: 'infrastructure', url: 'https://nationalhighways.co.uk/suppliers/guide-for-new-and-prospective-suppliers/', note: 'Guide for new suppliers. Most soft estate, fencing and barrier work is let by their maintenance contractors, who are listed on the page.' },
